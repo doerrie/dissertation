@@ -1,0 +1,184 @@
+\chapter{Introduction}
+
+This dissertation considers the enforcement of confinement in capability-based systems.
+In capability-based systems satisfying a trivial requirement, a simple decision procedure is sufficient to determine whether a new subsystem, upon construction, will be confined. \cite{Hardy:KeyKOS:Factory:Patent}
+The requirement to support confinement is that the capability system architecture maintain a Harvard-style, type-based, or similarly enforced strong separation between capabilities and data.
+Most modern capability systems satisfy this requirement.
+However, there has been substantial controversy as to whether capability-based systems can enforce confinement.
+This dissertation definitively resolves this issue by providing the first axiom-free, mechanically verified proof that confinement is enforceable in the majority capability-based systems.
+
+\section{Confinement}
+\label{sect:intro:confinement}
+
+Lampson defined confinement in 1973 as the policy ensuring that a program ``cannot transmit information to any other program except its caller'' \cite{Lampson:ConfinementNote}.
+It has since been generalized to restrict the transmission of information only via authorized channels.
+A system structured to effectively exploit confined subsystems gives users and programs the ability to scope authority securely to the places it is needed.
+Such a system largely resolves the problem of ``agency,'' providing a structure in which a program wielding a user's authority can reasonably be known to act on behalf of the user, rather than some other potentially hostile party.
+The pervasive use of confinement in capability-based systems offers a strategy to provide defense-in-depth seldom realized in other systems.
+
+Therefore, in systems where it is feasible, confinement offers a useful and foundational security-structuring tool.
+Confinement straddles the mandatory/discretionary policy border: it is discretionary for an enforcing program and mandatory for the program being confined.
+Given a composable confinement mechanism, traditional security policies such as isolation, privilege separation, and Bell-LaPadula or multi-level security, may all be constructed by a trusted security manager application running in user-mode. \cite{Miller03paradigmregained} 
+Different portions of the system can operate under distinct security policies implemented by independent security managers, and mutually suspicious security managers can precisely limit the interaction of the subsystems under their control.
+High-level design patterns also emerge from confinement, often as the most straight-forward approach.
+For example, the ``Open File'' dialog can run under the authority of the user without giving the user's authority to the program requesting a file. \cite{StieglerMiller:DarpaBrowser}
+Similar approaches are major undertakings in systems unable to enforce confinement, such as OpenSSH privilege separation in Unix systems. \cite{Provos:PrivSep}
+
+While confinement is a useful primitive, there has been a great deal of concern as to whether confinement is enforceable.
+Lampson presented a system for which confinement is \emph{not} enforceable in his article ``Protection'' \cite{Lampson:Protection}.
+His system introduced the access control matrix, which portrays a static view of the system protection state, alongside a general permission-based semantics.
+The access control matrix structurally equates snapshots of systems using both capabilities and access control lists, and has long been incorrectly cited as evidence that both systems are equally expressive.
+Although the semantics accompanying Lampson's access control matrix render confinement impossible in Lampson's system, this is not evidence that it is impossible in sufficiently constrained systems, such as capability systems.
+
+Harrison, Ruzzo, and Ullman brought the enforceability of many security policies under fire.\cite{HRU1976}
+They argue that permission-based analysis of security is a necessary precondition for security of any sort.
+In a system where the propagation of permissions cannot be decidably constrained, no control over access and authority is possible.
+Their model defines the first formal presentation of the safety problem: the decidability of determining whether one security domain will come to hold an arbitrary permission to another.
+They demonstrated that the answer depends on the semantics of the system and is generally undecidable.
+Therefore, security policies must also be undecidable in the general case.
+The answer is \emph{decidable} for nearly all finite systems.
+Unfortunately, with the notable exception of capability-based systems, the majority of finite systems cannot prevent a permission transfer.
+It is critical for a safety result to be decidable and also to produce results that do not trivially defeat policy expression.
+
+Because capability-based systems are the only general-purpose systems known to satisfy the safety property, this dissertation is focused on the enforcement of confinement in capability-based systems.
+
+The most frequently cited argument against capability-based systems' ability to support security policies is Boebert's ``On the Inability of an Unmodified Capability Machine to Enforce the *-Property.'' \cite{Boebert:Unmodified}
+The *-property was introduced as part of the Bell-LaPadula access control model\cite{BellLaPadula}: a mathematical definition of multi-level security with categories in accordance with the TCSEC standards being simultaneously developed.\cite{TCSEC1985}
+The Bell-LaPadula model partitions the system into finite domains each labeled with a numeric clearance level and set of categories.
+Information motion in the Bell-LaPadula model is restricted according to the *-property: information at high level domains may not reach lower levels and information between categories is restricted by subset ordering.
+As a purely mandatory security policy, the *-property makes no mention of how permissions or authority change.
+Boebert argued that the *-property could not be enforced in unmodified capability systems, but omitted any definition of what unmodified capability systems were.
+In response, Kain and Landwehr defined a taxonomy of capability systems, including those to be considered unmodified, and reiterated Boebert's argument. \cite{Kain87onaccess}
+On the basis of these, the field largely abandoned capability systems as any system incapable of enforcing the *-property cannot enforce mandatory security policies.
+In retrospect, this abandonment was premature.
+
+Boebert's argument relies upon a common misconception when structuring capability systems:
+in systems where a subject holding a  ``read'' capability is authorized to fetch another capability, it is possible that the fetched capability authorizes ``write'' access to another object, violating certain transitive expectations of information flow.
+Boebert constructs a system with an omnipotent security oracle and places all objects in two security domains: Low and High.
+As a simplified case of the *-property, his security oracle must permit information to only move from Low to High and prevent flow from High to Low.
+He assumes that the security oracle must grant subjects (programs) in High ``read'' capabilities to objects in Low and must also grant subjects in Low ``write'' access to other objects in Low.
+A trojan horse in High may now ``read'' a ``write'' capability to Low and use this newly acquired capability to violate the *-property.
+Boebert claims that, at this point, if the oracle interferes in any way, the system is no longer an unmodified capability system.
+
+The two flaws with Boebert's argument are 1) unmodified capability-based systems do not exist in practice and 2) the security oracle in the example grants too much authority to enforce the *-property.
+Unmodified capability-based systems do not exist in practice because the system protection mechanism preserves a separation between data and capabilities that prevents usable capabilities from being transmitted though data channels.
+This is often preserved as a Harvard-style separation, but may also be managed through supervisor protection or type separation.
+Systems may safely reveal the bit-string of a capability to applications as long as capabilities cannot be fabricated from data.
+The ability to distinguish capabilities from data guarantees a security enforcing-application the opportunity to restrict capability transfers.
+
+Boebert's security oracle grants too much authority and does not implement appropriate operations for managing the *-property.
+If a ``read'' capability authorizes fetching a capability from another object, the security oracle should not be granting any capabilities between Low and High using his own example as proof.
+However, this is not sufficient evidence that the *-property cannot be preserved generally, but only for this system arrangement.
+Instead of an omniscient oracle, a simple security application should be placed between Low and High that prevents all capability transfers and permits information flow in precisely one direction.
+
+\section{Systems Providing Confinement}
+
+The first capability system to implement confinement in capability systems was PSOS: the provably secure operating system. \cite{Feiertag79psos}
+Confinement in PSOS was carefully phrased to avoid covert channels as ``there shall be no inferring of protected information.''
+Protected information was defined as information to which a domain does not possess a capability.
+The authors then claimed that inference of protected information was impossible given the invariant: ``The information that [domain] A has about some object for which A does not possess a capability (possibly belonging to the system) cannot increase by A calling any system function or any properly written [security-enforcing domain].''
+This invariant is met by PSOS because capabilities prevent direct access, the system offers no such function increasing authority, and properly written security applications have the ability restrict access as desired by restricting capability transfers.
+The PSOS Confined Subsystem Manager (CSM) enforces confinement by instantiating subsystems that can produce no outward communication with any domain other than their invoker and are incapable of retaining information between invocations.
+However, as a system whose principal concern was a strong mathematical foundation, little practical advice was given on how to structure a system around the CSM.
+
+The work of Hardy et al. provided a general, practical implementation of confinement in the KeyKOS capability operating system. \citeKeyKOS{}
+In KeyKOS, a Factory is the program charged with constructing new instances of a specific program, known as its yield, and attesting that their yield is confined. \cite{Hardy:KeyKOS:Factory:Patent}
+Factories in KeyKOS implemented a confinement test as a simple decision procedure invoked with respect to an authorized set of capabilities.
+A successful result indicated that all yields of the factory are confined only to the outward information flow present in the authorized capabilities.
+Absent any authorized capabilities, no outward information flow is authorized.
+By including a capability to authenticate Factories as part of the system's universal trusted code base, all programs could reliably determine if a Factory's yield was appropriately confined before requesting instantiation.
+This confinement mechanism has been carried forward into the EROS and Coyotos operating systems.
+
+Because Hardy's work was not widely known, the perceived failure of capability systems to enforce confinement went unchallenged in the literature until 2000 with the formulation of the SW model.\cite{ShapiroWeber2000}.
+Unfortunately, the verification in the SW model is flawed, and subsequent hand-executed verifications have erroneously arrived at negative results. \cite{Chander01astate-transition}
+Software continues to be developed and deployed to reason about high-level security policies in capability systems \cite{Spiessens07patternsof} \cite{seL4:Verified}.
+Until \TMmodelName{}, there has been no definitive resolution to the confinement question.
+
+\section[Confidence through Automated Verification]{Confidence through \\ Automated Verification}
+\label{sect:intro:confidence}
+
+The goal of this dissertation is to establish robust confidence in the ability of capability-based systems to enforce confinement.
+Confidence is the product of comprehension and observation.
+As there have been a number of capability-based systems built demonstrating practical implementations of confinement, this dissertation seeks to demonstrate the enforceability of confinement through rigor.
+While published proofs can increase confidence in system behavior, they have failed to do so in the case of confinement for capability-based systems.
+
+Proofs fail to produce confidence in a variety of ways.
+They may be overtly flawed in their specification or in their execution.
+Flaws of specification can either exist as an inability to model the actual system under examination or by misstating the problem goal.
+Due to the nature of examining complex models, proof execution flaws can be very difficult to discover and may go unnoticed for many years. \cite{GutmannThesis}
+Even when no flaws have been uncovered, confidence in proofs remains inversely proportional to their complexity.
+This has undermined confidence in existing proofs of the enforceability of security policies in many systems, including capability-based systems.
+
+Machine-checked verification is used to improve confidence in proofs by increasing rigor while simultaneously decreasing the material checked by review.
+Though reviewers are still obligated to comprehend the model definitions and assumptions, and the problem statement, they may forgo comprehension of the proof execution.
+Instead, reviewers may infer confidence in the proof execution from existing confidence in an automated proof assistant.
+Additionally, the formal rigor necessary to present a proof in a machine-manipulable form is substantially higher than with traditional proofs, further increasing confidence.
+
+Unfortunately, mechanized proofs also introduce a host of issues impeding confidence.
+The same formal rigor required to construct a proof in a computational system can also decrease confidence as theorems and definitions become increasingly obscure.
+Proof developers are more prone to introduce specification flaws as they attempt to ease proof obligations.
+Model embeddings often axiomatize assumptions in ways that can also undermine confidence.
+
+By increasing confidence via decreasing complexity for reviewers, the largest gains from automated verification can be made where proof execution is most complex.
+However, the very complexity of these proofs makes them difficult to mechanically produce and check.
+This often drives developers to construct models and problem statements that are easier to verify.
+Unfortunately, the portions of a system most amenable to verification are those which benefit confidence least.
+Multiple proofs have been performed with the effect of separating a few system concerns \cite{Karger90avmm}\cite{Yang:2010:SLI}, but rarely discussing system policy and those that do have sometimes mischaracterized the problem  \cite{Elphinstone:formalisingukernel}.
+
+Proof developers are also tempted to encapsulate complex problems as axioms, which erodes confidence by increasing complexity.
+Axioms are an exceptionally powerful mechanism for theory abstraction but can inadvertently introduce all possible specification flaws.
+They may hide issues of decidability and construction in seemingly plausible declarations.
+They may also interact with core logic or other axioms in unanticipated ways, producing constrained forms of inconsistency.
+Many error patterns become impossible when concrete definitions are provided, and this further reduces complexity.
+
+The safety property and confinement proofs are mission-critical properties of capability-based systems that have been controversial in the literature.
+Both properties are excellent candidates for automated verification as each is a simple property with far-reaching consequences.
+The safety property is a necessary precondition for any information flow security policy, and it is decidable in capability-based systems.
+Confinement is a complex and pervasive policy in any system, yet the confinement test is simple a decision procedure in capability-based systems.
+As confinement forms the primitive for agency and security in capability-based systems, it is unclear whether other policies can be enforced without confinement.
+Therefore, this dissertation establishes robust confidence in the safety property and confinement for capability-based systems through automated verification.
+
+\section{This Dissertation}
+
+This dissertation presents \TMmodelName{}: a formal, general, and extensible system model for a broad class of capability-based systems.
+Most capability systems can be encoded using \TMmodelName{}'s primitives, including the Chicago Magic Number Machine \cite{Fabry:1974}, KeyKOS \cite{Hardy:KeyKOS}, EROS \cite{EROS} \cite{Shapiro97eros}, Coyotos \cite{Coyotos}, and seL4 \cite{Klein_AEMSKH_14}.
+
+The first contribution of this dissertation is a mechanical proof of the safety property for capability-based systems.
+It defines a decidable function computing \term{potential access} and describes how potential access may evolve over system operations.
+The proof that the potential access of the system is attenuating is a demonstration of the safety property for any capability-based system satisfying this model.
+
+The second contribution of this dissertation is the construction of a least upper bound on potential information flow in capability systems.
+All information flow stems directly from permissions and the conservative approximations for permissions do not transitively alter information flow.
+Therefore, the attenuation of authority is directly extended across all operations to place a useful upper bound on information flow.
+
+The third contribution of this dissertation is providing the first mechanical verification that capability-based systems support confinement.
+The confinement test is embedded as a post-condition of subsystem construction and includes a set of authorized capabilities.
+The arrangement of all possible subsystems arising from the authorized set is also defined.
+\TMmodelName{} then demonstrates the correctness of the confinement test by verifying that the mutability of all possible authorized subsystems is a subset of the mutability of any subsystem passing the confinement test.
+
+The fourth contribution of this dissertation is providing an axiom-free proof.
+Axioms are a source of deep concern for any verification as they can directly encode direct impossibilities or interact with other definitions to produce inconsistencies.
+To relieve readers from the burden of unresolved proof obligations and thereby increase confidence in the result, \TMmodelName{} ensures that every abstraction can be concretized.
+
+A distinguishing characteristic of \TMmodelName{} is that the definition of confinement is not embedded into the system model itself.
+Instead, \TMmodelName{} offers the ability to embed the behavior of security-enforcing applications by predicating operation sequences directly in the proof environment.
+This permits developers to closely model the behavior of applications in the trusted computing base, which is leveraged as part of the confinement verification.
+\TMmodelName{} also includes internal object structure pertaining to capabilities permitting future predicates to directly model named capability invocation.
+
+\TMmodelName{} considers only overt confinement. Covert channels are not addressed.
+In systems with covert channels, it is possible to transmit information around permission boundaries.
+Mechanisms for mitigating or eliminating covert channels do not follow permission-based reasoning as they usually involve timing attacks.
+Therefore, \TMmodelName{} does not consider the impact of covert leakage.
+Mitigation of covert leakage is taken as an orthogonal problem.
+
+This dissertation is structured in four main sections.
+\Cref{ch:constructor} discusses how confinement is constructed in capability-based systems.
+The work featured herein is a part of the Coyotos project and \Cref{ch:constructor} casts confinement in that light.
+\Cref{ch:sketch} presents the confinement verification as an informal but intuitive mathematical model to provide the scaffolding in the mechanical verification.
+\Cref{ch:coq} addresses verification as a tool and presents Coq \cite{bertot-casteran-04} as a tool for building proofs.
+It also covers some of the pragmatic issues encountered while using Coq to perform this verification.
+A high-level walk-through of the verification in Coq is presented in \Cref{ch:embed,ch:access,ch:safety,ch:flow,ch:confinement}.
+\Cref{ch:corr} describes how \TMmodelName{} can be applied to existing and future systems.
+\Cref{ch:future} discusses future work while related work is covered in \Cref{ch:related,ch:SW}, with \Cref{ch:SW} focusing on \TMmodelName{}'s relationship with the SW verification.
+This dissertation concludes with a review of the work in \Cref{ch:review}.
+

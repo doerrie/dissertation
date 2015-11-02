@@ -1,0 +1,25 @@
+\newcommand{\COQDOCexecuteDef}[0]{
+\begin{coqdoccode}  
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{execute\_def} \coqdocvar{s}: \coqdocvar{list} \coqdocvar{Sem.operation} \ensuremath{\rightarrow} \coqdocvar{Sys.t} \ensuremath{\rightarrow} \coqdockw{Prop} :=\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{execute\_nil}: \coqdockw{\ensuremath{\forall}} \coqdocvar{s'}, \coqdocvar{Sys.eq} \coqdocvar{s} \coqdocvar{s'} \ensuremath{\rightarrow} \coqdocvar{execute\_def} \coqdocvar{s} \coqdocvar{nil} \coqdocvar{s'}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{execute\_cons} : \coqdockw{\ensuremath{\forall}} \coqdocvar{op} \coqdocvar{tail} \coqdocvar{s'},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{execute\_def} \coqdocvar{s} \coqdocvar{tail} \coqdocvar{s'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{s''}, \coqdocvar{Sys.eq} (\coqdocvar{Sem.do\_op} \coqdocvar{op} \coqdocvar{s'}) \coqdocvar{s''} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{execute\_def} \coqdocvar{s} (\coqdocvar{op} :: \coqdocvar{tail}) \coqdocvar{s''}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCexecuteSpec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{execute\_spec} : \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{s'} \coqdocvar{op\_list}, \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{execute\_def} \coqdocvar{s} \coqdocvar{op\_list} \coqdocvar{s'} \ensuremath{\leftrightarrow} \coqdocvar{Sys.eq} (\coqdocvar{execute} \coqdocvar{s} \coqdocvar{op\_list}) \coqdocvar{s'}.\coqdoceol
+\end{coqdoccode}
+}

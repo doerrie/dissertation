@@ -1,0 +1,967 @@
+
+\chapter{Proof Sketch}
+\label{ch:sketch}
+
+This chapter contains a high-level proof sketch to assist the reader while examining the comprehensive proof of \TMmodelName{}.
+It provides simplified versions of key definitions and theorems that cover a wide range of capability-based systems.
+The use of mechanically manipulable specifications is eschewed in favor of familiar, hand-written mathematics.
+The proof sketch starts by describing an abstract form of the model structures in \TMmodelName{}.
+It then presents the model semantics as state updates along with the potential for data motion.
+Possible system states and information flow that can happen within the system are defined inductively over sequences of these operations.
+
+The first major theorem presented is the safety property from \Cref{sect:intro:confinement}.
+This is accomplished using a simplified structure of systems, the \term{\TMaccessGraph}, that reduces complexity to access between objects.
+Using \TMaccessGraphs{}, this sketch defines \term{\TMdirAcc} and \term{\TMpotAcc} as the access that is present in the system and that which maximally can be present in the future. 
+Finally, it defines functions that conservatively approximate both direct and potential access over the model operations and uses these functions to demonstrate that the potential permissions for pre-existing objects never increases over the life of the system, a property called \term{attenuating permissions}.
+Because \TMpotAcc{} is attenuating in \TMmodelName{}, it consequently answers the safety question.
+
+The confinement test does not examine the entire system, but only the capabilities to be placed in constructed subsystem.
+The safety property provides an upper bound on permissions, but does not directly yield an upper bound on information flow.
+The next major theorem demonstrates that potential access can produce a conservative approximation of potential information flow.
+This proof opens with an inductive definition of what is \term{\TMmutated} in the system and defines a simple predicate for deciding what is \term{\TMmutable} using access graphs.
+It then demonstrates that the actual mutation of the system is bounded by potential mutability and shows that potential mutability between existing objects can never increase.
+Next, this sketch introduces the confinement problem as a whole-system post-condition.
+Finally, it introduces a representation of the confinement property using \TMaccessGraphs{} and demonstrate that if the post-condition is satisfied, the subsystem must be confined.
+
+\section{System State}
+
+\begin{figure}
+  \centering
+    \[
+    \begin{array}{rcl}
+      \NMaccessRights{} & \equiv & \{\NMtx{} , \NMwr{} , \NMrd{} , \NMwk{} \} \\
+      \NMcaps{} & \equiv & \NMrefs{} \times \NMaccessRightSet{} \\
+      \NMobjs{}  & : & \NMidxs{} \rightarrow \NMcaps{} \\
+      \NMobjLabels{} & \equiv & \{\NMunborn{} , \NMalive{} , \NMdead{}\} \\
+      \NMobjTypes{} & \equiv & \{\NMactive{} , \NMpassive{}\} \\
+      \NMsystemStates{} & : & \NMrefs{} \rightarrow \NMobjs{} \times \NMobjLabels{} \times \NMobjTypes{}
+    \end{array}
+    \]
+  \caption{Relevant definitions for \TMsystemStates{}. \label{fig:sketch:systemState}}
+\end{figure}
+
+\begin{figure}
+  \centering
+    \begin{tikzpicture}[auto]
+      \matrix[column sep=30mm, row sep=15mm, ampersand replacement=\&] (diagmatrix) {
+        \node [objectUnborn] (e)   {\(e\)}; \&
+        \node [objectAlive] (a)  {\(a\)}; \&
+        \node [objectAlive] (b)  {\(b\)}; \&
+        \node [objectDead] (d) {\(d\)};
+        \\
+        \node [subjectUnborn] (i)  {\(i\)}; \&
+        \node [subjectAlive] (f)  {\(f\)}; \&
+        \node [subjectAlive] (g)  {\(g\)}; \&
+        \node [subjectDead] (h)   {\(h\)};
+        \\[-15mm]  %% hack for creating a node for the next matrix.
+        \node [invisSubject] (Bot) {};
+        \\
+      };
+
+      \begin{scope}[yshift=-30mm] %% this is a hack.
+      
+        \matrix[column sep=3mm, row sep=2mm, ampersand replacement=\&]  {
+          \node [invisObject, minimum size=5mm] (objectLabel) {\NMpassive}; \&
+          \node [invisObject, minimum size=5mm] (subjectLabel)   {\NMactive}; \&
+          
+          \\
+          \node [objectUnborn,minimum size=5mm] (unbornObject)  {}; \&
+          \node [subjectUnborn,minimum size=5mm] (unbornSubject)  {}; \&
+          \node [invisObject,minimum size=5mm] (unbornLabel) {\NMunborn}; \&
+          \node [invisObject,minimum size=5mm] (leftValid) {}; \&[+8mm]
+          \node [invisObject,minimum size=5mm] (rightValid) {}; \&
+          \node [invisObject,minimum size=5mm] (validLabel) {valid capability};
+          \\
+          \node [objectAlive,minimum size=5mm] (aliveObject)  {}; \&
+          \node [subjectAlive,minimum size=5mm] (aliveSubject)  {}; \&
+          \node [invisObject,minimum size=5mm] (aliveLabel) {\NMalive}; \&
+          \node [invisObject,minimum size=5mm] (leftInvalid) {}; \&[+8mm]
+          \node [invisObject,minimum size=5mm] (rightInvalid) {}; \&
+          \node [invisObject,minimum size=5mm] (invalidLabel) {invalid capability};
+          \\
+          \node [objectDead,minimum size=5mm] (deadObject)  {}; \&
+          \node [subjectDead,minimum size=5mm] (deadSubject)  {}; \&
+          \node [invisObject,minimum size=5mm] (deadLabel) {\NMdead};
+          \\
+        };
+
+      \end{scope}
+
+      
+      \draw [capArrow] (a) edge [bend left=15] node[midway,above] {\(\{\NMwk{}\}\)} node[very near start,above] {1} (b);
+      \draw [capArrow] (a) edge [bend right=15] node[midway,below] {\(\{\NMwk{},\NMrd{}\}\)} node[very near start,below] {2} (b);
+      \draw [capArrowInvalid] (a) edge [bend left=15] node[midway,below] {\(\{\NMwk{},\NMrd{},\NMwr{}\}\)} node[very near start,below] {1} (e);
+      
+      \draw [capArrow] (b) edge  node[midway,above,left] {\(\{\NMrd{},\NMwr{},\NMtx{}\}\)} node[very near start,right] {1} (g);
+      \draw [capArrowInvalid] (b) edge  node[midway,above] {\(\{\NMrd{},\NMtx{}\}\)} node[very near start,above] {2} (d);
+      
+      \draw [capArrowInvalid] (e) edge [bend left=15] node[midway,above] {\(\{\NMwk{},\NMrd{}\}\)} node[very near start,above] {1} (a);
+      
+      \draw [capArrowInvalid] (h) edge  node[pos=0.3,sloped] {\(\{\NMwr{},\NMtx{}\}\)} node[pos=0.05,sloped] {1} (b);
+
+      \draw [capArrow] (leftValid) edge (rightValid);
+      \draw [capArrowInvalid] (leftInvalid) edge (rightInvalid);
+    \end{tikzpicture}
+  \caption{Example system state. \label{fig:sketch:exampleState}}
+\end{figure}
+
+
+The permission state of a capability-based system at any instant is modeled by a \term{\TMsystemState} in \TMmodelName{}.
+A \TMsystemState{} is represented as a finite map of finite maps defined in \Cref{fig:sketch:systemState}.
+Each \term{\TMref} is mapped to an \TMobj{}, \TMobjLabel{}, and \TMobjType{}; each \term{\TMobj} is a map from an \TMidx{} to a \TMcap{}.
+An \TMobj{}'s \term{type} indicates whether it is a process or passive storage.
+An \TMobj{}'s \term{label} captures a section of its life-cycle, which is permitted to transition only from \NMunborn{} to \NMalive{} and \NMalive{} to \NMdead{}.
+\Term{\TMidxs} label the cells within an object, which contain \TMcaps{}.
+A \term{\TMcap} consists of a target \TMref{} and a set of \TMaccessRights{}.
+
+The \term{\TMaccessRights} (or permissions) in the system are \NMrd{}, \NMwr{}, \NMwk{}, and \NMtx{}.
+\xmakefirstuc{\TMaccessRights} are checked as part of the preconditions for the semantic \TMops{} in \Cref{sect:sketch:semantics}.
+The \NMrd{} and \NMwr{} permissions enable the ability to directly read or write information in the target.
+The \NMwk{} permission is a sub-type of the \NMwk{} permission that authorizes transitive read-only authority.
+The \NMtx{} \TMaccessRight{} authorizes message passing containing both \TMcaps{} and data along with an optional reply capability.
+
+\TMmodelName{} does not explicitly represent object data or intra-object computation.
+Because all possible operation sequences will be analyzed, tracking which data are moving is unnecessary.
+The model only tracks which objects could be \emph{modified} by the motion of data.
+
+When diagramming a \TMsystemState{}, the convention herein uses the shape of the \TMobj{} to indicate the \TMobjsType{} and style to represent life-cycle.
+\xmakefirstuc{\TMactive{}} \TMobjs{} (processes) are circles and \TMpassive{} storage \TMobjs{} are squares.
+\xmakefirstuc{\TMobjs{}} with solid borders are \NMalive{}, objects with dashed borders are \NMunborn{}, and gray objects are \NMdead{}.
+\xmakefirstuc{\TMcaps{}} are represented as arrows within the graph, each \TMcap{} is labeled with their \TMaccessRightSet{} along the arc center.
+For clarity, \TMcaps{} that are permitted structurally but which have no semantic interpretation are given a dashed line to differentiate them from semantically relevant \TMcaps{}.
+The \TMidx{} at which each \TMcap{} is stored is denoted along its arc close to the \TMobj{}.
+An example is included in \Cref{fig:sketch:exampleState}.
+
+\section{Semantics}
+\label{sect:sketch:semantics}
+
+The \TMsystemState{} evolves by executing a sequence of \term{\TMops{}} through which data and \TMcaps{} may flow.
+Each \term{\TMop} is defined in three parts: a precondition, a transformation of system state, and an upper bound on information flow.
+\Cref{fig:sketch:preconditions} the preconditions that expresses the sanity requirements for each \TMop{} to ensure safety.
+In particular, processes can only specify the target of an \TMop{} by invoking a \TMcap{} at a specific \TMidx{}.
+These preconditions also check this \TMcap{} for the presence of a necessary \TMaccessRight{}, capturing an access control decision.
+Therefore, a \TMsystemState{} transition and potential data flow occur only when the precondition is satisfied.
+
+The operation state transitions are defined in \Cref{fig:sketch:operations}.
+The notation \FNsingleOp{S}{op}{S'} indicates that executing \(op\) in \TMsystemState{} \(S\) results in state \(S'\).
+Executing a sequence of operations is represented by the notation \(S_0 \FNopTail{\NMop_{m-1}}{S_{m-1}} \FNopHead{\NMop_m}{S_m}\).
+
+Information flow is modeled using the \NMreadFrom{} and \NMwroteTo{} functions defined in \Cref{fig:sketch:flow}.
+During a successful operation, data may potentially flow from each of the objects in the \NMreadFrom{} function to the objects named by \NMwroteTo{}.
+While each operation varies with respect to its target, the model presumes that the \TMacting{} subject of an \TMop{} is always in the \NMreadFrom{} set.
+
+Operations should be considered traces of system execution and do not represent system calls.
+For example, in real systems, the \term{\TMsend{}} \TMop{} contains a managed rendezvous between the sender and recipient.
+The \TMacting{} subject performing a \TMsend{} \TMop{} specifies which \TMcaps{} and data should be transmitted, but the recipient indicates where they should be placed.
+Also, processes in real systems do not choose, and cannot observe, which new object is allocated; the system selects it on their behalf.
+
+\Cref{fig:sketch:helperFunctions} defines some commonly used functions, though the following have been omitted for brevity.
+\NMmkCap{} constructs a new capability.
+\NMcapTx{} inductively copies capabilities by examination of a list of \TMidx{} pairs where the source is the first argument and the target is the second.
+Each operation has an \TMacting{} subject, labeled \(a\) in the definitions, and is selected by the \NMactor{} function.
+The \NMremoveCapsByRef{} function removes all capabilities naming a specific reference front the system and is used to sanitize the system before allocating an \TMobj{}.
+Maps are sets and the notation \mapsTo{k}{v}{M} indicates that \(k\) is mapped to \(v\) in map \(M\).
+When examining a map, an underscore ``\ident{\_}'' will indicate that the value is ignored.
+An asterisk ``\noident{*}'' used while updating a map leaves the previous value unaltered and map erasure is indicated using epsilon ``\(\epsilon\)'' for the value.
+
+These figures use many common symbols; the relevant ones are listed here.
+\xmakefirstuc{\TMrefs} are often labeled by a single character \ident{o}, \ident{a} when it is the reference to the acting object, or \ident{n} for a new \TMref{}.
+The variables \ident{src} and \ident{tgt} are also used to denote \TMrefs{} in appropriate contexts.
+The \TMobjs{} themselves are often simply \ident{obj}, or \ident{aObj} for the acting object.
+Generic \TMidxs{} are labeled \ident{i}.
+When they identify the \TMcap{} being invoked, they are labeled \ident{t} as they name the target \TMobj{}.
+When being accessed by the \TMcap{} at \ident{t}, they are also labeled \ident{c}.
+Maps represented as lists of \TMidx{} pairs are often represented by \ident{m}, though later sections will use this for mutation.
+\xmakefirstuc{\TMsystemStates} are denoted by \ident{S}, and \TMaccessGraphs{} denoted by \ident{I} and \ident{A}.
+\ident{P} often denotes a \TMpotAccAG{} and \ident{D} ranges over \TMdirAccAGs{}.
+
+\msdnote{Leters are updated.}
+
+\begin{figure}
+  \[
+  \begin{array}{rcl}
+    \FNhasRight{o}{i}{S}{r} & \equiv & \exists \ident{obj}, \mapsTo{o}{(\ident{obj},\ident{\_} ,\ident{\_})}{S} \wedge \\
+    & & \exists \ident{tgt},\ident{arset}, \mapsTo{i}{\FNmkCap{\ident{tgt}}{\ident{arset}}}{\ident{obj}} \wedge \\
+    & & r \in \ident{arset} \\
+    \FNisLabel{o}{S}{l} & \equiv & \mapsTo{o}{(\ident{\_} , l , \ident{\_})}{S} \\
+    \FNisUnborn{o}{S} & \equiv & \FNisLabel{o}{S}{\NMunborn} \\
+    \FNisAlive{o}{S} & \equiv & \FNisLabel{o}{S}{\NMalive} \\
+    \FNisAlive{o}{S} & \equiv & \FNisLabel{o}{S}{\NMdead} \\
+    \FNisType{o}{S}{\ident{typ}} & \equiv & \mapsTo{o}{(\ident{\_} , \ident{\_} , \ident{typ})}{S} \\
+    \FNisActive{o}{S} & \equiv & \FNisType{o}{S}{\NMactive} \\
+    \FNtargetIsAlive{o}{i}{S} & \equiv & \exists \ident{obj}, \mapsTo{o}{(\ident{obj},\ident{\_} ,\ident{\_})}{S} \wedge \\
+    & & \exists \ident{tgt}, \mapsTo{i}{\FNmkCap{\ident{tgt}}{\ident{\_}}}{\ident{obj}} \wedge \\
+    & & \FNisAlive{\ident{tgt}}{S} \\
+    \FNpreReqActor{a}{S} & \equiv & \FNisAlive{a}{S} \wedge \FNisActive{a}{S} \\
+    \FNpreReqCommon{a}{t}{S} & \equiv & \FNpreReqActor{a}{S} \wedge \FNtargetIsAlive{a}{t}{S} \\
+    \FNobjTarget{o}{t}{S} = \ident{tgt} & \iff & \mapsTo{o}{(\ident{obj},\ident{\_} ,\ident{\_})}{S} \, \wedge \mapsTo{t}{\FNmkCap{\ident{tgt}}{\ident{arset}}}{\ident{obj}} \\
+    \FNhasCap{\ident{o}}{\ident{cap}}{S} & \equiv & \mapsTo{o}{\ident{obj}}{S} \wedge \exists i, \mapsTo{i}{\ident{cap}}{\ident{obj}} \\
+    \FNreplyCap{obj}{i}{o} & \equiv & \ident{obj}[i \mapsto \FNmkCap{o}{\{\NMtx\}} ]
+  \end{array}
+  \]
+  \caption{Helper functions. \label{fig:sketch:helperFunctions}}
+\end{figure}
+
+%% ident inserted this far.
+
+\begin{figure}
+  \[
+  \begin{array}{rcl}
+    \FNpreReq{\FNread{a}{t}}{S} & \equiv &  \FNpreReqCommon{a}{t}{S} \wedge \\
+    & & (\FNhasRight{a}{t}{S}{\NMrd} \vee \FNhasRight{a}{t}{S}{\NMwk}) \\
+    \FNpreReq{\FNwrite{a}{t}}{S} & \equiv & \FNpreReqCommon{a}{t}{S} \wedge \FNhasRight{a}{t}{S}{\NMwr} \\
+    \FNpreReq{\FNfetch{a}{t}{c}{i}}{S} & \equiv & \FNpreReqCommon{a}{t}{S} \wedge \\
+    & & (\FNhasRight{a}{t}{S}{\NMrd} \vee \FNhasRight{a}{t}{S}{\NMwk}) \\
+    \FNpreReq{\FNstore{a}{t}{c}{i}}{S} & \equiv & \FNpreReqCommon{a}{t}{S} \wedge \FNhasRight{a}{t}{S}{\NMwr} \\
+    \FNpreReq{\FNrevoke{a}{t}{c}}{S} & \equiv & \FNpreReqCommon{a}{t}{S} \wedge \FNhasRight{a}{t}{S}{\NMwr} \\
+    \FNpreReq{\FNdestroy{a}{t}}{S} & \equiv & \FNpreReqCommon{a}{t}{S} \wedge \FNhasRight{a}{t}{S}{\NMwr} \\
+    \FNpreReq{\FNcreate{a}{n}{m}{\ident{typ}}}{S} & \equiv & \FNpreReqActor{a}{S} \wedge \FNisUnborn{n}{S} \\
+    \FNpreReq{\FNsend{a}{t}{m}{x}}{S} & \equiv & \FNpreReqCommon{a}{t}{S} \wedge \FNhasRight{a}{t}{S}{\NMtx} \\
+      \FNweaken{\FNmkCap{\ident{tgt}}{\ident{arset}}} & \equiv & \left\{
+      \begin{array}{rcl}
+        \NMwk & | & \{\NMwk, \NMrd\} \cap \ident{arset} \neq \emptyset \\
+        \emptyset & | & \text{otherwise}
+      \end{array}
+      \right.\\
+  \end{array}
+  \]
+  \caption{Operation preconditions. \label{fig:sketch:preconditions}}
+\end{figure}
+
+\begin{figure}
+  \[
+  \begin{array}{rclll}
+    \FNsingleOp{S}{\FNread{a}{t}}{S'} & \iff & \multicolumn{3}{l}{S' = S} \\
+    \FNsingleOp{S}{\FNwrite{a}{t}}{S'} & \iff & \multicolumn{3}{l}{S' = S} \\
+    \FNsingleOp{S}{\FNfetch{a}{t}{c}{i}}{S'} & \iff & \multicolumn{3}{l}{\mapsTo{a}{\ident{aObj}}{S} \, \wedge} \\
+    & & \multicolumn{3}{l}{\mapsTo{t}{\ident{tCap}}{\ident{aObj}} \wedge} \\
+    & & \multicolumn{3}{l}{\ident{tgt} = \FNobjTarget{a}{t}{S} \, \wedge} \\
+    & & \multicolumn{3}{l}{\mapsTo{\ident{tgt}}{\ident{tObj}}{S} \, \wedge} \\
+    & & \multicolumn{3}{l}{\mapsTo{c}{\ident{cap}}{\ident{aObj}} \, \wedge} \\
+    & & \multicolumn{3}{l}{\ident{cap'} = \text{if } \NMrd \in \ident{tCap} \text{ then } \ident{cap} \text{ else } \FNweaken{\ident{cap}} \, \land} \\ 
+    & & \multicolumn{3}{l}{S' = S[\ident{tgt} \mapsto (\ident{tObj}[i \mapsto \ident{cap'}],\noident{*},\noident{*} ]} \\
+    \FNsingleOp{S}{\FNstore{a}{t}{c}{i}}{S'} & \iff & \multicolumn{3}{l}{\mapsTo{a}{\ident{aObj}}{S} \, \wedge} \\
+    & & \multicolumn{3}{l}{\ident{tgt} = \FNobjTarget{a}{t}{S} \, \wedge} \\
+    & & \multicolumn{3}{l}{\mapsTo{\ident{tgt}}{\ident{tObj}}{S} \, \wedge} \\
+    & & \multicolumn{3}{l}{\mapsTo{c}{\ident{cap}}{\ident{tObj}} \, \wedge} \\
+    & & \multicolumn{3}{l}{S' = S[a \mapsto (\ident{aObj}[i \mapsto \ident{cap}],\noident{*},\noident{*}) ]} \\
+    \FNsingleOp{S}{\FNrevoke{a}{t}{c}}{S'} & \iff & \multicolumn{3}{l}{\ident{tgt} = \FNobjTarget{a}{t}{S} \wedge} \\
+    & & \multicolumn{3}{l}{\mapsTo{\ident{tgt}}{\ident{tObj}}{S} \, \wedge} \\
+    & & \multicolumn{3}{l}{S' = S[\ident{tgt} \mapsto (\ident{tObj}[c \mapsto \epsilon],\noident{*},\noident{*}) ]} \\
+    \FNsingleOp{S}{\FNdestroy{a}{t}}{S'} & \iff & \multicolumn{3}{l}{\ident{tgt} = \FNobjTarget{a}{t}{S} \wedge} \\
+    & & \multicolumn{3}{l}{\mapsTo{\ident{tgt}}{\ident{tObj}}{S} \, \wedge} \\
+    & & \multicolumn{3}{l}{S' = S[\ident{tgt} \mapsto (\noident{*},\NMdead,\noident{*})]} \\
+    \FNsingleOp{S}{\FNcreate{a}{n}{m}{\ident{typ}}}{S'} & \iff & \multicolumn{3}{l}{S_{\ident{clean}} = \FNremoveCapsByRef{n}{S} \, \wedge} \\
+    & & \multicolumn{3}{l}{\mapsTo{a}{\ident{aObj}}{S_{\ident{clean}}} \, \wedge} \\
+    & & \multicolumn{3}{l}{\ident{newObj} = \FNcapTx{\ident{aObj}}{\emptyset}{m} \, \wedge} \\
+    & & \multicolumn{3}{l}{S' = S_{\ident{clean}}[n \mapsto (\ident{newObj},\NMalive,\ident{typ})]} \\
+    \FNsingleOp{S}{\FNsend{a}{t}{m}{x}}{S'} & \iff & \multicolumn{3}{l}{\mapsTo{a}{\ident{aObj}}{S} \, \wedge} \\
+    & & \multicolumn{3}{l}{\ident{tgt} = \FNobjTarget{a}{t}{S} \wedge} \\
+    & & \multicolumn{3}{l}{\mapsTo{\ident{tgt}}{\ident{tObj}}{S} \, \wedge} \\
+    & & \multicolumn{3}{l}{\ident{tObj1} = \FNcapTx{\ident{aObj}}{\ident{tObj}}{m} \, \wedge} \\
+    
+    %% & & \multicolumn{3}{l}{
+    %%   \begin{array}{rcl}
+    %%     \ident{tObj2} & = & \text{if } x \\
+    %%     & & \text{then } \ident{tObj1}[x \mapsto \FNmkCap{a}{\{\NMtx\}} ]\\
+    %%     & & \text{else } \ident{tObj1} 
+    %%   \end{array} } \\
+
+    & & \multicolumn{3}{l}{\ident{tObj2} = \text{if } x \text{ then } \FNreplyCap{\ident{tObj1}}{x}{a} \text{ else } \ident{tObj1} \, \land} \\ 
+    
+    %% & & \ident{tObj2} & = & \text{if } x \\
+    %% & & & & \text{then } \ident{tObj1}[x \mapsto \FNmkCap{a}{\{\NMtx\}} ]\\
+    %% & & & & \text{else } \ident{tObj1} \\
+    
+    & & \multicolumn{3}{l}{S' = S[t \mapsto (\ident{tObj2},\noident{*},\noident{*})]} \\
+    \textnormal{otherwise} & & \\
+    \FNsingleOp{S}{\ident{op}}{S'} & \iff & S = S'
+  \end{array}
+  \]
+  \caption{State transitions. \label{fig:sketch:operations}}
+\end{figure}
+
+\begin{figure}
+  \FIGflow{}
+  \caption{Information flow. \label{fig:sketch:flow}}
+\end{figure}
+
+The \NMread{} and \NMwrite{} operations model data reads and writes to an object and require the \NMrd{} and \NMwr{} access right, respectively.
+Because non-self data motion is modeled by \NMreadFrom{} and \NMwroteTo{}, these operations have no impact on the system state.
+\NMreadFrom{} contains the capability target for a read operation along with the invoking subject.
+\NMwroteTo{} contains the capability target for a write operation or the invoking subject.
+
+The \NMfetch{} and \NMstore{} operations model capability motion and have the same predicates and information flow properties as the \NMread{} and \NMwrite{} operations.
+The difference is that \NMfetch{} and \NMstore{} operations read or write capabilities instead of data.
+These operations update the system model by transferring a capability from or to the specified index in the target object.
+The fetch operation has a special case when the capability contains the \NMwk{} permission, but not the \NMrd{} permission.
+In this case, it is still possible to \NMfetch{} a capability from the target, but the resulting capability will be \TMweakened{} using the \NMweaken{} function.
+A \TMweakened{} capability has an \TMaccessRightSet{} of \{\NMwk{}\} only when the target capability has either the \NMrd{} or \NMwk{} right.
+This has the effect of causing the \NMwk{} \TMaccessRight{} to enforce transitive read-only access.
+
+The \TMrevoke{} operation erases a mapping within an \TMobj{}.
+Because this is almost identical to overwriting an existing capability using \NMstore{}, it requires the \NMwr{} permission.
+The \NMwr{} access right also authorizes the \TMdestroy{} operation as the \TMactor{} may already overwrite all data and revoke all capabilities held by the target.
+Both of these operations modify the target object adding them to the \NMwroteTo{} set.
+
+The \NMcreate{} operation models new object allocation.
+As allocation is modeled as part of the universal TCB, whether in the kernel or as an application, the \NMcreate{} operation does not require a capability to perform.
+It requires only that the object to be allocated is in the \NMunborn{} state.
+During allocation, the allocator specifies the new object's initial data and capabilities, which is encoded using a pairwise map from source index to target index.
+Although the operation encodes which object is to be allocated, this is not considered visible to or within the control of the allocator.
+Once allocated, the allocator receives a capability with total authority of the fresh object.
+The information flow requirements add the allocated object to the \NMwroteTo{} set.
+
+The \NMsend{} operation models the mechanism of communication and the protection extension mechanism.
+A capability with the \NMtx{} \TMaccessRight{} permits its holder to transmit a message containing both capabilities and data to the target, optionally fabricating a reply capability for use with client-server models.
+The transfer is encoded as with the \NMcreate{} operation.
+In real system implementations, the system is expected to implement a rendezvous mechanism allowing the recipient to specified where the data and capabilities will be stored.
+As \NMsend{} transfers both data and capabilities, the target object is in the \NMwroteTo{} set.
+
+
+\begin{figure}
+  \[
+  \begin{array}{rcl}
+    \FNmutated{E}{S_0} & \equiv & E \\
+    \FNmutated{E}{S_0 \FNopTail{\NMop_{m-1}}{S_{m-1}} \FNopHead{\NMop_m}{S_m} } & \equiv \\
+    \multicolumn{3}{c}{
+      \makebox[10 mm][l]{}
+      \begin{array}{l}
+        \text{let } M = \FNmutated{E}{S_0 \FNopTail{\NMop_{m-1}}{S_{m-1}}} \text{ in}\\
+        \makebox[10 mm][l]{}
+        \begin{array}{rcl}
+          M & | & \text{if operation preconditions are not met} \\
+          M & | & \text{if } E \cap \FNreadFrom{\ident{op}}{S_{m-1}} = \emptyset \\
+          M \cup \FNwroteTo{\ident{op}}{S_{m-1}} & | & \text{ otherwise}
+        \end{array}
+      \end{array}
+    }
+  \end{array}
+  \]
+  \caption{Definition of \NMmutated{}.\label{fig:sketch:mutation}}
+\end{figure}
+
+Operation sequences are simply executed sequentially over the system state.
+Because operation preconditions preclude erroneous transitions, they can be composed automatically.
+Tracking information flow through operation sequences is computed by the \NMmutated{} function in \Cref{fig:sketch:mutation}.
+\NMmutated{} considers any subsystem to be self-mutating as a base case.
+For each operation successfully performed, \NMmutated{} increases what was \TMmutated{} by the \NMwroteTo{} set if the intersection of the \NMreadFrom{} set and the mutated set are non-empty.
+
+\section{Access Graphs and Potential Access}
+
+\TMmodelName{} uses \term{\TMaccessGraphs} to reason about nearly all safety and information flow properties.
+\xmakefirstuc{\TMaccessGraphs} reduce \TMsystemStates{} to access relations between \TMobjs{}, representing multiple \TMsystemStates{} simultaneously.
+Structurally, an \term{\TMaccessGraph} is simply a finite set of \TMaccessEdges{}, each a triple in \(\NMrefs{} \times \NMrefs{} \times \NMaccessRights{}\).
+The access edge denoted \mkEdge{\ident{src}}{\ident{tgt}}{\ident{ar}} indicates that object \ident{src} holds right \ident{ar} to object \ident{tgt}.
+As the access graph is a set, each edge appears only once, collapsing the amount of redundant information.
+
+\begin{figure}
+  \[
+  \begin{array}{l}
+    \mkEdge{\ident{src}}{\ident{tgt}}{\ident{ar}} \in \FNdirAcc{S} \iff \\
+    \makebox[15 mm][l]{}
+    \begin{array}{l}
+      \FNisAlive{\ident{src}}{S} \wedge
+      \exists \ident{arset}, \ident{ar} \in \ident{arset} \wedge \\
+      \FNhasCap{\ident{src}}{\FNmkCap{\ident{tgt}}{\ident{arset}}}{S} \wedge \\
+      \FNisAlive{\ident{tgt}}{S})
+    \end{array}
+  \end{array}
+\]
+\caption{\xmakefirstuc{\TMdirAcc} graph. \label{fig:sketch:dirAcc}}
+\end{figure}
+
+A \term{\TMdirAccAG} is an \TMaccessGraph{} representing the permission information of a specific \TMsystemState{}.
+The \TMdirAccAG{} of a \TMsystemState{} does not include \TMcaps{} held by \TMunborn{} or \TMdead{} \TMobjs{} as these \TMcaps{} may not be transferred or invoked.
+The \TMdirAccAG{} function \NMdirAcc{} is described by \Cref{fig:sketch:dirAcc}.
+
+\begin{figure} 
+  \[
+  \FNtransfer{A}{B} \iff
+  \left\{
+  \begin{array}{rcl}
+    \mkEdge{\ident{src}}{\ident{tgt}}{\ident{ar}} \in A & \wedge & \FNaddEq{\mkEdge{\ident{src}}{\ident{src}}{\ident{ar'}}}{A}{B}  \\
+    \mkEdge{\ident{src}}{\ident{tgt}}{\ident{ar}} \in A & \wedge & \FNaddEq{\mkEdge{\ident{tgt}}{\ident{tgt}}{\ident{ar'}}}{A}{B}  \\
+    \mkEdge{\ident{src}}{\ident{tgt}}{\ident{ar}} \in A & \wedge & \FNaddEq{\mkEdge{\ident{tgt}}{\ident{tgt}}{\ident{ar'}}}{A}{B}  \\
+    \mkEdge{\ident{src}}{\ident{tgt}}{\NMrd} \in A & \wedge &  \mkEdge{\ident{tgt}}{\ident{tgt'}}{\ident{ar}} \in A  \wedge \\
+    & & \FNaddEq{\mkEdge{\ident{src}}{\ident{tgt'}}{\ident{ar}}}{A}{B}  \\
+    \mkEdge{\ident{src}}{\ident{tgt}}{\NMwr} \in A & \wedge & \mkEdge{\ident{src}}{\ident{tgt'}}{\ident{ar}} \in A  \wedge \\
+    & & \FNaddEq{\mkEdge{\ident{tgt}}{\ident{tgt'}}{\ident{ar}}}{A}{B}  \\
+    \mkEdge{\ident{src}}{\ident{tgt}}{\NMtx} \in A & \wedge &  \mkEdge{\ident{src}}{\ident{tgt'}}{\ident{ar}} \in A  \wedge\\
+    & & \FNaddEq{\mkEdge{\ident{tgt}}{\ident{tgt'}}{\ident{ar}}}{A}{B}  \\
+    \mkEdge{\ident{src}}{\ident{tgt}}{\NMtx} \in A & \wedge & \FNaddEq{\mkEdge{\ident{tgt}}{\ident{src}}{\NMtx}}{A}{B} \\
+    \mkEdge{\ident{src}}{\ident{tgt}}{\NMwk} \in A & \wedge &  \mkEdge{\ident{tgt}}{\ident{tgt'}}{\ident{ar}} \in A  \wedge \\
+    & & (\ident{ar} = \NMwk \vee \ident{ar} = \NMrd) \wedge \\
+    & & \FNaddEq{\mkEdge{\ident{src}}{\ident{tgt'}}{\NMwk}}{A}{B}  \\
+  \end{array}
+  \right.
+  \]
+  \caption{\NMtransfer{} definition. \label{fig:sketch:trans}}
+\end{figure}
+
+\begin{figure}
+  \[
+  \FNpotTransfer{A}{C} \iff
+  \left\{
+  \begin{array}{l}
+  A = C \\
+  \exists B, \FNpotTransfer{A}{B} \wedge \FNtransfer{B}{C}
+  \end{array}
+  \right.
+  \]
+  \caption{\xmakefirstuc{\TMpotTransfer} definition. \label{fig:sketch:potTransfer}}
+\end{figure}
+
+\begin{figure}
+  \[
+  \begin{array}{rcl}
+      \FNmaximal{P} & \equiv & \forall A, \FNpotTransfer{P}{A} \Rightarrow P = A \\
+      \FNpotAcc{I}{P} & \equiv & \FNpotTransfer{I}{P} \wedge \FNmaximal{P}
+  \end{array}
+  \]
+  \caption{\xmakefirstuc{\TMmaximal{}} and \TMpotAcc{} \label{fig:sketch:maximal}. \label{fig:sketch:potAcc}}
+\end{figure}
+
+The next major goal is to define an upper bound on the worst-case authority present in an access graph that can be used when verifying properties about access and data motion.
+The definition of worst-case authority is built on \term{\TMtransfer{}} in \Cref{fig:sketch:trans}.
+\Term{\TMtransfer} is a micro-operation of permission transfer based on \TMaccessGraphs{}.
+Unlike the operational semantics which operates at the granularity of whole capabilities, \TMtransfer{} justifies a single permission transfer.
+If \(A\) and \(B\) are access graphs, \FNtransfer{A}{B} indicates that a permission transfer is possible from \(A\) to \(B\) through the addition of some edge.
+Two access graphs related by any, potentially empty, sequence of transfer steps is defined by the \term{\TMpotTransfer} relation \NMpotTransfer{} in \Cref{fig:sketch:potTransfer}.
+
+\xmakefirstuc{\TMaccessGraphs} are related by \NMtransfer{} based entirely on individual \TMaccessRights{}.
+The \NMrd{} and \NMwr{} \TMaccessRight{} authorize edges to be transferred in opposite directions.
+Similar to the \NMrd{} case, the \NMwk{} \TMaccessRight{} is authorized to transfer a \NMwk{} edge from a \NMwk{} or \NMrd{} edge.
+The \NMtx{} \TMaccessRight{} behaves like the \NMwr{} permission but includes a second case for constructing a reply.
+To make \NMtransfer{} a reflexive relation, two cases exist to permit self-targeting edges.
+These cases require some other edge to refer to the \TMobjs{} to prevent the addition of new \TMrefs{} and keep analysis finite.
+
+It is possible to construct a least upper bound between any two access graphs which share an initial access graph.
+Given an initial access graph \(I\) and access graphs \(A\) and \(B\) such that \FNpotTransfer{I}{A} and \FNpotTransfer{I}{B}, there must exist an access graph \(C\) such that \FNpotTransfer{A}{C} and \FNpotTransfer{B}{C}.
+\xmakefirstuc{\TMtransfer{}} captures the ability to add a single edge using existing edges as justification.
+Therefore, for any access graph \(C\), the underlying justification is not altered by adding edges to \(C\).
+\xmakefirstuc{\TMtransfer{}} may be transposed with set addition: if \FNtransfer{C}{D} and \FNaddEq{x}{D}{E}, then \FNaddEq{x}{C}{D'} and \FNtransfer{D'}{E}.
+Because \NMtransfer{} and \NMpotTransfer{} are non-decreasing, they are commutative.
+The least upper bound is easily computed by set union, and all \TMtransfers{} performed are still valid.
+
+From these definitions, each access graph must have a supremum by \NMpotTransfer{}.
+This \term{\TMpotAcc} graph is the worst-case approximation of access in an initial \TMaccessGraph{}.
+Defined by \NMpotAcc{} in \Cref{fig:sketch:potAcc}, it is the \TMaccessGraph{} that is reachable via \NMpotTransfer{} and is \NMmaximal{}.
+If \(I\) is an initial access graph, then \(P\) is a potential access graph of \(I\) if and only if \FNpotAcc{I}{P}.
+Because all \TMaccessGraphs{} have a \TMmaximal{} access graph and have a least upper bound, any \TMpotAcc{} graph must be the supremum.
+From set union over finite sets, it follows that all potential access graphs of \(I\) are unique.
+
+\begin{figure}
+  \[\forall I, \exists P, \FNpotAcc{I}{P} \]
+  \caption{\xmakefirstuc{\TMpotAcc} always exists. \label{fig:sketch:computePotAcc}}
+\end{figure}
+
+Computing the \TMpotAcc{} graph can be performed by induction over the \term{\TMcompleteAG}, the graph containing all possible edges given the \TMrefs{} already present.
+Because each \TMtransfer{} adds edges between previously existing objects, it cannot exceed the \TMcompleteAG{}.
+The \TMcompleteAG{} less the initial graph can be used as a work list when considering a new potential edge.
+Exhaustively scanning this list for candidate edges, testing them with \TMtransfer{}, and recursing on the resulting set will eventually produce the \TMpotAcc{} graph.
+As the set difference between the \TMcompleteAG{} and the accumulator is always decreasing, this computation is guaranteed to eventually terminate.
+\TMpotAcc{} it must always exist, as in \Cref{fig:sketch:computePotAcc}, because it is computed by a function on \(I\).
+Therefore, the remainder of this sketch will use symbol \NMpotAcc{} as both the computable function and the judgment.
+
+
+Analysis in the remaining sections relies on the ability to preserve and reorder \NMtransfer{}s with other approximating functions.
+Because the family of \NMtransfer{} functions are themselves additive, they can be transposed without loss of generality.
+This provides a mechanism for describing different approaches to computing \TMpotAcc{} with respect to related \TMaccessGraphs{}.
+
+\section{Access Approximations}
+
+All \TMops{} in \TMmodelName{} have the potential to overwrite \TMcaps{} and some delete them outright.
+Computing precise functions between direct and \TMpotAccAGs{} describing these system states introduces complexity, so \TMmodelName{} defines the concept of ``conservatively approximating'' functions.
+Conservatively approximating functions must be composable so that they remain approximating inductively over multiple operations.
+They must compose with set addition to permit \TMtransfers{} to be reordered around them.
+The graph in \Cref{fig:sketch:directAccessApprox} illustrates this concept.
+
+Theorems of this sort are difficult to read, but easy to comprehend through illustration.
+In access relationship graphs, functions are represented as arrows and relations as lines.
+System states are represented by squares with shadows and access graphs with circles with shadows.
+
+\begin{figure}
+\centering
+  \FIGdirAccApprox{\ident{op}}{\ensuremath{F_{\NMdirAcc}}}
+  \begin{tikzpicture}[auto]
+    \matrix[column sep=3mm, row sep=2mm, ampersand replacement=\&]  {
+      \node [system,minimum size=5mm] (sys)  {}; \&
+      \node [invisSystem,minimum size=5mm] (sysLabel) {\TMsystemState}; \&[+10mm]
+      \node [invisSystem,minimum size=5mm] (leftRelation) {}; \&[+8mm]
+      \node [invisSystem,minimum size=5mm] (rightRelation) {}; \&
+      \node [invisSystem,minimum size=5mm] (relation) {relation};
+      \\
+      \node [access,minimum size=5mm] (sysObject)  {}; \&
+      \node [invisSystem,minimum size=5mm] (unbornLabel) {\TMaccessGraph}; \&[+10mm]
+      \node [invisSystem,minimum size=5mm] (leftCompRelation) {}; \&[+8mm]
+      \node [invisSystem,minimum size=5mm] (rightCompRelation) {}; \&
+      \node [invisSystem,minimum size=5mm] (compRelation) {computable relation};
+      \\
+    };
+
+    \draw [rel] (leftRelation) edge (rightRelation);
+    \draw [compRel] (leftCompRelation) edge (rightCompRelation);
+    
+  \end{tikzpicture}
+\caption{\label{fig:sketch:directAccessApprox}Direct access approximation \(F_{\NMdirAcc{}}\).}
+\end{figure}
+
+\begin{figure}
+\centering
+\FIGpotAccApprox{\ensuremath{F_{\NMdirAcc}}}{\ensuremath{F_{\NMpotAcc}}}
+\caption{\label{fig:sketch:potentialAccessApprox}Potential access approximation \(F_{\NMpotAcc{}}\).}
+\end{figure}
+
+\begin{figure}
+\centering
+  \FIGfullApproxMath{}
+\caption{\label{fig:sketch:induction}Safety induction strategy.}
+\end{figure}
+
+The simplest approximation is one over \TMdirAccAGs{}.
+A \TMdirAcc{} approximation, \(F_{\NMdirAcc}\), is a monotonically non-decreasing function between \TMdirAccAGs{} indexed by \TMop{} and initial \TMsystemState{}.
+A \TMpotAcc{} approximation is defined similarly over a \TMdirAcc{} approximation, but with sufficient information to recover the initial \TMsystemState{}
+\Cref{fig:sketch:potentialAccessApprox} details the relationships visually.
+From these pieces, approximations for a sequence of operations can be assembled as shown in \Cref{fig:sketch:induction}.
+
+\begin{figure}
+  \[
+  \begin{array}{rcl}
+  \FNdirAccOp{S}{\FNread{a}{t}} & \equiv & \idFunc \\
+  \FNdirAccOp{S}{\FNwrite{a}{t}} & \equiv & \idFunc \\
+  \FNdirAccOp{S}{\FNrevoke{a}{t}{i}} & \equiv & \idFunc \\
+  \FNdirAccOp{S}{\FNdestroy{a}{t}} & \equiv & \idFunc \\
+  \FNdirAccOp{S}{\FNfetch{a}{t}{c}{i}} & \equiv & \FNedgeTx{S}{\FNobjTarget{a}{t}{S}}{a}{((c,i))} \\
+  \FNdirAccOp{S}{\FNstore{a}{t}{c}{i}} & \equiv & \FNedgeTx{S}{a}{\FNobjTarget{a}{t}{S}}{((c,i))} \\
+  \FNdirAccOp{S}{\FNsend{a}{t}{m}{x}} & \equiv & \FNedgeTx{S}{a}{t}{m} \circ \FNreply{x}{a}{t} \\
+  \FNdirAccOp{S}{\FNcreate{a}{n}{m}{\ident{typ}}} & \equiv & \FNedgeTx{S}{a}{n}{m} \circ \FNinsert{a}{n}
+  \end{array}
+  \]
+  when preconditions are satisfied, otherwise
+  \[
+  \FNdirAccOp{S}{\ident{op}} \equiv \idFunc
+  \]
+  with
+  \[
+  \idFunc(A) \equiv A
+  \]
+\caption{\xmakefirstuc{\TMdirAccOp}. \label{fig:sketch:drAccOp}}
+\end{figure}
+
+\Cref{fig:sketch:drAccOp} defines \NMdirAccOp{}, the function approximating \TMdirAccAGs{} over \TMops{}.
+Approximations of worst-case authority do not need to consider the elimination of permissions;.
+Therefore, all \TMops{} whose sole effect is to remove \TMcaps{} are approximated by an identity function.
+The other \TMdirAcc{} approximations correspond directly to the potential additional \TMaccessRights{} for each \TMop{}.
+
+The definition has omitted the simple functions \NMedgeTx{}, \NMreply{}, and \NMinsert{}.
+If \mapsTo{a}{aObj}{S} and \mapsTo{t}{tObj}{S}, then \FNedgeTx{S}{a}{t}{m} adds \TMaccessEdges{} corresponding to updating \(tObj\) as \FNcapTx{aObj}{tObj}{m}.
+That is, it examines \(S\) and adds edges to \(a\) corresponding to all capabilities in \(t\) at the indices in the first position in \(m\).
+\NMreply{} is analogous to \NMreplyCap{} and adds the edge \mkEdge{a}{t}{\NMtx} when \(x\) is \ident{True}.
+The \FNinsert{a}{n} function adds the new \TMobj{} \(n\) to the \TMaccessGraph{} by adding all possible edges between \(a\) and \(n\).
+
+\begin{figure}
+  when preconditions are satisfied:
+  \[
+  \begin{array}{rclr}
+  \FNpotAccOpTwo{S}{\FNcreate{a}{n}{m}{\ident{typ}}}{P} & \equiv & \FNendow{a}{n} &\\
+  \FNpotAccOpTwo{S}{op}{P} & \equiv & P & \text{for} \; \ident{op} \neq \NMcreate
+  \end{array}
+  \]
+  when preconditions are not satisfied:
+  \[
+  \FNpotAccOp{S}{\FNcreate{a}{n}{m}{\ident{typ}}} \equiv \idFunc
+  \]
+  with
+  \[
+  \FNendow{a}{n} \equiv \NMcompPotAcc{} \circ \FNinsert{a}{n}
+  \]
+\caption{\xmakefirstuc{\TMpotAccOp}. \label{fig:sketch:potAccOp}}
+\end{figure}
+
+With the exception of \NMcreate{}, the other \TMops{} are approximated by a function built from \NMpotTransfer{}.
+The special case to approximate the \NMcreate{} operation cannot be modeled using \NMpotTransfer{} because it adds a new object.
+The \NMendow{} function is defined to approximate \NMcreate{} and is defined in two parts.
+First, \NMendow{} invokes \NMinsert{}, which adds all possible edges between parent and child.
+Having accomplished this, it then computes \NMpotAcc{} covering the all reflexive edges and any transfers that could occur.
+\Cref{sect:sketch:projections} will discuss the relevance of \NMendow{} in greater detail.
+
+As \TMpotAcc{} is the least upper bound over \NMpotTransfer{}, each \NMdirAccOp{} that is captured by \TMpotTransfer{}, i.e. the non-\TMallocate{} operations, may be approximated by an identity function over \TMpotAcc{}.
+Because the \NMendow{} function recomputes \TMpotAcc{}, it must approximate the \TMcap{} copies during the \NMcreate{} \TMop{}.
+This definition demonstrates that the only access not approximated by \TMpotAcc{} occurs during object allocation.
+
+\section{Projections and Safety}
+\label{sect:sketch:projections}
+
+\begin{figure}
+  \[
+  \begin{array}{l}
+    \FNprojectionTwo{a}{n}{P}{P'} \equiv \\
+    \makebox[10 mm][l]{}
+    \begin{array}{l}
+      \forall (\ident{src}, \ident{tgt}, \ident{ar}), \mkEdge{\ident{src}}{\ident{tgt}}{\ident{ar}} \in P' \iff 
+      \left\{
+      \begin{array}{l}
+        \mkEdge{\ident{src}}{\ident{tgt}}{\ident{ar}} \in P  \\
+        \mkEdge{\ident{src}}{a}{\ident{ar}} \in P \wedge \ident{tgt} = n \\
+        \mkEdge{a}{\ident{tgt}}{\ident{ar}} \in P \wedge \ident{src} = n \\
+        \ident{src} = a \in P \wedge \ident{tgt} = a \\
+        \ident{src} = n \in P \wedge \ident{tgt} = a \\
+        \ident{src} = a \in P \wedge \ident{tgt} = n \\
+        \ident{src} = n \in P \wedge \ident{tgt} = n 
+      \end{array}
+      \right.
+    \end{array}
+  \end{array}
+  \]
+  \caption{Access graph projection. \label{fig:sketch:projection}}
+\end{figure}
+
+
+\TMaccessGraph{} \TMprojections{} define a mechanism describing how \TMpotAccOps{} evolve with new objects. 
+\xmakefirstuc{\TMendow} is the only non-trivial \TMpotAccOp{}.
+Consider the result of fully connecting a fresh object to an existing one as in the case of \NMendow{}.
+Any edges held by the original object might come to be be held by the allocated object through transmission.
+Additionally, some edges originally targeting the allocating object might be added such that they target the fresh object.
+It is also possible that new self-referential edges may come to exist, along with some other uninteresting corner cases.
+Any \TMaccessGraph{} related by these properties is called a \term{\TMprojection}, using the \NMprojection{} relation given in \Cref{fig:sketch:projection}.
+
+\begin{figure}
+  \[
+  \forall P, \FNmaximal{P} \Rightarrow \FNprojectionTwo{a}{n}{P}{P'} \Rightarrow \FNendowTwo{a}{n}{P} \subseteq P'
+  \]
+  \caption{Lemma: \TMprojection{} approximates \TMendow{}. \label{fig:sketch:projectionEndow}}
+\end{figure}
+
+The lemma in \Cref{fig:sketch:projectionEndow} states than an \NMendow{} operation performed on a \TMmaximal{} \TMaccessGraph{} must form a \TMprojection{}.
+This proof requires a great degree of case analysis, but is conceptually very simple.
+Consider any access edge authorized by a \TMtransfer{} after a \TMprojection{}.
+This edge must contain the child \TMref{}, either as source or target.
+If this were not the case, there must exist other edges in the graph prior to \TMprojection{} which would authorize the new edge without the presence of the child.
+However, this graph was assumed to be \TMmaximal{}, making this impossible.
+Therefore, \NMendow{} is approximated by a \TMprojection{} to the fresh object when operating on a \TMmaximal{} \TMaccessGraph{}.
+
+\begin{figure}
+  \[
+  \begin{array}{l}
+  \forall S, P,  \FNpotAcc{\FNdirAcc{S}}{P} \Rightarrow \\
+  \forall E, (\forall e \in E, \neg \FNisUnborn{e}{S}) \Rightarrow \\
+  \forall e \in E \Rightarrow \\
+  \forall o \notin E \Rightarrow \\
+  \forall P', \FNprojectionTwo{e}{o}{P}{P'} \Rightarrow\\
+  \FNrestrict{P'}{E} \subseteq P
+  \end{array}
+  \]
+  \caption{Attenuating authority for capability systems. \label{fig:sketch:safety}}
+\end{figure}
+
+Finally, the safety property can be described using \TMpotAcc{} through \TMprojection{}.
+The safety decision is initially determined by \TMpotAcc{}.
+As the system is not in a position to know the relationships that new objects will have, it cannot determine what access they may come to hold.
+However, the existence of all new objects can be approximated via \TMprojection{}.
+Projection only adds edges which relate the system to new objects, leaving all existing \TMpotAcc{} unchanged.
+The \FNrestrict{P}{E} operation eliminates all edges in \(P\) with both elements not in \(E\) and is used to compare pre-existing relationships.
+The \TMpotAcc{} of the system is preserved for all existing relationships and remains maximal over the life of the system.
+This property, stated formally in \Cref{fig:sketch:projectionEndow}, is called \term{attenuating authority} and represents a decision to the safety problem for capability-based systems.
+
+\section{Mutability}
+
+The definition of the \term{\TMconfinementTest} for object-capability systems relies upon a decision over permissions, not over information flow.
+To reason about security policies expressed using permissions, it must be the case that permissions are representative of information flow.
+Surprisingly, this is not true for most systems \cite{HRU1976}.
+However, this property does hold for object-capability systems satisfying \TMmodelName{}.
+
+\begin{figure}
+  \[
+  \begin{array}{l}
+    \FNmutableTwo{E}{A} \equiv \\
+    \{ m | \exists e \in E \wedge (
+    \mkEdge{m}{e}{\NMwk} \in A \vee
+    \mkEdge{m}{e}{\NMrd} \in A \vee
+    \mkEdge{e}{m}{\NMwr} \in A \vee
+    \mkEdge{e}{m}{\NMtx} \in A )
+    \}
+    \end{array}
+  \]
+  \caption{Definition of \TMmutable{}. \label{fig:sketch:mutable}}
+\end{figure}
+
+
+The definition \NMmutable{} in \Cref{fig:sketch:mutable} determines the objects where information in a given subsystem might flow.
+It is computed by induction over the edges of an access graph.
+Objects are \NMmutable{} by a subsystem in three cases.
+In the base case, the subsystem is self-mutating and is included in \NMmutable{}.
+Second, writing or transmitting data push information out of the subsystem, so any target of a \NMwr{} or \NMtx{} edges held by an element of the subsystem is \NMmutable{}.
+Finally, any object holding \NMrd{} or \NMwk{} edges to a member of the subsystem can pull information out of the subsystem.
+Because \NMmutable{} is parameterized over any access graph, it is applied to the direct access or potential access of a system to produce respective meaning.
+The terms \term{\TMdirMutability} and \term{\TMpotMutability} describe the \TMmutability{} of \TMdirAcc{} or \TMpotAcc{} graphs.
+
+\Term{\TMmutable} preserves subset variance with both the subsystem and with the \TMaccessGraph{}.
+Though not formally presented, these variance properties form the basis for most approximations of \TMmutability{} in the rest of this sketch.
+
+\begin{figure}
+  \[
+  \FNpotAcc{\FNdirAcc{S_0}}{P} \Rightarrow \FNmutated{E}{S_0 \FNopTail{\NMop_m}{S_m} } \subseteq \FNmutableTwo{E}{P} \cap \FNextant{S_0}
+  \]
+  where
+  \[
+  \FNextant{S} \equiv \{o | \FNisAlive{o}{S} \wedge \FNisDead{o}{S} \}
+  \]
+  \caption{Theorem: mutable approximates mutated. \label{thm:sketch:mutableSubset}}
+\end{figure}
+
+For \NMmutable{} to be meaningful, it must satisfy the theorem in \Cref{thm:sketch:mutableSubset}.
+This theorem states that what is \TMmutated{}\footnote{Recall \Cref{fig:sketch:mutation}} by a subsystem over any execution, when restricted to initially \TMextant{} objects, is conservatively approximated by what is \TMpotMutable{} from the initial configuration.
+Naively, this would be directly satisfiable by induction.
+All objects require a \TMcap{} for data motion.
+These \TMcaps{} are conservatively approximated by \TMdirAcc{}, which in turn is conservatively approximated by \TMpotAcc{}.
+The \TMcreate{} operation is safe because each \TMprojection{} only extends the allocator's \TMmutability{} into the child.
+
+\newcommand{\nodetiny}[1]{\small #1}
+
+\begin{figure}
+\centering
+    \begin{tikzpicture}[auto]
+      \matrix[column sep=10mm, row sep=10mm, ampersand replacement=\&]{
+        \node [system]     (S0)                  {\nodetiny \(S_0\)}; \&
+        \node [access]     (I0)      {\nodetiny \(I_0\)}; \&
+        \node [access]     (I0')     {\nodetiny \(I_0'\)}; \&
+        \node [access]     (P0)     {\nodetiny \(P_0\)}; \&
+        \node [access]     (P0')    {\nodetiny \(P_0'\)}; \&[+15mm]
+        \node [mutable]    (M0)     {\tiny \(M_0\)};
+        \\
+        \node [invisSystem]     (Sd)     {\nodetiny \(\dots\)}; \&
+        \node [invisSystem]     (Id)      {\nodetiny \(\dots\)}; \&
+        \node [invisSystem]     (Id')     {\nodetiny \(\dots\)}; \&
+        \node [invisSystem]     (Pd)     {\nodetiny \(\dots\)}; \&
+        \node [invisSystem]     (Pd')     {\nodetiny \(\dots\)}; \&
+        \node [invisMutable]    (Md)     {\tiny \(\dots\)};
+        \\
+        \node [system]     (S1)     {\nodetiny \(S_{N-1}\)}; \&
+        \node [access]     (I1)      {\nodetiny \(I_{N-1}\)}; \&
+        \node [access]     (I1')    {\nodetiny \(I_{N-1}'\)}; \&
+        \node [access]     (P1)   {\nodetiny \(P_{N-1}\)}; \&
+        \node [access]     (P1')    {\nodetiny \(P_{N-1}'\)}; \&
+        \node [mutable]    (M1)      {\tiny \(M_{N-1}\)};
+        \\                    
+        \node [system]     (SN)     {\nodetiny \(S_N\)}; \&
+        \node [access]     (IN)     {\nodetiny \(I_N\)}; \&
+        \node [access]     (IN')    {\nodetiny \(I_N'\)}; \&
+        \node [access]     (PN)    {\nodetiny \(P_N\)}; \&
+        \node [access]     (PN')     {\nodetiny \(P_N'\)}; \&
+        \node [mutable]    (MN)       {\tiny \(M_{N}\)};
+        \\
+      };
+
+      \draw [compRel] (S0) edge node[midway,above] {\tiny \NMdirAcc} (I0);
+      \draw [rel] (I0) edge node[midway,above] {\tiny \(\subseteq\)} (I0');
+      \draw [compRel] (I0') edge node[midway,above] {\tiny \(F^g\)} (P0);
+      \draw [rel] (P0) edge node[midway,above] {\tiny \(\subseteq\)} (P0');
+      \draw [compRel] (P0') edge node[midway,above] {\tiny \(\NMmutable(E)\)} (M0);
+
+      \draw [compRel] (S0) edge node[midway,left] {\tiny \(\ident{op}_{1}\)}  (Sd);
+      \draw [compRel] (I0') edge node[midway,left] {\tiny \(\NMdirAccOp_{1}\)} (Id');
+      \draw [compRel] (P0') edge node[midway,left] {\tiny \(F^{p}_{1}\)} (Pd');
+      \draw [compRel] (M0) edge node[midway,left] {\tiny \(\FNmutableInd{S_0}{\ident{op}_1}\)} (Md);
+
+      \draw [compRel] (S1) edge node[midway,above] {\tiny \NMdirAcc} (I1);
+      \draw [rel] (I1) edge node[midway,above] {\tiny \(\subseteq\)} (I1');
+      \draw [compRel] (I1') edge node[midway,above] {\tiny \(F^g\)} (P1);
+      \draw [rel] (P1) edge node[midway,above] {\tiny \(\subseteq\)} (P1');
+      \draw [compRel] (Sd) edge node[midway,left] {\tiny \(\ident{op}_{N-1}\)}  (S1);
+      \draw [compRel] (Id') edge node[midway,left] {\tiny \(\NMdirAccOp_{N-1}\)} (I1');
+      \draw [compRel] (Pd') edge node[midway,left] {\tiny \(F^{p}_{N-1}\)} (P1');
+      \draw [compRel] (P1') edge node[midway,above] {\tiny \(\NMmutable(M_{N-2})\)} (M1);
+      \draw [compRel] (Md) edge node[midway,left] {\tiny \(\FNmutableInd{S_{N-1}}{\ident{op}_{N-1}}\)} (M1);
+      
+      \draw [compRel] (SN) edge node[midway,above] {\tiny \NMdirAcc} (IN);
+      \draw [rel] (IN) edge node[midway,above] {\tiny \(\subseteq\)} (IN');
+      \draw [compRel] (IN') edge node[midway,above] {\tiny \(F^g\)} (PN);
+      \draw [rel] (PN) edge node[midway,above] {\tiny \(\subseteq\)} (PN');
+      \draw [compRel] (S1) edge node[midway,left] {\tiny \(\ident{op}_N\)}  (SN);
+      \draw [compRel] (I1') edge node[midway,left] {\tiny \(\NMdirAccOp_N\)} (IN');
+      \draw [compRel] (P1') edge node[midway,left] {\tiny \(F^p_N\)} (PN');
+      \draw [compRel] (PN') edge node[midway,above] {\tiny \(\NMmutable(M_{N-1})\)} (MN);
+      \draw [compRel] (M1) edge node[midway,left] {\tiny \(\FNmutableInd{S_{n}}{\ident{op}_{n}}\)} (MN);
+
+      
+    \end{tikzpicture}
+\caption{Definition of \TMmutableInd{}. \label{fig:sketch:mutableInd}}
+\end{figure}
+
+The naive approach is hiding a subtle induction problem.
+It relies on the safety property for its inductive explanation of why \NMmutable{} was not exceeded by \NMmutated{}.
+However, the inductive definition of computing \NMmutable{} does not match the inductive definition of \NMmutated.
+\Cref{fig:sketch:mutableInd} defines an inductive definition of \NMmutable{}, \NMmutableInd{}, matching the induction of \NMmutated{}.
+This inductive specification of what is \TMmutable{} must always conservatively approximate what is \TMmutated{}.
+Potential inductive mutability only grows by the newly allocated object exactly when the parent is in the inductively mutable subsystem.
+By distributing intersection across union, all objects that were not initially \TMextant{} are excluded from this set.
+Therefore, the static definition of \NMmutable{} conservatively approximates \TMmutation{} over the life of the system.
+
+\section{Subsystem Refinements}
+
+The definition of subsystems heretofore has been a simple set of object references.
+This is convenient, as many proofs do not rely upon any information about the form of a subsystem.
+However, this general definition is insufficient for the confinement test as real subsystems are necessarily more constrained.
+This proof sketch defines two additional predicates of subsystems in addition to the confinement test.
+
+\begin{figure}
+  \[ \FNextantSub{S}{E} \equiv E \subseteq \FNextant{S} \]
+  \caption{Extant subsystems.\label{fig:sketch:extant}}
+\end{figure}
+
+The semantics do not make any guarantees about the allocation relationships of \TMunborn{} \TMobjs{}.
+Any \TMunborn{} \TMobj{} might be legally allocated as part of an \TMallocate{} \TMop{} and subsequently become the child of any other \TMobj{}.
+The inclusion of \TMunborn{} \TMobjs{} in a subsystem can inadvertently link two otherwise independent subsystems through an allocation, as is the case in the SW model\cite{ShapiroWeber2000}.
+Rather than make assumptions about where new objects will arise, subsystems are restricted consisting of only \TMalive{} or \TMdead{} objects.
+These subsystems are called \term{\TMextantSubs} and are defined in \Cref{fig:sketch:extant}.
+
+\begin{figure}
+  \[
+  \FNconstrSub{S}{E} \equiv \forall \mapsTo{\ident{src}}{(\ident{obj},\ident{\_},\ident{\_})}{S} , \mapsTo{i}{\FNmkCap{\ident{tgt}}{\ident{\_}}}{\ident{obj}} \wedge \ident{tgt} \in E \Rightarrow \ident{src} \in E
+  \]
+  \caption{\xmakefirstuc{\TMconstrSubs}. \label{fig:sketch:constructive}}
+\end{figure}
+
+Since the \TMconfinementTest{} is always performed before subsystem construction, the subsystem cannot have yet interacted with the system in any way.
+Additionally, the constructor is obligated to revoke its authority to the newly fabricated subsystem and must not have passed it on elsewhere.
+The definition in \Cref{fig:sketch:constructive} generalizes this concept to extend beyond the trusted constructor, requiring that there must not exist a capability held outside the subsystem that names an element within the subsystem.
+These subsystems are called \term{\TMconstrSubs} as they arise naturally from construction.
+
+\section{Confinement}
+\label{sect:sketch:confinement}
+
+
+\begin{figure}
+  \[
+  \begin{array}{rcl}
+    \FNauthorizedSet{C}{E} & \equiv & \forall \FNmkCap{\ident{tgt}}{\ident{\_}} \in C \Rightarrow \ident{tgt} \notin E \\
+    \FNconfinementTest{S}{E}{C} & \equiv & \forall e \in E , \mapsTo{e}{\ident{eObj}}{S} , \mapsTo{\ident{\_}}{\FNmkCap{\ident{tgt}}{\ident{arset}}}{\ident{eObj}} \Rightarrow \\
+    & & \FNmkCap{\ident{tgt}}{\ident{arset}} \in C \vee \\
+    & & \ident{arset} = \emptyset \vee \\
+    & & \ident{tgt} \in E \vee \\
+    & & \neg \FNisAlive{\ident{tgt}}{S} \vee \\
+    & & \ident{tgt} \notin E \wedge \ident{arset} = \{\NMwk\}
+  \end{array}
+  \]
+  \caption{Confinement predicates.  \label{fig:sketch:confinementTest}}
+\end{figure}
+
+\begin{figure}
+  \[
+  \begin{array}{rcl}
+    \FNconfinedSub{S}{E}{C} & \equiv & \FNauthorizedSet{C}{E} \wedge \\
+    & & \FNextantSub{S}{E} \wedge \\
+    & & \FNconstrSub{S}{E} \wedge \\
+    & & \FNconfinementTest{S}{E}{C}
+  \end{array}
+  \]
+  \caption{Confinement definition.   \label{fig:sketch:confinedSub}}
+\end{figure}
+
+A subsystem is confined exactly when all outward information flow is authorized.
+That is, regardless of the actual structure of the subsystem, all potential outward information flow is derived by \TMcaps{} in the \term{\TMauthorizedSet}.
+This sketch embeds the confinement test as a post-condition on the system, but it should be noted that this test can be performed by previous conditions and local inspection.
+In addition to being \TMextant{} and \TMconstructive{}, the \TMauthorizedSet{} of capabilities must not target elements of \(E\) and the \TMconfinementTest{} must pass.
+The \TMconfinementTest{} in \Cref{fig:sketch:confinementTest} is almost a direct transcription of the constructor's confinement test from \Cref{sect:constructor:constructor}, without the case admitting recursively confined constructors.
+The complete definition of a confined subsystem is given in \Cref{fig:sketch:confinedSub}.
+
+To describe \TMconfinement{} as a system property, this proof sketch defines how the \TMauthorizedSet{} of capabilities comes to authorize information flow.
+A \term{fully authorized subsystem} is one in which all objects hold: 1) fully permissive \TMcaps{} to all \TMobjs{} in the \TMsubsystem{} and 2) all of the authorized set of \TMcaps{}.
+The confinement proof proceeds by fixing the subsystem set \(E\) before considering subsystems with varied sets of \TMobjs{}.
+Rather than choosing a canonical subsystem, confinement is described using access graphs.
+
+\begin{figure}
+  \[
+  \begin{array}{rcl}
+    \FNfullAuthAG{A}{E}{C} & \equiv & \FNcompleteAG{E} \cup \\
+    & & \FNauthAG{E}{C} \cup \\
+    & & \FNrestrict{A}{\FNagNodes{A} - E}
+  \end{array}
+  \]
+  with
+  \[
+  \begin{array}{rcl}
+    \FNauthAG{E}{C} & \equiv & \{ \mkEdge{\ident{src}}{\ident{tgt}}{\ident{ar}} | \ident{src} \in E \wedge \FNmkCap{\ident{src}}{\ident{arset}} \in C \wedge \ident{ar} \in \ident{arset} \}\\
+    \FNagNodes{A} & \equiv & \{ a | \mkEdge{a}{\ident{\_}}{\ident{\_}} \in A \vee \mkEdge{\ident{\_}}{a}{\ident{\_}} \in A \} \\
+  \end{array}
+  \]
+  \caption{The \TMfullAuthAG{}. \label{fig:sketch:fullAuthAG}}
+\end{figure}
+
+The \term{\TMfullAuthAG} represents all fully authorized subsystems with the same collection of \TMobjs{} constructed from an initial \TMsystemState{}.
+Given an \TMaccessGraph{}, \NMfullAuthAG{} in \Cref{fig:sketch:fullAuthAG} returns an \TMaccessGraph{} where \(E\) is fully connected, all elements of \(E\) contain the authorized set of \TMalive{} objects, and the edges in the original \TMaccessGraph{} are restricted to elements not in \(E\).
+This last clause, performed by the \NMrestrict{} function, removes all edges where either the source or target are not elements of an approved set of \TMrefs{}
+
+\begin{figure}
+  \[
+  \begin{array}{rcl}
+    \FNagSimplyConfined{E}{P_{\ident{base}}}{P_{\ident{conf}}} & \equiv & P_{\ident{base}} \subseteq P_{\ident{conf}} \wedge \\
+    & & ( \forall \mkEdge{\ident{src}}{\ident{tgt}}{\ident{ar}} \in (P_{\ident{conf}} - P_{\ident{base}}), \ident{src} = \ident{tgt} \vee \\
+    & & \ident{ar} = \NMwk \wedge \ident{src} \in E \wedge \ident{tgt} \notin E )\\
+    \FNagConfined{E}{P_{\ident{base}}}{P_{\ident{conf}}} & \equiv & P_{\ident{base}} \subseteq P_{\ident{conf}} \wedge \\
+    & & (\forall \mkEdge{\ident{src}}{\ident{tgt}}{ar} \in (P_{\ident{conf}} - P_{\ident{base}}), \ident{src} = \ident{tgt} \vee \\
+    & & \ident{ar} = \NMwk \wedge \FNexFlow{P}{E}{\ident{src}} \wedge \neg \FNexFlow{P}{E}{\ident{tgt}})
+    \\
+    \text{with}\\
+    \\
+    \FNexFlow{A}{o}{s} & \equiv & s \in \FNmutableTwo{A}{\{o\}}
+  \end{array}
+  \]
+\caption{\xmakefirstuc{\TMagConfined}. \label{fig:sketch:agConfined}}
+\end{figure}
+
+The \TMconfinementTest{} is lifted to \TMaccessGraphs{} as \NMagSimplyConfined{} in \Cref{fig:sketch:agConfined}.
+Confinement permits more access than is authorized, but ensures that this access creates no additional information flow.
+For \TMaccessGraphs{}, it is stated as a comparison between a \term{base} \TMaccessGraph{} and a \term{confined} \TMaccessGraph.
+The base \TMaccessGraph{} is a subset of the confined \TMaccessGraph{} and restricts which additional edges are in the confined \TMaccessGraph{}.
+By inspection, a \TMfullAuthAG{} resulting from the \TMdirAcc{} of a \TMsystemState{} with a confined subsystem \(E\) will satisfy \NMagSimplyConfined{} over the same parameters.
+
+Unfortunately, computing \TMpotAcc{} on a simply confined \TMaccessGraph{} will not preserve \NMagSimplyConfined{}.
+The more general predicate \NMagConfined{} solves this problem.
+\NMagConfined{} subsumes \NMagSimplyConfined{} and is also preserved through \TMpotTransfers{}, and ultimately \TMpotAcc{}.
+The definition of \NMagConfined{} relies on the definition of \NMexFlow{}, which captures the existence of point-wise mutability.
+When the base \TMaccessGraph{} is the \TMpotAccAG{} of a \TMfullAuthAG{}, all authorized information flow has been captured by \NMmutable{}.
+Therefore, \NMagConfined{} preserves mutability by restricting which edges may be added to the confined \TMaccessGraph{}.
+It requires that all edges not in the base \TMaccessGraph{} must be \NMwk{} edges where there exists an information flow from the confined subsystem to the edge source and there are no flows from the confined subsystem to the edge target, or the edge is impotently self-targeting.
+By case analysis, the mutability of these two \TMaccessGraphs{} must be identical.
+
+\begin{figure}[h]
+\centering
+    \FIGconfinementLemmaMath{}
+\caption{Visualization of the confinement lemma \label{fig:sketch:confinement-lemma}}
+\end{figure}
+
+The overall proof of confinement is visually described in \Cref{fig:sketch:confinement-lemma}.
+The top row illustrates the computation of the potential mutability of a \TMsystemState{} with subsystem \(E\) confined to authorized set \(C\).
+Likewise, the bottom row describes the computation of the potential mutability of the \TMfullAuthAG{} \(A\).
+These computations are related by the middle row with values that preserve information flow satisfying confinement.
+
+The relationships between the bottom and middle rows form the majority of the confinement verification.
+The right-most property has already been described in the description of \NMagConfined{}.
+Given, \FNagConfined{P_{\ident{base}}}{P_{\ident{conf}}}, the mutability of \(P_{\ident{base}}\) and \(P_{\ident{conf}}\) are identical.
+The left-most property can be validated directly from previous theorems.
+First, as previously mentioned, \NMagSimplyConfined{} is subsumed by \NMagConfined{}.
+Second, all \TMaccessEdges{} valid for \NMtransfer{} in the base are also valid in the confined \TMaccessGraph{}.
+Therefore, these edges may be added to \(I\) to produce a valid \TMpotTransfer{} to \(I'\).
+By inspection, adding any \TMaccessEdge{} to both the base and confined access graph preserves \NMagConfined{}.
+Consequently, \NMagConfined{} must also hold in this specific case.
+
+Once the base \TMaccessGraph{} is \TMmaximal{}, the middle triangle becomes solvable.
+The definition of \NMagConfined{} only permits new \NMwk{} edges that don't create new information flow.
+Intuitively, \NMwk{} edges only propagate other \NMwk{} edges in \NMtransfer{}.
+When initially constrained by \NMagConfined{}, the \NMtransfer{} case for \NMwk{} edges can not violate \NMagConfined{}.
+Therefore, \NMagConfined{} with a maximal base \TMaccessGraph{} must hold while computing the \TMpotAcc{} of the confined \TMaccessGraph{}.
+
+Having discharged the bottom row, the relationship between the top row and the middle row is demonstrated by subset variance.
+Simply choosing \(I = D \cup A\) will satisfy both \(D \subseteq I\) and \FNagSimplyConfined{E}{A}{I}.
+With this initial condition, \NMpotAcc{} preserves subset relationships which are then preserved by \NMmutable{}.
+
+Therefore, any subsystem \(E\) passing the \TMconfinementTest{} is confined to the \TMfullAuthAG{}.
+When the \TMconfinementTest{} succeeds, all outward information flow that is possible from the yield at the moment allocation occurs is the sole consequence of the capabilities provided in the authorized set.
+
+Though not formally presented in this sketch, the confinement proof can be extended to cover any set of objects.
+As \(E\) varies, the \TMmutability{} of two fully authorized access graphs does not change with respect to \(E\), provided \(E\) does not include additional objects originally extant in the underlying system state.
+Therefore, the choice of \(E\) is irrelevant and all possible subsystems are confined.
+
+

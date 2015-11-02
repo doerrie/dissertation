@@ -1,0 +1,38 @@
+\newcommand{\COQDOCmutatedOpDef}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{mutated\_op\_def} \coqdocvar{n} \coqdocvar{s} \coqdocvar{op} : \coqdocvar{RefSet.t} \ensuremath{\rightarrow} \coqdockw{Prop} := \coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{mutated\_op\_not\_in} : \coqdockw{\ensuremath{\forall}} \coqdocvar{rf} \coqdocvar{n'}, \coqdocvar{RefSet.eq} \coqdocvar{n} \coqdocvar{n'} \ensuremath{\rightarrow} \coqdocvar{Sem.read\_from\_def} \coqdocvar{s} \coqdocvar{op} \coqdocvar{rf} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{\lnot} \coqdocvar{RefSet.Exists} (\coqdockw{fun} \coqdocvar{x} \ensuremath{\Rightarrow} \coqdocvar{RefSet.In} \coqdocvar{x} \coqdocvar{rf}) \coqdocvar{n} \ensuremath{\rightarrow} \coqdocvar{mutated\_op\_def} \coqdocvar{n} \coqdocvar{s} \coqdocvar{op} \coqdocvar{n'}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{mutated\_op\_valid\_in} : \coqdockw{\ensuremath{\forall}} \coqdocvar{rf} \coqdocvar{n'}, \coqdocvar{RefSet.eq} \coqdocvar{n} \coqdocvar{n'} \ensuremath{\rightarrow} \coqdocvar{Sem.read\_from\_def} \coqdocvar{s} \coqdocvar{op} \coqdocvar{rf} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Exists} (\coqdockw{fun} \coqdocvar{x} \ensuremath{\Rightarrow} \coqdocvar{RefSet.In} \coqdocvar{x} \coqdocvar{rf}) \coqdocvar{n} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{wt}, \coqdocvar{Sem.wrote\_to\_def} \coqdocvar{s} \coqdocvar{op} \coqdocvar{wt} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{n2}, \coqdocvar{RefSet.eq} (\coqdocvar{RefSet.union} \coqdocvar{n'} \coqdocvar{wt}) \coqdocvar{n2} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{mutated\_op\_def} \coqdocvar{n} \coqdocvar{s} \coqdocvar{op} \coqdocvar{n2}.\coqdoceol
+\end{coqdoccode}
+}
+
+
+\newcommand{\COQDOCmutatedDef}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{mutated\_def} \coqdocvar{n} (\coqdocvar{s}:\coqdocvar{Sys.t}) : (\coqdocvar{list} \coqdocvar{Sem.operation}) \ensuremath{\rightarrow} \coqdocvar{RefSet.t} \ensuremath{\rightarrow} \coqdockw{Prop} :=\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{mutated\_nil} : \coqdockw{\ensuremath{\forall}} \coqdocvar{n'}, \coqdocvar{RefSet.eq} \coqdocvar{n} \coqdocvar{n'} \ensuremath{\rightarrow} \coqdocvar{mutated\_def} \coqdocvar{n} \coqdocvar{s} \coqdocvar{nil} \coqdocvar{n'}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{mutated\_cons} : \coqdockw{\ensuremath{\forall}} \coqdocvar{opList} \coqdocvar{n2}, \coqdocvar{mutated\_def} \coqdocvar{n} \coqdocvar{s} \coqdocvar{opList} \coqdocvar{n2} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{s'}, \coqdocvar{Exe.execute\_def} \coqdocvar{s} \coqdocvar{opList} \coqdocvar{s'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{op} \coqdocvar{n3}, \coqdocvar{mutated\_op\_def} \coqdocvar{n2} \coqdocvar{s'} \coqdocvar{op} \coqdocvar{n3} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{mutated\_def} \coqdocvar{n} \coqdocvar{s} (\coqdocvar{cons} \coqdocvar{op} \coqdocvar{opList}) \coqdocvar{n3}.\coqdoceol
+\end{coqdoccode}
+}

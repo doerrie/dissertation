@@ -1,0 +1,669 @@
+\makeatletter
+  
+\presetkeys[SDM]{simpleApprox}{SA,IA,IAx,SB,IB,IBx,subseteq,approxRel,FS,FSA}{}
+
+\newcommand{\FIGsimpleApprox}[1]{
+
+  \setkeys[SDM]{simpleApprox}{#1}
+
+  \begin{tikzpicture}[auto]
+    \node [system]     (S0)                  {\cmdSDM@simpleApprox@SA};
+    \node [access]     (I0)   [right of=S0]   {\cmdSDM@simpleApprox@IA};
+    \draw [compRel] (S0) edge node[midway,above] {\tiny{\cmdSDM@simpleApprox@approxRel}} (I0);
+    \node [access]     (I0')  [right of=I0]   {\cmdSDM@simpleApprox@IAx};
+    \draw [rel] (I0) edge node[midway,above] {\tiny{\cmdSDM@simpleApprox@subseteq}} (I0');
+    
+    \node [system]     (S1)   [below of=S0]  {\cmdSDM@simpleApprox@SB};
+    \node [access]     (I1)   [right of=S1]   {\cmdSDM@simpleApprox@IB};
+    \draw [compRel] (S1) edge node[midway,above] {\tiny{\cmdSDM@simpleApprox@approxRel}} (I1);
+    \node [access]     (I1')  [right of=I1]   {\cmdSDM@simpleApprox@IBx};
+    \draw [rel] (I1) edge node[midway,above] {\tiny{\cmdSDM@simpleApprox@subseteq}} (I1');
+    
+    \draw [compRel] (S0) edge node[midway,left] {\tiny{\cmdSDM@simpleApprox@FS}}  (S1);
+    \draw [compRel] (I0') edge node[midway,left] {\tiny {\cmdSDM@simpleApprox@FSA}} (I1');
+  \end{tikzpicture}
+}
+
+
+\newcommand{\FIGsimpleApproxOld}[7]{
+
+  \FIGsimpleApprox{
+    SA={\({#3}_{#5}\)},
+    IA={\({#4}_{#5}\)},
+    IAx={\({#4}_{#5}'\)},
+    SB={\({#3}_{#6}\)},
+    IB={\({#4}_{#6}\)},
+    IBx={\({#4}_{#6}'\)},
+    subseteq={\(\subseteq\)},
+    FS={#1},
+    FSA={\ensuremath{#2({#3}_{#5})}},
+    approxRel={#7}}
+}
+
+\newcommand{\FIGdirAccApprox}[2]{\FIGsimpleApproxOld{#1}{#2}{S}{I}{a}{b}{\NMdirAcc}}
+
+\newcommand{\FIGdirAccApproxCOQ}[0]{
+  \FIGsimpleApprox{
+    SA={\coqvar{S}},
+    IA={\coqvar{ag}},
+    IAx={\coqvar{ag'}},
+    SB={S2},
+    IB={\coqvar{ag2}},
+    IBx={\coqvar{ag2'}},
+    subseteq={\(\subseteq\)},
+    FS={(\coqvar{Fs} \coqvar{S})},
+    FSA={(\coqvar{Fsa} \coqvar{S})},
+    approxRel={\COQdirAcc}}
+}
+
+\presetkeys[SDM]{simplePotApprox}{SA,IA,IAx,PA,PAx,IBx,PB,PBx,subseteq,leftApprox,rightApprox,FSA,FP}{}
+
+\newcommand{\FIGsimplePotApprox}[1]{
+  %% #1 = left fn (Fsa)
+  %% #2 = right fn (Fp)
+  %% #3 = left term (S)
+  %% #4 = mid term (I)
+  %% #5 = right term (P)
+  %% #6 = top subterm (a)
+  %% #7 = bottom subterm (b)
+  %% #8 = left approx (dirAcc)
+  %% #9 = right approx (potAcc)
+
+  \setkeys[SDM]{simplePotApprox}{#1}
+  
+  \begin{tikzpicture}[auto]
+
+    \node [system]     (S0)                  {\cmdSDM@simplePotApprox@SA};
+    \node [access]     (I0)   [right of=S0]   {\cmdSDM@simplePotApprox@IA};
+    \draw [compRel] (S0) edge node[midway,above] {\tiny {\cmdSDM@simplePotApprox@leftApprox}} (I0);
+    \node [access]     (I0')  [right of=I0]   {\cmdSDM@simplePotApprox@IAx};
+    \draw [rel] (I0) edge node[midway,above] {\tiny{\cmdSDM@simplePotApprox@subseteq}} (I0');
+    \node [access]     (P0)   [right of=I0']  {\cmdSDM@simplePotApprox@PA};
+    \draw [compRel] (I0') edge node[midway,above] {\tiny {\cmdSDM@simplePotApprox@rightApprox}} (P0);
+    \node [access]     (P0')  [right of=P0]   {\cmdSDM@simplePotApprox@PAx};
+    \draw [rel] (P0) edge node[midway,above] {\tiny{\cmdSDM@simplePotApprox@subseteq}} (P0');
+
+    \node [access]     (I1')  [right of=I1]   {\cmdSDM@simplePotApprox@IBx};
+    \node [access]     (P1)   [right of=I1']  {\cmdSDM@simplePotApprox@PB};
+    \draw [compRel] (I1') edge node[midway,above] {\tiny {\cmdSDM@simplePotApprox@rightApprox}} (P1);
+    \node [access]     (P1')  [right of=P1]   {\cmdSDM@simplePotApprox@PBx};
+    \draw [rel] (P1) edge node[midway,above] {\tiny{\cmdSDM@simplePotApprox@subseteq}} (P1');
+    
+    \draw [compRel] (I0') edge node[midway,left] {\tiny {\ensuremath{\cmdSDM@simplePotApprox@FSA}}} (I1');
+    \draw [compRel] (P0') edge node[midway,left] {\tiny {\ensuremath{\cmdSDM@simplePotApprox@FP}}} (P1');
+
+  \end{tikzpicture}
+}
+
+\newcommand{\FIGsimplePotApproxOld}[9]{
+  %% #1 = left fn (Fsa)
+  %% #2 = right fn (Fp)
+  %% #3 = left term (S)
+  %% #4 = mid term (I)
+  %% #5 = right term (P)
+  %% #6 = top subterm (a)
+  %% #7 = bottom subterm (b)
+  %% #8 = left approx (dirAcc)
+  %% #9 = right approx (potAcc)
+
+  \FIGsimplePotApprox{
+    SA={\({#3}_{#6}\)},
+    IA={\({#4}_{#6}\)},
+    IAx={\({#4}_{#6}'\)},
+    PA={\({#5}_{#6}\)},
+    PAx={\({#5}_{#6}'\)},
+    IBx={\({#4}_{#7}'\)},
+    PB={\({#5}_{#7}\)},
+    PBx={\({#5}_{#7}'\)},
+    subseteq={\(\subseteq\)},
+    FSA={\ensuremath{#1({#3}_{#6})}},
+    FP={\ensuremath{#2({#3}_{#6})}},
+    leftApprox={#8},
+    rightApprox={#9}}
+
+}
+
+\newcommand{\FIGpotAccApprox}[2]{\FIGsimplePotApproxOld{#1}{#2}{S}{I}{P}{a}{b}{\NMdirAcc}{\NMpotAcc}}
+
+\newcommand{\FIGpotAccApproxCOQ}[0]{
+  \FIGsimplePotApprox{
+    SA={\coqvar{S}},
+    IA={\coqvar{I}},
+    IAx={\coqvar{I'}},
+    PA={P},
+    PAx={P'},
+    IBx={\coqvar{I2'}},
+    PB={P2},
+    PBx={P2'},
+    subseteq={\(\subseteq\)},
+    FSA={(\coqvar{Fsa} \coqvar{S})},
+    FP={(\coqvar{Fp} \coqvar{S})},
+    leftApprox={\COQdirAcc},
+    rightApprox={\COQpotAccFun}}
+}
+
+
+\presetkeys[SDM]{fullApprox}{SA,IA,IAx,PA,PAx,SB,IB,IBx,PB,PBx,SC,IC,ICx,PC,PCx,subseteq,FDA,FPA,FDB,FPB,FDC,FPC,DirAcc,PotAcc,OPA,OPB,OPC}{}
+
+\newcommand{\FIGfullApprox}[1]{
+%% SA  = \(S_0\)
+%% IA  = \(I_0\)
+%% IAx = \(I_0'\)
+%% PA  = \(P_0\)
+%% PAx = \(P_0'\)
+%% SB  = \(S_1\)
+%% IB  = \(I_1\)
+%% IBx = \(I_1'\)
+%% PB  = \(P_1\)
+%% PBx = \(P_1'\)
+%% SC  = \(S_N\)
+%% IC  = \(I_N\)
+%% ICx = \(I_N'\)
+%% PC  = \(P_N\)
+%% PCx = \(P_N'\)
+%% subseteq = \(\subseteq\)
+%% FDA = \(F_{\NMdirAcc{}_1}\)
+%% FPA = \(F_{\NMpotAcc{}_1}\)
+%% FDB = \(F_{\NMdirAcc{}_{N-1}}\)
+%% FPB = \(F_{\NMdirAcc{}_{N-1}}\)
+%% FDC = \(F_{\NMdirAcc{}_N}\)
+%% FPC = \(F_{\NMdirAcc{}_N}\)
+%% DirAcc  = \NMdirAcc
+%% PotAcc  = \NMpotAcc
+%% OPA = \(\NMop_1\)
+%% OPB = \(\NMop_{N-1}\)
+%% OPC = \(\NMop_N\)
+
+  \setkeys[SDM]{fullApprox}{#1}
+
+  \begin{tikzpicture}[auto]
+
+    \node [system]     (S0)                  {\cmdSDM@fullApprox@SA};
+    \node [access]     (I0)   [right of=S0]   {\cmdSDM@fullApprox@IA};
+    \draw [compRel] (S0) edge node[midway,above] {\tiny \cmdSDM@fullApprox@DirAcc} (I0);
+    \node [access]     (I0')  [right of=I0]   {\cmdSDM@fullApprox@IAx};
+    \draw [rel] (I0) edge node[midway,above] {\tiny \cmdSDM@fullApprox@subseteq} (I0');
+    \node [access]     (P0)   [right of=I0']  {\cmdSDM@fullApprox@PA};
+    \draw [compRel] (I0') edge node[midway,above] {\tiny \cmdSDM@fullApprox@PotAcc} (P0);
+    \node [access]     (P0')  [right of=P0]   {\cmdSDM@fullApprox@PAx};
+    \draw [rel] (P0) edge node[midway,above] {\tiny \cmdSDM@fullApprox@subseteq} (P0');
+
+    \node [system]     (S1)   [below of=S0]  {\cmdSDM@fullApprox@SB};
+    \node [access]     (I1)   [right of=S1]   {\cmdSDM@fullApprox@IB};
+    \draw [compRel] (S1) edge node[midway,above] {\tiny \cmdSDM@fullApprox@DirAcc} (I1);
+    \node [access]     (I1')  [right of=I1]   {\cmdSDM@fullApprox@IBx};
+    \draw [rel] (I1) edge node[midway,above] {\tiny \cmdSDM@fullApprox@subseteq} (I1');
+    \node [access]     (P1)   [right of=I1']  {\cmdSDM@fullApprox@PB};
+    \draw [compRel] (I1') edge node[midway,above] {\tiny \cmdSDM@fullApprox@PotAcc} (P1);
+    \node [access]     (P1')  [right of=P1]   {\cmdSDM@fullApprox@PBx};
+    \draw [rel] (P1) edge node[midway,above] {\tiny \cmdSDM@fullApprox@subseteq} (P1');
+    \draw [compRel] (S0) edge node[midway,left] {\tiny \cmdSDM@fullApprox@OPA}  (S1);
+    \draw [compRel] (I0') edge node[midway,left] {\tiny \cmdSDM@fullApprox@FDA} (I1');
+    \draw [compRel] (P0') edge node[midway,left] {\tiny \cmdSDM@fullApprox@FPA} (P1');
+    
+    \node [invisSystem]     (Sd)   [below of=S1]  {\(\dots\)};
+    \node [invisSystem]     (Id)   [below of=I1]   {\(\dots\)};
+    \node [invisSystem]     (Id')  [below of=I1']   {\(\dots\)};
+    \node [invisSystem]     (Pd)   [below of=P1]  {\(\dots\)};
+    \node [invisSystem]     (Pd')  [below of=P1']   {\(\dots\)};
+    \draw [compRel] (S1) edge node[midway,left] {\tiny \cmdSDM@fullApprox@OPB}  (Sd);
+    \draw [compRel] (I1') edge node[midway,left] {\tiny \cmdSDM@fullApprox@FDB} (Id');
+    \draw [compRel] (P1') edge node[midway,left] {\tiny \cmdSDM@fullApprox@FPB} (Pd');
+
+    \node [system]     (SN)   [below of=Sd]  {\cmdSDM@fullApprox@SC};
+    \node [access]     (IN)   [right of=SN]   {\cmdSDM@fullApprox@IC};
+    \draw [compRel] (SN) edge node[midway,above] {\tiny \cmdSDM@fullApprox@DirAcc} (IN);
+    \node [access]     (IN')  [right of=IN]   {\cmdSDM@fullApprox@ICx};
+    \draw [rel] (IN) edge node[midway,above] {\tiny \cmdSDM@fullApprox@subseteq} (IN');
+    \node [access]     (PN)   [right of=IN']  {\cmdSDM@fullApprox@PC};
+    \draw [compRel] (IN') edge node[midway,above] {\tiny \cmdSDM@fullApprox@PotAcc} (PN);
+    \node [access]     (PN')  [right of=PN]   {\cmdSDM@fullApprox@PCx};
+    \draw [rel] (PN) edge node[midway,above] {\tiny \cmdSDM@fullApprox@subseteq} (PN');
+    \draw [compRel] (Sd) edge node[midway,left] {\tiny \cmdSDM@fullApprox@OPC}  (SN);
+    \draw [compRel] (Id') edge node[midway,left] {\tiny \cmdSDM@fullApprox@FDC} (IN');
+    \draw [compRel] (Pd') edge node[midway,left] {\tiny \cmdSDM@fullApprox@FPC} (PN');
+
+  \end{tikzpicture}
+
+}
+
+\newcommand{\FIGfullApproxCOQ}[0]{
+  \FIGfullApprox{
+    SA={\(S_0\)},
+    IA={\(I_0\)},
+    IAx={\(I_0'\)},
+    PA={\(P_0\)},
+    PAx={\(P_0'\)},
+    SB={\(S_1\)},
+    IB={\(I_1\)},
+    IBx={\(I_1'\)},
+    PB={\(P_1\)},
+    PBx={\(P_1'\)},
+    SC={\(S_N\)},
+    IC={\(I_N\)},
+    ICx={\(I_N'\)},
+    PC={\(P_N\)},
+    PCx={\(P_N'\)},
+    subseteq={\(\subseteq\)},
+    FDA={\(Fsa_1\)},
+    FPA={\(Fp_1\)},
+    FDB={\(Fsa_2\)},
+    FPB={\(Fp_2\)},
+    FDC={\(Fsa_N\)},
+    FPC={\(Fp_N\)},
+    DirAcc={\COQdirAcc},
+    PotAcc={\COQpotAccFun},
+    OPA={\(\COQdoOp_1\)},
+    OPB={\(\COQdoOp_{N-1}\)},
+    OPC={\(\COQdoOp_N\)}}
+}
+
+\newcommand{\FIGfullApproxMath}[0]{
+  \FIGfullApprox{
+    SA={\(S_0\)},
+    IA={\(I_0\)},
+    IAx={\(I_0'\)},
+    PA={\(P_0\)},
+    PAx={\(P_0'\)},
+    SB={\(S_1\)},
+    IB={\(I_1\)},
+    IBx={\(I_1'\)},
+    PB={\(P_1\)},
+    PBx={\(P_1'\)},
+    SC={\(S_N\)},
+    IC={\(I_N\)},
+    ICx={\(I_N'\)},
+    PC={\(P_N\)},
+    PCx={\(P_N'\)},
+    subseteq={\(\subseteq\)},
+    FDA={\(F_{\NMdirAcc{}_1}(S_0)\)},
+    FPA={\(F_{\NMpotAcc{}_1}(S_0)\)},
+    FDB={\(F_{\NMdirAcc{}_{N-1}}(S_{N-1})\)},
+    FPB={\(F_{\NMdirAcc{}_{N-1}}(S_{N-1})\)},
+    FDC={\(F_{\NMdirAcc{}_N}(S_N)\)},
+    FPC={\(F_{\NMdirAcc{}_N}(S_N)\)},
+    DirAcc={\NMdirAcc},
+    PotAcc={\NMpotAcc},
+    OPA={\(\NMop_1\)},
+    OPB={\(\NMop_{N-1}\)},
+    OPC={\(\NMop_N\)}}
+}
+
+
+%% \newcommand{\FIGfullApprox}[0]{
+
+%%   \msdnote{Parameterize this}
+  
+%%   \begin{tikzpicture}[auto]
+
+%%     \node [system]     (S0)                  {\(S_0\)};
+%%     \node [access]     (I0)   [right of=S0]   {\(I_0\)};
+%%     \draw [compRel] (S0) edge node[midway,above] {\tiny \NMdirAcc} (I0);
+%%     \node [access]     (I0')  [right of=I0]   {\(I_0'\)};
+%%     \draw [rel] (I0) edge node[midway,above] {\tiny \(\subseteq\)} (I0');
+%%     \node [access]     (P0)   [right of=I0']  {\(P_0\)};
+%%     \draw [compRel] (I0') edge node[midway,above] {\tiny \NMcompPotAcc} (P0);
+%%     \node [access]     (P0')  [right of=P0]   {\(P_0'\)};
+%%     \draw [rel] (P0) edge node[midway,above] {\tiny \(\subseteq\)} (P0');
+
+%%     \node [system]     (S1)   [below of=S0]  {\(S_1\)};
+%%     \node [access]     (I1)   [right of=S1]   {\(I_1\)};
+%%     \draw [compRel] (S1) edge node[midway,above] {\tiny \NMdirAcc} (I1);
+%%     \node [access]     (I1')  [right of=I1]   {\(I_1'\)};
+%%     \draw [rel] (I1) edge node[midway,above] {\tiny \(\subseteq\)} (I1');
+%%     \node [access]     (P1)   [right of=I1']  {\(P_1\)};
+%%     \draw [compRel] (I1') edge node[midway,above] {\tiny \NMcompPotAcc} (P1);
+%%     \node [access]     (P1')  [right of=P1]   {\(P_1'\)};
+%%     \draw [rel] (P1) edge node[midway,above] {\tiny \(\subseteq\)} (P1');
+%%     \draw [compRel] (S0) edge node[midway,left] {\tiny \(\NMop_1\)}  (S1);
+%%     \draw [compRel] (I0') edge node[midway,left] {\tiny \(F_{\NMdirAcc{}_1}\)} (I1');
+%%     \draw [compRel] (P0') edge node[midway,left] {\tiny \(F_{\NMpotAcc{}_1}\)} (P1');
+    
+%%     \node [invisSystem]     (Sd)   [below of=S1]  {\(\dots\)};
+%%     \node [invisSystem]     (Id)   [below of=I1]   {\(\dots\)};
+%%     %% \draw [rel] (Sd) edge node[midway,above] {\tiny dirAcc} (Id);
+%%     \node [invisSystem]     (Id')  [below of=I1']   {\(\dots\)};
+%%     %% \draw [rel] (Id) edge node[midway,above] {\tiny \(\subseteq\)} (Id');
+%%     \node [invisSystem]     (Pd)   [below of=P1]  {\(\dots\)};
+%%     %% \draw [rel] (Id') edge node[midway,above] {\tiny potAcc} (Pd);
+%%     \node [invisSystem]     (Pd')  [below of=P1']   {\(\dots\)};
+%%     %% \draw [rel] (Pd) edge node[midway,above] {\tiny \(\subseteq\)} (Pd');
+%%     \draw [compRel] (S1) edge node[midway,left] {\tiny \(op op_{N-1}\)}  (Sd);
+%%     \draw [compRel] (I1') edge node[midway,left] {\tiny \(F_{\NMdirAcc{}_{N-1}}\)} (Id');
+%%     \draw [compRel] (P1') edge node[midway,left] {\tiny \(F_{\NMdirAcc{}_{N-1}}\)} (Pd');
+
+%%     \node [system]     (SN)   [below of=Sd]  {\(S_N\)};
+%%     \node [access]     (IN)   [right of=SN]   {\(I_N\)};
+%%     \draw [compRel] (SN) edge node[midway,above] {\tiny dirAcc} (IN);
+%%     \node [access]     (IN')  [right of=IN]   {\(I_N'\)};
+%%     \draw [rel] (IN) edge node[midway,above] {\tiny \(\subseteq\)} (IN');
+%%     \node [access]     (PN)   [right of=IN']  {\(P_N\)};
+%%     \draw [compRel] (IN') edge node[midway,above] {\tiny potAcc} (PN);
+%%     \node [access]     (PN')  [right of=PN]   {\(P_N'\)};
+%%     \draw [rel] (PN) edge node[midway,above] {\tiny \(\subseteq\)} (PN');
+%%     \draw [compRel] (Sd) edge node[midway,left] {\tiny \(op op_N\)}  (SN);
+%%     \draw [compRel] (Id') edge node[midway,left] {\tiny \(F_{\NMdirAcc{}_N}\)} (IN');
+%%     \draw [compRel] (Pd') edge node[midway,left] {\tiny \(F_{\NMdirAcc{}_N}\)} (PN');
+
+%%   \end{tikzpicture}
+
+%% }
+
+\presetkeys[SDM]{confinement}{constrA,constrB,S,D,PD,MD,I,Ix,PI,MI,A,PA,MA,mutableRel,simpConfRel,confRel,dirAccRel,potAccRel,potTransferRel}{}
+
+\newcommand{\FIGconfinementLemma}[1]{
+%% constrA     = constraint 1    \(ag\_fully\_authorized(I,C,E,A)\)
+%% constrB     = constraint 2    \(confined\_subsystem(S,C,E)\)
+%% S           = System State    \(S\)
+%% D           = dirAcc(S)       \(D\)
+%% PD          = potAcc(D)       \(P_D\)
+%% MD          = mutable(E,PD)   \(M_D\)
+%% I           = union(D,A)      \(I\)
+%% Ix          = union(I,PA)     \(I'\)
+%% PI          = potAcc(Ix)      \(P_I\)
+%% MI          = mutable(E,PI)   \(M_I\)
+%% A           = fully auth ag   \(A\)
+%% PA          = potAcc(A)       \(P_A\)
+%% MA          = mutable(E,PA)   \(M_A\)
+%% mutableRel  = mutable(E) rel  \(mutable(E)\)
+%% simpConfRel = simp conf rel   \(ag\_simp\_conf(C,E)\)
+%% confRel     = conf rel        \(ag\_conf(C,E)\)  
+%% dirAccRel   = dirAcc rel      \(dirAcc\)
+%% potAccRel   = potAcc rel      \(potAcc\)
+%% potTransferRel = potTransfer rel \(potTransfer\)
+
+  \setkeys[SDM]{confinement}{#1}
+  
+  Given \cmdSDM@confinement@constrA{}  and \cmdSDM@confinement@constrB,
+  \begin{tikzpicture}[auto]
+    \matrix[column sep=10mm, row sep=10mm, ampersand replacement=\&]{
+      \node [system]     (S)         {\cmdSDM@confinement@S}; \&
+      \node [access]     (D)         {\cmdSDM@confinement@D}; \&
+      \&[+5mm]
+      \&[-5mm]
+      \node [access]     (PD)        {\cmdSDM@confinement@PD}; \&
+      \&[-5mm]
+      \node [mutable]     (MD)        {\cmdSDM@confinement@MD};
+      \& \\
+      
+      \&
+      \&
+      \node [access]     (I)         {\cmdSDM@confinement@I}; \&
+      \node [access]     (I')        {\cmdSDM@confinement@Ix}; \&
+      \&
+      \node [access]     (PI)        {\cmdSDM@confinement@PI}; \&
+      \&
+      \node [mutable]     (MI)        {\cmdSDM@confinement@MI}; \\
+      
+      \&
+      \&
+      \node [access]     (A)         {\cmdSDM@confinement@A}; \&
+      \node [access]     (PA)        {\cmdSDM@confinement@PA}; \&
+      \&
+      \&
+      \&
+      \node [mutable]     (MA)        {\cmdSDM@confinement@MA}; \\
+    };
+    
+    \draw [compRel] (S) edge node[midway,above] {\tiny {\cmdSDM@confinement@dirAccRel}} (D);
+    \draw [compRel] (D) edge node[midway,above] {\tiny {\cmdSDM@confinement@potAccRel}} (PD);
+    \draw [compRel] (PD) edge node[midway,above] {\tiny {\cmdSDM@confinement@mutableRel}} (MD);
+
+    \draw [rel] (D) edge node[midway,left] {\tiny \(\subseteq\)}  (I);
+    \draw [rel] (PD) edge node[midway,left] {\tiny \(\subseteq\)}  (PI);
+    \draw [rel] (MD) edge node[midway,left] {\tiny \(\subseteq\)}  (MI);
+
+    \draw [compRel] (I) edge node[midway,above] {\tiny {\cmdSDM@confinement@potTransferRel}} (I');
+    \draw [compRel] (I') edge node[midway,above] {\tiny {\cmdSDM@confinement@potAccRel}} (PI);
+    \draw [compRel] (PI) edge node[midway,above] {\tiny {\cmdSDM@confinement@mutableRel}} (MI);
+
+    \draw [rel] (A) edge node[midway,left] {\tiny {\cmdSDM@confinement@simpConfRel}}  (I);
+    \draw [rel] (PA) edge node[midway,left] {\tiny {\cmdSDM@confinement@confRel}}  (I');
+    \draw [rel] (PA) edge node[midway,right] {\tiny {\cmdSDM@confinement@confRel}}  (PI);
+    \draw [rel] (MI) edge node[midway,left] {\tiny \(=\)}  (MA);
+    
+    \draw [compRel] (A) edge node[midway,above] {\tiny {\cmdSDM@confinement@potAccRel}} (PA);
+    \draw [compRel] (PA) edge node[midway,above] {\tiny {\cmdSDM@confinement@mutableRel}} (MA);
+    
+  \end{tikzpicture}
+}
+
+\newcommand{\FIGconfinementLemmaMath}[0]{
+  \FIGconfinementLemma{
+    constrA={\(A = \FNfullAuthAG{I}{C}{E}\)},
+    constrB={\(\FNconfinedSub{S}{C}{E}\)},
+    S={\(S\)},
+    D={\(D\)},
+    PD={\(P_D\)},
+    MD={\(M_D\)},
+    I={\(I\)},
+    Ix={\(I'\)},
+    PI={\(P_I\)},
+    MI={\(M_I\)},
+    A={\(A\)},
+    PA={\(P_A\)},
+    MA={\(M_A\)},
+    mutableRel={\(\NMmutable(E)\)},
+    simpConfRel={\(\NMagSimplyConfined{}(E)\)},
+    confRel={\(\NMagConfined{}(E)\)},
+    dirAccRel={\NMdirAcc},
+    potAccRel={\NMpotAcc},
+    potTransferRel={\NMpotTransfer}}
+}
+
+\newcommand{\FIGconfinementLemmaCOQ}[0]{
+  \FIGconfinementLemma{
+    constrA={(\COQagFullyAuthorizedSpec{} \coqvar{I} \coqvar{C} \coqvar{E} \coqvar{A})},
+    constrB={(\COQconfinedSubsystem{} \coqvar{S} \coqvar{C} \coqvar{E})},
+    S={\coqvar{S}},
+    D={\coqvar{D}},
+    PD={\coqvar{Pd}},
+    MD={\coqvar{Md}},
+    I={\coqvar{I}},
+    Ix={\coqvar{I'}},
+    PI={\coqvar{Pi}},
+    MI={\coqvar{Mi}},
+    A={\coqvar{A}},
+    PA={\coqvar{Pa}},
+    MA={\coqvar{Ma}},
+    mutableRel={(\COQmutable{} \coqvar{E})},
+    simpConfRel={(\COQagSimpConf{} \coqvar{E})},
+    confRel={(\COQagConf{} \coqvar{E})},
+    dirAccRel={\COQdirAcc},
+    potAccRel={\COQpotAcc},
+    potTransferRel={\COQpotTransfer}}
+}
+
+
+\newcommand{\FIGflow}[0]{
+  \[
+  \begin{array}{rcl}
+    \FNreadFrom{\FNread{a}{t}}{S} & \equiv & \{a,\FNobjTarget{a}{t}{S}\} \\
+    \FNreadFrom{\FNwrite{a}{t}}{S} & \equiv & \{a\}\\
+    \FNreadFrom{\FNfetch{a}{t}{c}{i}}{S} & \equiv & \{a,\FNobjTarget{a}{t}{S}\}\\
+    \FNreadFrom{\FNstore{a}{t}{c}{i}}{S} & \equiv & \{a\}\\
+    \FNreadFrom{\FNrevoke{a}{t}{c}}{S} & \equiv & \{a\}\\
+    \FNreadFrom{\FNdestroy{a}{t}}{S} & \equiv & \{a\}\\
+    \FNreadFrom{\FNcreate{a}{n}{m}{\ident{typ}}}{S} & \equiv & \{a\}\\
+    \FNreadFrom{\FNsend{a}{t}{m}{x}}{S} & \equiv & \{a\}\\
+    \\
+    \FNwroteTo{\FNread{a}{t}}{S} & \equiv & \{a\}\\
+    \FNwroteTo{\FNwrite{a}{t}}{S} & \equiv & \{\FNobjTarget{a}{t}{S}\} \\
+    \FNwroteTo{\FNfetch{a}{t}{c}{i}}{S} & \equiv & \{a\}\\
+    \FNwroteTo{\FNstore{a}{t}{c}{i}}{S} & \equiv & \{\FNobjTarget{a}{t}{S}\}\\
+    \FNwroteTo{\FNrevoke{a}{t}{c}}{S} & \equiv & \{\FNobjTarget{a}{t}{S}\}\\
+    \FNwroteTo{\FNdestroy{a}{t}}{S} & \equiv & \{a\}\\
+    \FNwroteTo{\FNcreate{a}{n}{m}{\ident{typ}}}{S} & \equiv & \{a,n\}\\
+    \FNwroteTo{\FNsend{a}{t}{m}{x}}{S} & \equiv & \{\FNobjTarget{a}{t}{S}\}\\
+    \\
+    \text{when preconditions are satisfied, otherwise}\\
+    \\
+    \FNreadFrom{\ident{op}}{S} & \equiv & \{\} \\
+    \FNwroteTo{\ident{op}}{S} & \equiv & \{\} 
+  \end{array}
+  \]
+}
+
+\newcommand{\FIGgeneralApproxDirAccDep}[0]{
+  \begin{tikzpicture}[auto]
+    \matrix[column sep=10mm, row sep=10mm, ampersand replacement=\&]{
+      \node [system]     (S)         {\(S\)}; \&
+      \node [access]     (I)         {\(D\)}; \&
+      \node [access]     (I')        {\(I\)}; \&
+      \node [access]     (I'')       {\(I'\)}; \&
+      \node [access]     (P)         {\(P\)}; \\
+      
+      \&
+      \&
+      \node [access]     (I'2)       {\(I_2\)}; \&
+      \node [access]     (I''2)      {\(I_2'\)}; \&
+      \node [access]     (P2)        {\(P_2\)}; \\
+    };
+    
+    \draw [compRel] (S) edge node[midway,above] {\tiny {\(dirAcc\)}} (I);
+    \draw [rel] (I) edge node[midway,above] {\tiny \(\subseteq\)}  (I');
+    \draw [compRel] (I') edge node[midway,above] {\tiny {\coqvar{Fg}}} (I'');
+    \draw [rel] (I'') edge node[midway,above] {\tiny \(\subseteq\)}  (P);
+    
+    \draw [compRel] (I') edge node[midway,left] {\tiny {(\coqvar{Fsa} \coqvar{S})}} (I'2);
+    \draw [compRel] (P) edge node[midway,left] {\tiny {(\coqvar{Fsa'} \coqvar{S})}} (P2);
+    
+    \draw [compRel] (I'2) edge node[midway,above] {\tiny {\coqvar{Fg}}} (I''2);
+    \draw [rel] (I''2) edge node[midway,above] {\tiny \(\subseteq\)}  (P2);
+    
+  \end{tikzpicture}
+}
+
+\newcommand{\FIGmutableExecute}[0]{
+  \begin{tikzpicture}[auto]
+    \matrix[column sep=10mm, row sep=10mm, ampersand replacement=\&]{
+      \node [system]     (S0)         {\(S_0\)}; \&[+5mm]
+      \&
+      \node [access]     (D0)         {\(D_0\)}; \&
+      \node [access]     (I0)         {\(I_0\)}; \&
+      \node [access]     (P0)         {\(P_0\)}; \&
+      \node [access]     (P0')        {\(P_0'\)}; \&[+5mm]
+      \\
+
+      \&
+      \node [implMutable]    (m0)         {\(m_0\)}; \&
+      \&
+      \&
+      \&
+      \&
+      \node [mutable]    (M0)         {\(M_0\)}; \\
+
+      \node [implSystem]     (S1)         {\(S_1\)}; \&
+      \&
+      \node [implAccess]     (D1)         {\(D_1\)}; \&
+      \node [access]     (I1)         {\(I_1\)}; \&
+      \node [access]     (P1)         {\(P_1\)}; \&
+      \node [access]     (P1')        {\(P_1'\)}; \&
+      \\
+
+      
+      \&
+      \node [implMutable]    (m1)         {\(m_1\)}; \&
+      \&
+      \&
+      \&
+      \&
+      \node [mutable]    (M1)         {\(M_1\)}; \\[-10mm]
+
+      \node [invisSystem]     (S2)         {\(\dots\)}; \&
+      \&
+      \&
+      \node [invisAccess]     (I2)         {\(\dots\)}; \&
+      \&
+      \node [invisAccess]     (P2')        {\(\dots\)}; \& 
+      \\
+
+      \node [implSystem]     (SN)         {\(S_n\)}; \&
+      \&
+      \node [implAccess]     (DN)         {\(D_n\)}; \&
+      \node [access]     (IN)         {\(I_n\)}; \&
+      \node [access]     (PN)         {\(P_n\)}; \&
+      \node [access]     (PN')        {\(P_n'\)}; \&
+      \\
+      
+      \&
+      \node [implMutable]    (mN)         {\(m_n\)}; \&
+      \&
+      \&
+      \&
+      \&
+      \node [mutable]    (MN)         {\(M_n\)}; \\
+    };
+      
+    \draw [compRel] (S0) edge node[midway,above] {\tiny {\(dirAcc\)}} (D0);
+    \draw [implCompRel] (S0) edge node[midway,above,sloped] {\tiny {(\COQmutated{} \coqvar{E})}} (m0);
+    \draw [rel] (D0) edge node[midway,above] {\tiny \(\subseteq\)}  (I0);
+    \draw [compRel] (I0) edge node[midway,above] {\tiny {\coqvar{Fg}}} (P0);
+    \draw [rel] (P0) edge node[midway,above] {\tiny \(\subseteq\)}  (P0');
+    \draw [compRel] (P0') edge node[midway,above,sloped] {\tiny {(\COQmutable{} \coqvar{E})}} (M0);
+    \draw [implRel] (m0) edge node[midway,above] {\tiny {\(\subseteq\)}} (M0);
+    
+    \draw [implCompRel] (S0) edge node[pos=0.75,left] {\tiny {\(\coqvar{Fs}_1\)}} (S1);
+    \draw [compRel] (I0) edge node[pos=0.75,left] {\tiny {(\(\coqvar{Fdx}_1\) \(S_0\))}} (I1);
+    \draw [compRel] (P0') edge node[pos=0.75,left] {\tiny {(\(\coqvar{Ftx}_1\) \(S_0\))}} (P1');
+    
+    \draw [implCompRel] (S1) edge node[midway,above] {\tiny {\(dirAcc\)}} (D1);
+    \draw [implCompRel] (S1) edge node[midway,above,sloped] {\tiny {(\COQmutated{} \(m_0\))}} (m1);
+    \draw [implRel] (D1) edge node[midway,above] {\tiny \(\subseteq\)}  (I1);
+    \draw [compRel] (I1) edge node[midway,above] {\tiny {\coqvar{Fg}}} (P1);
+    \draw [rel] (P1) edge node[midway,above] {\tiny \(\subseteq\)}  (P1');
+    \draw [compRel] (P1') edge node[midway,above,sloped] {\tiny {(\COQmutable{} \(M_0\))}} (M1);
+    \draw [implRel] (m1) edge node[midway,above] {\tiny {\(\subseteq\)}} (M1);
+
+    \draw [implCompRel] (S1) -- (S2);
+    \draw [compRel] (I1) -- (I2);
+    \draw [compRel] (P1') -- (P2');
+    
+    
+    \draw [implCompRel] (S2) edge node[midway,left] {\tiny {\(\coqvar{Fs}_n\)}} (SN);
+    \draw [compRel] (I2) edge node[midway,left] {\tiny {(\(\coqvar{Fdx}_n\) \(S_{n-1}\))}} (IN);
+    \draw [compRel] (P2') edge node[midway,left] {\tiny {(\(\coqvar{Ftx}_n\) \(S_{n-1}\))}} (PN');
+    
+    \draw [implCompRel] (SN) edge node[midway,above] {\tiny {\(dirAcc\)}} (DN);
+    \draw [implCompRel] (SN) edge node[midway,above,sloped] {\tiny {(\coqvar{mutated} \(m_{n-1}\))}} (mN);
+    \draw [implRel] (DN) edge node[midway,above] {\tiny \(\subseteq\)}  (IN);
+    \draw [compRel] (IN) edge node[midway,above] {\tiny {\coqvar{Fg}}} (PN);
+    \draw [rel] (PN) edge node[midway,above] {\tiny \(\subseteq\)}  (PN');
+    \draw [compRel] (PN') edge node[midway,above,sloped] {\tiny {(\coqvar{mutable} \(M_{n-1}\))}} (MN);
+    \draw [implRel] (mN) edge node[midway,above] {\tiny {\(\subseteq\)}} (MN);
+
+    
+    
+  \end{tikzpicture}
+}
+
+\newcommand{\FIGcdtFix}[0]{
+  If the capability held by \(B\) is the child of the capability held by \(A\):
+  \centering
+    \begin{tikzpicture}[auto]
+      \matrix[column sep=15mm, row sep=15mm, ampersand replacement=\&]{
+        \node [subjectAlive] (A') {A}; \&
+        \node [subjectAlive] (B') {B}; \&
+        \node [subjectAlive] (A) {A}; \&
+        \node [subjectAlive] (B) {B};
+        \\
+        \node [objectAlive] (O')   {O}; \&
+        \node [objectAlive] (O)    {O}; \&
+        \node [cdtAlive] (CDTa) {\(cdt_1\)}; \&
+        \node [cdtAlive] (CDTb) {\(cdt_2\)};
+        \\
+      };
+      \draw [capArrow] (A') edge  node[midway,left] {\tiny \(\{Read,Write\}\)} node[very near start,left] {1} (O');
+      \draw [capArrow] (B') edge  node[midway,left] {\tiny \(\{Read\}\)} node[very near start,left] {1} (O');
+      
+      \draw [capArrow] (A) edge  node[midway,left] {\tiny \(\{\NMtx{},\NMwr{}\}\)} node[very near start,left] {1} (CDTa);
+      \draw [capArrow] (CDTa) edge  node[midway,above] {\tiny \(\{\NMrd{},\NMwr{}\}\)} node[very near start,above] {1} (O);
+
+      \draw [capArrow] (B) edge  node[midway,left] {\tiny \(\{\NMtx{},\NMwr{}\}\)} node[very near start,left] {1} (CDTb);
+      \draw [capArrow] (CDTb) edge  node[midway,above] {\tiny \(\{\NMrd{}\}\)} node[very near start,above] {1} (CDTa);
+
+    \end{tikzpicture}
+}
+
+
+  \makeatother

@@ -1,0 +1,220 @@
+\newcommand{\COQDOCdirAccApproxDep}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{dirAcc\_approx\_dep} \coqdocvar{Fs} \coqdocvar{Fsa} := \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{s'} \coqdocvar{ag} \coqdocvar{ag'} \coqdocvar{ag2}, \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow} \coqdocvar{dirAcc\_spec} (\coqdocvar{Fs} \coqdocvar{s}) \coqdocvar{ag2} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.Subset} \coqdocvar{ag} \coqdocvar{ag'} \ensuremath{\rightarrow} \coqdocvar{Sys.eq} \coqdocvar{s} \coqdocvar{s'} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.Subset} \coqdocvar{ag2} (\coqdocvar{Fsa} \coqdocvar{s'} \coqdocvar{ag'}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccMDep}[0]{\COQDOCdirAccApproxDep}
+
+\newcommand{\COQDOCdirAccApproxDepComp}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_approx\_dep\_comp}: \coqdockw{\ensuremath{\forall}} \coqdocvar{Fs} \coqdocvar{Fsa} \coqdocvar{Fs'} \coqdocvar{Fsa'},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{st\_equiv} \coqdocvar{Fs} \ensuremath{\rightarrow} \coqdocvar{dirAcc\_approx\_dep} \coqdocvar{Fs} \coqdocvar{Fsa} \ensuremath{\rightarrow} \coqdocvar{dirAcc\_approx\_dep} \coqdocvar{Fs'} \coqdocvar{Fsa'} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{dirAcc\_approx\_dep} (\coqdockw{fun} \coqdocvar{s} \ensuremath{\Rightarrow} \coqdocvar{Fs'} (\coqdocvar{Fs} \coqdocvar{s})) (\coqdockw{fun} \coqdocvar{s} \coqdocvar{a} \ensuremath{\Rightarrow} \coqdocvar{Fsa'} (\coqdocvar{Fs} \coqdocvar{s}) (\coqdocvar{Fsa} \coqdocvar{s} \coqdocvar{a})).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccMDepComp}[0]{\COQDOCdirAccApproxDepComp}
+
+\newcommand{\COQDOCidAG}[0]{
+  \begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{id\_ag} (\coqdocvar{ag}:\coqdocvar{AG.t}) := \coqdocvar{ag}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCwriteAG}[0]{
+  \begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{write\_ag} := \coqdocvar{id\_ag}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCreadAG}[0]{
+  \begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{read\_ag} := \coqdocvar{id\_ag}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCrevokeAG}[0]{
+  \begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{revoke\_ag} := \coqdocvar{id\_ag}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCdestroyAG}[0]{
+  \begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{destroy\_ag} := \coqdocvar{id\_ag}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccApproxdirAccApproxDep}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_approx\_dirAcc\_approx\_dep}: \coqdockw{\ensuremath{\forall}} \coqdocvar{Fs} \coqdocvar{Fa},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{dirAcc\_approx} \coqdocvar{Fs} \coqdocvar{Fa} \ensuremath{\rightarrow} \coqdocvar{dirAcc\_approx\_dep} \coqdocvar{Fs} (\coqdockw{fun} \coqdocvar{s} \ensuremath{\Rightarrow} \coqdocvar{Fa}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccMdirAccMDep}[0]{\COQDOCdirAccApproxdirAccApproxDep}
+
+
+\newcommand{\COQDOCdirAccApproxRead}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_approx\_read}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{c},\coqdoceol
+\coqdocindent{1.50em}
+\coqdocvar{dirAcc\_approx} (\coqdocvar{Sem.do\_read} \coqdocvar{a} \coqdocvar{c}) \coqdocvar{read\_ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccMRead}[0]{\COQDOCdirAccApproxRead}
+
+
+\newcommand{\COQDOCdirAccApproxWrite}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_approx\_write}:\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{c},\coqdoceol
+\coqdocindent{1.50em}
+\coqdocvar{dirAcc\_approx} (\coqdocvar{Sem.do\_write} \coqdocvar{a} \coqdocvar{c}) \coqdocvar{write\_ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccMWrite}[0]{\COQDOCdirAccApproxWrite}
+
+
+\newcommand{\COQDOCdirAccApproxRevoke}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_approx\_revoke}:\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c},\coqdoceol
+\coqdocindent{1.50em}
+\coqdocvar{dirAcc\_approx} (\coqdocvar{Sem.do\_revoke} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c}) \coqdocvar{revoke\_ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccMRevoke}[0]{\COQDOCdirAccApproxRevoke}
+
+\newcommand{\COQDOCdirAccApproxDestroy}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_approx\_destroy}:\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t},\coqdoceol
+\coqdocindent{1.50em}
+\coqdocvar{dirAcc\_approx} (\coqdocvar{Sem.do\_destroy} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{destroy\_ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccMDestroy}[0]{\COQDOCdirAccApproxDestroy}
+
+\newcommand{\COQDOCstoreDepAG}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{store\_dep\_ag} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{s} := \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{ag\_push\_cap\_by\_indices} \coqdocvar{a} \coqdocvar{t} \coqdocvar{a} \coqdocvar{c} \coqdocvar{s} (\coqdockw{fun} \coqdocvar{c}\ensuremath{\Rightarrow}\coqdocvar{c}) \coqdocvar{ag\_add\_cap\_valid\_std}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCallocateDepAG}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{allocate\_dep\_ag} \coqdocvar{a} \coqdocvar{n} \coqdocvar{ixi\_list} \coqdocvar{s} \coqdocvar{ag}:= \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{if} \coqdocvar{SemDefns.allocate\_preReq\_dec} \coqdocvar{a} \coqdocvar{n} \coqdocvar{s} \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{then} \coqdocvar{ag\_add\_caps\_allocate} \coqdocvar{a} \coqdocvar{n} \coqdocvar{ixi\_list} \coqdocvar{s} \coqdocvar{ag} \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{else} \coqdocvar{ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCcreateDepAG}[0]{\COQDOCallocateDepAG}
+
+
+\newcommand{\COQDOCfetchDepAG}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{fetch\_dep\_ag} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{s} :=\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{ag\_add\_cap\_by\_indirect\_index} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{s} \coqdoceol
+\coqdocindent{2.00em}
+(\coqdockw{if} \coqdocvar{SemDefns.option\_hasRight\_dec} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{AccessRights.rd}\coqdoceol
+\coqdocindent{2.50em}
+\coqdockw{then} (\coqdockw{fun} \coqdocvar{c} \ensuremath{\Rightarrow} \coqdocvar{c})\coqdoceol
+\coqdocindent{2.50em}
+\coqdockw{else} \coqdocvar{Cap.weaken}) \coqdocvar{ag\_add\_cap\_valid\_std}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCsendDepAG}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{send\_dep\_ag} \coqdocvar{a} \coqdocvar{t} \coqdocvar{ixi\_list} \coqdocvar{s}:= \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{if} (\coqdocvar{option\_map1\_eq\_tgt\_dec} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s})\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{then} (\coqdocvar{ag\_add\_caps\_reply} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s})\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{else} (\coqdocvar{ag\_add\_caps\_send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{ixi\_list} \coqdocvar{s}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccApproxDepStore}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_approx\_dep\_store}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{dirAcc\_approx\_dep} (\coqdocvar{Sem.do\_store} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i}) (\coqdocvar{store\_dep\_ag} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccMDepStore}[0]{\COQDOCdirAccApproxDepStore}
+
+\newcommand{\COQDOCdirAccApproxDepAllocate}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_approx\_dep\_allocate}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{ixi\_list},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{dirAcc\_approx\_dep} (\coqdocvar{Sem.do\_allocate} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{ixi\_list}) (\coqdocvar{allocate\_dep\_ag} \coqdocvar{a} \coqdocvar{n} \coqdocvar{ixi\_list}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccMDepCreate}[0]{\COQDOCdirAccApproxDepAllocate}
+
+\newcommand{\COQDOCdirAccApproxDepFetch}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_approx\_dep\_fetch}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{dirAcc\_approx\_dep} (\coqdocvar{Sem.do\_fetch} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i}) (\coqdocvar{fetch\_dep\_ag} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccMDepFetch}[0]{\COQDOCdirAccApproxDepFetch}
+
+\newcommand{\COQDOCdirAccApproxDepSend}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_approx\_dep\_send}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{ixi\_list} \coqdocvar{opt\_i},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{dirAcc\_approx\_dep} (\coqdocvar{Sem.do\_send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{ixi\_list} \coqdocvar{opt\_i}) (\coqdocvar{send\_dep\_ag} \coqdocvar{a} \coqdocvar{t} \coqdocvar{ixi\_list}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccMDepSend}[0]{\COQDOCdirAccApproxDepSend}
+
+% updated to git
+

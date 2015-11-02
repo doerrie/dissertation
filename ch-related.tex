@@ -1,0 +1,241 @@
+\chapter{Related Work}
+\label{ch:related}
+
+This chapter discusses other access-control proofs that are related to \TMmodelName{}.
+Constructing confinement from memoryless subsystems is an approach that differs from the constructor model.
+The Provably Secure Operating System, PSOS, was the first attempt to specify and build a capability-based operating system that supported confinement through memoryless subsystems.
+SCOLL is a language for describing the behavior of entities within capability-based systems, and to reason about different authority configurations the system may come to have in the future.
+seL4 is the first microkernel to be fully connected to its specification by automated verification.
+The take-grant models for seL4 are similar to \TMmodelName{}.
+
+\section{Memoryless Subsystems}
+
+Memoryless subsystems are a protection mechanism for mutually suspicious programs.
+In ``Memoryless Subsystems,'' \cite{Fenton:MemorylessSubsystems} Fenton constructs a general-purpose machine with infinite registers that are statically tagged as privileged or unprivileged, with the exception of the program counter.
+The program counter has a variable tag which is upgraded to privileged whenever impacted by privileged data.
+The machine provides a call-return procedure that preserves and restores the value and protection-state of the program counter and the machine may only halt in the unprivileged state.
+From this, he defines a memoryless system as one that, when started in an unprivileged state, no unprivileged information may be impacted by privileged information.
+His solution to leaking information by non-termination requires both privileged and unprivileged input to provide counters for their respective operations.
+
+The use of memoryless subsystems to produce security policies depends on their initial configuration and how resulting data is dispersed by the system.
+Memoryless subsystems can be used as part of a confinement model that differs from the constructor model.
+A memoryless subsystem where all output is considered privileged must also be confined, assuming the destination of this privileged data is authorized by the caller.
+Enforcing this constraint upon a memoryless subsystem can be accomplished by erasing all non-privileged registers after execution or by requiring all registers to be privileged.
+
+While it is possible to model memoryless confinement in \TMmodelName{}, it is difficult because \TMmodelName{} does not consider state as part of the model.
+Therefore, each invocation of a memoryless subsystem must be modeled in \TMmodelName{} as a fresh subsystem over shared unprivileged state, if any.
+This violates the intuition that there is an injective map from objects in the system to objects in the model.
+
+\section{PSOS}
+
+The Provably Secure Operating System, PSOS, was the first attempt at a mechanically verifiable operating system built on sound design principles \cite{PSOS:TR}.
+The PSOS specification and implementation is structured as a layered TCB.
+Each layer is clearly delineated and refines the system by adding services and features not present in previous layers.
+The lowest layers of the system are constructed from computational hardware and the minimal software to construct capabilities.
+Subsequent layers range from memory management and I/O up to users and applications.
+Many high-level structures in modern capability-based systems resemble those developed as part of the PSOS specification.
+
+The PSOS system specification was not only rendered in English text, but also in the non-procedural specification language SPECIAL.
+SPECIAL is an assertion language designed to capture system requirements and to verify their composition as part of the refinement process.
+Many theorems about the different layers of PSOS were verified in SPECIAL.
+The SPECIAL project would eventually be succeeded by the PVS \cite{cade92-pvs} proof system.
+
+In PSOS, the Confined System Manager, or CSM, is responsible for constructing confined subsystems.
+As with the constructor, the CSM tests the specification of an object before instantiating it.
+Confinement provided by the CSM requires all objects to be recursively memoryless so that they may be safely reused by otherwise independent subsystems.
+This permits the CSM to memoize the result of producing confined subsystems to aid in confinement attestation and to permit complex structures to be built through repeated invocation.
+
+When an application desires to make a confined entity, it presents a specification of that entity as a vector of capabilities.
+The {\tt make\_segments\_confined} interface inspects all elements for capabilities to known confined system functions, previously certified objects, or another element of the presented vector.
+If satisfied, the CSM retains a copy of all capabilities and returns a copy of the vector where all write or delete access has been removed.
+These capabilities include the ``confined-delete'' permission, which can be used in conjunction with the CSM to perform deletes only to certified segments.
+To make extended objects, the CSM essentially has the same behavior, though the capability vector upon which the object is based is not granted ``confined-delete'' permissions.
+This restriction is in place as a confined object must not be able to delete capabilities from another confined object as this could cause data transfer.
+Objects not so constrained may write data to a confined subsystem through deletion without violating confinement.
+
+Many theorems of high-level PSOS properties remain unpublished or unverified.
+Unfortunately, this includes the confinement property for the Confined Systems Manager.
+As it is using a memoryless confinement mechanism, the PSOS CSM can be conceptually modeled by \TMmodelName{} using fresh subsystems.
+
+\section{SCOLL}
+
+SCOLL, the Safe Collaboration Language, is a system description language for statically reasoning about the authority relationships of subsystems in capability-based systems. \cite{Jaradin05scoll}
+SCOLL allows developers to define a system, its semantics, an initial configuration, Horn clauses defining the behavior of various subsystems, and goal conditions which are to be preserved.
+Static reasoning is performed by the SCOLLAR model checker, which computes constraints that preserve the goal conditions while attempting to be minimal.
+
+Alfred Spiessens presents a proof of the safety property for capability-based systems as part of his work on SCOLL.\cite{Spiessens07patternsof}
+SCOLLAR relies on the tractability of the safety property to produce solutions which preserve the goal conditions.
+Positive goal conditions are \term{liveness} constraints, while negative goal conditions are \term{safety} constraints.
+Although SCOLL and SCOLLAR are not formally verified, they do produce meaningful, and more importantly, understandable solutions to the safety problem.
+
+SCOLLAR has been used to examine and validate a number of capability-based patterns.
+Revocable capabilities via the caretaker pattern has been examined along with the methods by which it can be circumvented.
+Inescapable interposition has also been examined.
+In this scenario, two fully untrusted subjects are prevented from escalating their authority to one another by the interposition of proxies with known behavior.
+SCOLLAR has determined that no further behavioral restrictions are necessary to preserve the interposition arrangement, indicating that escalating authority is impossible.
+
+SCOLL is an extremely useful tool for reasoning about safety in capability-based systems.
+However, SCOLL has not been extended to reason about information flow and therefore cannot describe the confinement problem.
+Due to their legibility, solutions presented by SCOLLAR are easily inspected and understood.
+However, the safety property upon which SCOLLAR relies has not been mechanically checked.
+
+\section{seL4}
+
+\Cref{sect:corr:seL4} presents an brief overview of the seL4 system.
+As previously mentioned, the seL4 microkernel \cite{Elphinstone:formalisingukernel} is the L4 microkernel \cite{Liedtke:1996:TRM} implementation modeled and inspected as part of the L4.verified project \cite{Klein:l4.verified}.
+To achieve this goal, the seL4 mirokernel is a capability-based system.
+
+In contrast to the systems described in \Cref{ch:constructor}, memory management interfaces in seL4 are handled directly by the kernel.
+seL4 provides \term{Untyped Memory} objects representing system memory.
+An Untyped Memory object may be subdivided into other Untyped Memory objects or into other primitive kernel objects.
+The kernel maintains a \term{Capability Deriviation Tree}, or CDT, to track the relationships between capabilities naming object derivations.
+When an Untyped Memory object is retyped, the system checks the CDT to determine which capabilities to invalidate.
+This interface is extended to all capabilities, and processes may choose to either \term{copy} capabilites, creating siblings in the CDT, or by \term{minting} new and restricted capabilities as children in the CDT.
+The terms \term{copy} and \term{mint} sometimes appear as \term{imitate} and \term{grant} in the seL4 literature.
+
+\subsection{seL4 models}
+\label{sect:sel4:models}
+
+
+Elkaduwe et. al. presented the first access control model for seL4. \cite{seL4:Verified} \cite{Elkaduwe:Thesis}
+Like \TMSW{} and \TMmodelName{}, it is a state-transition model over a capability graph as a system state.
+All operations require a \term{sane} system state in which all capabilities name objects that are part of the system.
+The operation preconditions require a sane state and appropriate capabilities authorizing the operation.
+
+The Elkaduwe model partitions data and capability operations based on access rights following earlier take-grant models \cite{LiptonSnyder:LinearSecurity} \cite{Snyder:1977:SAP}.
+Data-only operations require \term{Read} or \term{Write} permissions, while all state update operations are modeled with \term{Grant} and \term{Create}.
+The ability for a thread to retrieve a capability from a storage object is modeled by inverting the relationship so it appears that the storage object \term{Grant}s capabilities to the thread.
+The ability to create new objects requires holding a \term{Create} capability to some other object, presumably representing untyped memory.
+
+The operations of the system are straight-forward.
+\term{SysNoOp} represents any self-mutation not involved with a capability.
+\term{SysRead} and \term{SysWrite} model explicit data mutation and require capabilities with \term{Read} or \term{Write} permissions respectively.
+\term{SysGrant} requires two capabilities: the invoked capability with the \term{Grant} permission and a capability to transfer.
+The \term{SysGrant} operation may ``diminish'' the transferred capability by reducing the available access rights.
+\term{SysCreate} also requires two capabilities: the invoked capability with the \term{Create} permission, and a \term{Grant} capability to an object where a capability to a new object will be inserted.
+\term{SysRemove} removes a specific capability from an object using a capability, and \term{SysRevoke} revokes an unspecified collection of capabilities from the system by repeatedly invoking \term{SysRemove} based on the capability derivation tree.
+
+The model defines \term{subsystems} as an emergent property of the arrangement of capabilities.
+First, the \term{leak} judgment is defined from the holder of a \term{Grant} capability to its target.
+Next, two objects are \term{connected} if there is a \term{leak} between them in either direction.
+Finally, two objects are members of the same \term{subsystem} if they are in the transitive, reflexive closure of \term{connected}.
+They then verify that, from this point, it is not possible for the access rights between members of subsystems to increase over the execution of the system.
+This must be the case as both operations to add capabilities to the state of the system require the \term{Grant} permission.
+
+The ability for information to flow between objects is examined next.
+The \term{canAccess} judgment is defined between objects \(A\) to \(B\) if any capability containing a subset of \(\{Grant, Read, Write\}\) access rights exists between them in either direction.
+All information flow between objects is defined as the transitive, reflexive closure of \term{canAccess}.
+As before, this initial property is verified to hold over the life of the system.
+Therefore, the potential information flows over the life of the system is statically determined.
+
+There are two problems with the model.
+First, the definitions of subsystems and authorized flows are emergent rather than intentional.
+That is, subsystems emerge as those collections of objects which can share capabilities irrespective of any human labeling or intent in their construction.
+This is not the standard definition of a subsystem.
+A subsystem is any subset of the system objects to be considered for inspection.
+By restricting subsystems in this way, many desirable properties, including confinement, become impossible to express.
+The same problem arises with information flow.
+While information flow may not increase between emergent subsystems, there is no discussion of whether that information flow was expected or how to constrain it without complete partitions.
+
+The other problem with the model is that no access rights are required to remove capabilities from an object.
+Recall that capabilities are data and \emph{capability flow is data flow}.
+Both \TMSW{} and \TMmodelName{} ensures that all potential data flow are modeled as such.
+Unfortunately, no access rights are required to perform either \term{SysRemove} or \term{SysRevoke} in the Elkaduwe model.
+This creates an information channel when capabilities are deleted from objects without holding a \term{Write} or \term{Grant} capability.
+
+In the case of \term{SysRemove}, a capability with no permissions still authorizes data to be written.
+The deletion of a capability can be observed by a subject through the attempt to use a now defunct capability.
+This could be caused by attempting to read from a page no longer in virtual memory, or by attempting to invoke a capability no longer in a CNode.
+Because this information flow is not captured by a \term{SysWrite} operation, it is not modeled as data motion.
+
+The capability derivation tree, or CDT, is modeled as an axiom that also hides information flow at a much grander scale.
+The capability derivation tree is a map from capabilities to their parent.
+When the parent capability is revoked, all children are also revoked.
+The CDT is not modeled as part of the system and is assumed as a function that returns some unspecified collection of capabilities to remove.
+Performing \term{SysRevoke} could remove any capability in the model; it follows that performing \term{SysRevoke} may write data to \term{as many as all objects in the system.}
+
+The CDT in the seL4 \emph{implementation} is not so unconstrained.
+However, the issue can still arise as the revocation of a capability will delete all derived child capabilities.
+If a system is constructed such that a child capability crosses an intended subsystem boundary, then it is possible that an unauthorized communication channel between subsystems exists.
+
+These flaws could have been detected if the Elkaduwe model had described information flow occurring at each operation, as is the case in \TMSW{} and \TMmodelName{}.
+If the \term{SysRemove} and \term{SysRevoke} operations had been modeled with data motion, then proofs of consistency between the permission state of the model and the information flow by operations would not have been possible.
+Because the system is finite, such a proof would often contain enough information to infer the conditions for a counterexample, namely when no permissions are present.
+This would obligate an update to the model, presumably requiring a \term{Grant} permission to perform the  \term{SysRevoke} and \term{SysRemove} operations.
+
+These specification flaws highlight two subtleties arising when building a system model.
+Deletion, even deletion of access control permissions, is a form of data flow and can be easily overlooked when building a system model.
+Using emergent behavior to define expected behavior \emph{weakens} a model.
+
+The Boyton model is the second take-grant model developed for seL4. \cite{Boyton_ssv2009}
+It's primary contribution is to extend the Elkaduwe model to reason about shared capability storage.
+Like most capability-based systems, seL4 uses capabilities to build high-level structures such as address spaces and applications.
+Some of these structures may be understood by the kernel itself, as is the case for address spaces.
+This causes some interpretations of the security infrastructure to appear to modify objects from a distance, such as threads modifying pages or capability-lists through an address space.
+
+The solution presented by the Boyton proof is to introduce a \term{store} permission into the system, which is required to place a capability into thread storage.
+Object \(A\) is \term{directly store-connected} to \(B\) if \(A\) holds a capability with \emph{Store} permission naming \(B\).
+Objects are \term{store-connected} by transitive, reflexive closure over direct store connections.
+When examining the capabilities which may be used by an object during any operation, all capabilities accessible in store-connected objects are considered.
+The \term{SysGrant} operation is updated to write to any store-connected objects and the \term{SysCreate} operation returns a \(\{Grant,Store\}\) capability.
+Taken together, these admit loads and stores through memory traversal to be captured by a single model operation.
+
+The definition of \term{leak} is nearly unchanged in the Boyton proof.
+Because shared storage is another mechanism of transferring capabilities, any two objects that are store-connected to a third can \term{leak} capabilities and are therefore \term{connected}.
+The definition of a \term{subsystem} is still emergent as those collections of objects that are not connected.
+As with the Elkaduwe proof, this system can only reason about emergent mandatory properties and cannot reason about security policies, such as confinement.
+Additionally, no change to capability revocation is made.
+Capability deletion and the CDT remain a back-channel of information flow.
+
+The Boyton proof does refine the notion of information flow.
+The definition \term{set-flow} is defined as \(A\) can flow to \(B\) if there is a capability with \term{Write} from \(A\) to \(B\) or a capability with \term{Read} from \(B\) to \(A\).
+\Term{flow} is the transitive, reflexive closure of \term{set-flow}.
+This two-stage emergent behavior is slightly more refined than the \term{canAccess} definition of Elkaduwe as it does not consider all connections bidirectional.
+However, this definition only discusses data reads and writes that could occur via the read and write operations excluding all others.
+
+It should be noted that these models have never been and cannot be connected to the current security proofs of seL4.
+The policies that have been verified are specified on a per-subject basis and remain low-level.
+The policy developer must have deep knowledge of primitive system structures to successfully define a policy. 
+The policies that can be described are global, mandatory, and cannot describe dynamic border policies, such as confinement.
+Extending these policies to a high-level of abstraction remains an unsolved problem.
+
+\section{CHERI}
+
+CHERI is a capability-based instruction set architecture (ISA) and compiler that provides hardware support for the simultaneous execution of legacy and capability-based software. \cite{watson2015cheri}
+This support is extended to link legacy and capability-based software libraries at either the source or binary level and does not require a transition away from the C programming language.
+Offering a hybrid environment is intended to facilitate the transition of legacy TCB software into capability-based software.
+
+The CHERI ISA is an extension of the 64-bit MIPS RISC ISA extended with capability support.
+The CHERI CPU is implemented as an FPGA soft-core processor with a standard MMU and capability co-processor.
+When the capability co-processor is disabled, CHERI can run MIPS operating systems without modification.
+A system supervisor can enable the capability co-processor to provide capability-based protection within applications.
+
+CHERI capabilities are segment descriptors that also include permissions and a type field.
+Holding a CHERI capability grants the specified access to a range of memory defined at byte-granularity.
+Unlike IA32 segments, capability address translation is applied \emph{before} MMU virtual address translation with the effect that capability-based segments are internal to each MMU-based address space.
+The CHERI ISA permits both capabilities and data to reside in the same MMU-based address space and maintains a hardware-enforced separation between them.
+Capabilities are tagged by a capability bit and, whenever a capability is modified by a data instruction, the capability bit is cleared and can not be recovered.
+Instructions modifying capabilities are always monotonically non-decreasing over the segment range and permissions.
+
+Capabilities can be used either explicitly or implicitly in CHERI.
+They can be loaded and stored in the capability register file, or referenced and dereferenced in memory.
+Therefore, CHERI capabilites can be used as safe pointers by C compilers similar to Cyclone's fat pointers. \cite{Jim:2002:CSD}
+``Global'' capabilities are universally accessible in an MMU-based address space, and can be used to provide legacy software and libraries access to specific portions of an application heap.
+
+CheriBSD is a modification of FreeBSD to support hybrid application compartmentalization using CHERI.
+Like a traditional Unix, each application is given its own MMU-based address space.
+Capability-based compartmentalization is primarily managed via the construction of a per-thread trusted stack that links a chain of disjoint per-compartment stacks.
+Invocations of \term{CCall} (or resp. \term{Return}) push (or pop) a capability to a new (or the previous) compartment stack to (or from) the trusted stack to preserve compartmentalization.
+CheriBSD also provides ABI wrappers to link capability-based software libraries with legacy libraries within an application, and vice versa.
+These wrappers come in two varieties with different goals: one enforcing the greatest compartmentalization and one enforcing the most compatibility.
+To support the use of capabilites when communicating with the system, CheriBSD provides capability-based wrappers for many system objects.
+
+\TMmodelName{} models pure capability-based systems and is not intended to model hybrid systems like CheriBSD.
+Although CheriBSD guarantees compartmentalized code is capability-based and limits legacy access within compartments, it necessarily implements standard Unix mechanisms for legacy applications and libraries.
+These applications are not bound by capability-based access control, making cross-compartment policies difficult to implement.
+
+\TMmodelName{} can be applied to a capability-based system running on CHERI, but may also be applicable to a compartment running in CheriBSD.
+Compartments in CheriBSD may be made purely capability-based, even when linked against legacy code using an ABI wrapper.
+This might be accomplished by a compartment that does not permit global capabilities and only links legacy libraries fully sandboxed using capabilities.
+All access within such a compartment must be governed by the use of capabilities, including access outside the system.
+Provided no system object can be used to fabricate capabilities, the constructor pattern can be applied by a one-to-one correspondence with \TMmodelName{} objects and operational semantics.

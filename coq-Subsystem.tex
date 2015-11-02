@@ -1,0 +1,104 @@
+\newcommand{\COQDOCextantTest}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{extant\_test} \coqdocvar{S} \coqdocvar{e} := \coqdocvar{SC.is\_alive} \coqdocvar{e} \coqdocvar{S} \ensuremath{\lor} \coqdocvar{SC.is\_dead} \coqdocvar{e} \coqdocvar{S}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCextantTestDec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{extant\_test\_dec} : \coqdockw{\ensuremath{\forall}} \coqdocvar{S} \coqdocvar{e}, \{\coqdocvar{extant\_test} \coqdocvar{S} \coqdocvar{e}\} + \{ \ensuremath{\lnot} \coqdocvar{extant\_test} \coqdocvar{S} \coqdocvar{e}\}.\coqdoceol
+\end{coqdoccode}
+}
+
+
+\newcommand{\COQDOCconstructiveTest}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{constructive\_test} \coqdocvar{E} \coqdocvar{S} \coqdocvar{e} := \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{o}, \ensuremath{\lnot} \coqdocvar{RefSet.In} \coqdocvar{o} \coqdocvar{E} \ensuremath{\rightarrow} \coqdocvar{SC.is\_alive} \coqdocvar{o} \coqdocvar{S} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{i}, \coqdocvar{option\_map1} (\coqdockw{fun} \coqdocvar{cap} \ensuremath{\Rightarrow} \ensuremath{\lnot} \coqdocvar{Ref.eq} \coqdocvar{e} (\coqdocvar{Cap.target} \coqdocvar{cap})) \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{True} (\coqdocvar{SC.getCap} \coqdocvar{i} \coqdocvar{o} \coqdocvar{S}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCautonomousTest}[0]{\COQDOCconstructiveTest}
+
+
+\newcommand{\COQDOCconstructiveTestDec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{constructive\_test\_dec} : \coqdockw{\ensuremath{\forall}} \coqdocvar{E} \coqdocvar{S} \coqdocvar{e}, \{\coqdocvar{constructive\_test} \coqdocvar{E} \coqdocvar{S} \coqdocvar{e}\} + \{\~{} \coqdocvar{constructive\_test} \coqdocvar{E} \coqdocvar{S} \coqdocvar{e}\}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCconfinementPred}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{confinement\_pred} \coqdocvar{C} \coqdocvar{S} \coqdocvar{E} (\coqdocvar{cap}:\coqdocvar{Cap.t}) :=\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{CapSet.In} \coqdocvar{cap} \coqdocvar{C} \ensuremath{\lor}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.In} (\coqdocvar{Cap.target} \coqdocvar{cap}) \coqdocvar{E} \ensuremath{\lor}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{ARSet.Empty} (\coqdocvar{Cap.rights} \coqdocvar{cap}) \ensuremath{\lor}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{\lnot} \coqdocvar{SC.is\_alive} (\coqdocvar{Cap.target} \coqdocvar{cap}) \coqdocvar{S} \ensuremath{\lor}\coqdoceol
+\coqdocindent{1.00em}
+(\coqdocvar{ARSet.eq} (\coqdocvar{Cap.rights} \coqdocvar{cap}) (\coqdocvar{ARSet.singleton} \coqdocvar{wk}) \coqdoceol
+\coqdocindent{2.00em}
+\ensuremath{\land} \ensuremath{\lnot} \coqdocvar{RefSet.In} (\coqdocvar{Cap.target} \coqdocvar{cap}) \coqdocvar{E}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCconfinementTest}[0]{
+\begin{coqdoccode}
+\coqdocindent{1.00em}
+\coqdockw{Definition} \coqdocvar{confinement\_test} \coqdocvar{C} \coqdocvar{S} \coqdocvar{E} \coqdocvar{e}:=\coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{i}, \coqdocvar{option\_map1} (\coqdocvar{confinement\_pred} \coqdocvar{C} \coqdocvar{S} \coqdocvar{E}) \coqdocvar{True} (\coqdocvar{SC.getCap} \coqdocvar{i} \coqdocvar{e} \coqdocvar{S}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCconfinedSubsystem}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{confined\_subsystem} \coqdocvar{C} \coqdocvar{E} \coqdocvar{S} := \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.For\_all} (\coqdockw{fun} \coqdocvar{e} \ensuremath{\Rightarrow} \coqdocvar{extant\_test} \coqdocvar{S} \coqdocvar{e} \ensuremath{\land} \coqdoceol
+\coqdocindent{10.00em}
+\coqdocvar{constructive\_test} \coqdocvar{E} \coqdocvar{S} \coqdocvar{e} \ensuremath{\land} \coqdoceol
+\coqdocindent{10.00em}
+\coqdocvar{confinement\_test} \coqdocvar{C} \coqdocvar{S} \coqdocvar{E} \coqdocvar{e}) \coqdocvar{E}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCauthorizedSet}[0]{
+\begin{coqdoccode}
+\coqdocindent{1.00em}
+\coqdockw{Definition} \coqdocvar{authorized\_set} \coqdocvar{C} \coqdocvar{E} := \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{RefSet.For\_all} (\coqdockw{fun} \coqdocvar{e} \ensuremath{\Rightarrow} \coqdoceol
+\coqdocindent{3.00em}
+\ensuremath{\lnot} \coqdocvar{CapSet.Exists} (\coqdockw{fun} \coqdocvar{cap} \ensuremath{\Rightarrow} \coqdocvar{Ref.eq} (\coqdocvar{Cap.target} \coqdocvar{cap}) \coqdocvar{e}) \coqdocvar{C}) \coqdocvar{E}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCauthorizedConfinedSubsystem}[0]{
+\msdnote{2 defns.  This is correct, but they don't match.  Fix in Code}
+
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{authorized\_confined\_subsystem} \coqdocvar{C} \coqdocvar{E} \coqdocvar{S} := \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{novel\_capabilities} \coqdocvar{C} \coqdocvar{E} \ensuremath{\land} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{extant\_capabilities} \coqdocvar{C} \coqdocvar{S} \ensuremath{\land} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sub.confined\_subsystem} \coqdocvar{C} \coqdocvar{E} \coqdocvar{S}.\coqdoceol
+\end{coqdoccode}
+}

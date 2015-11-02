@@ -1,0 +1,348 @@
+\chapter{Safety}
+\label{ch:safety}
+
+This chapter presents a proof of the safety property for capability-based systems using \TMmodelName{}.
+The safety property asks whether, from a given initial configuration, an \TMobj{} will come to hold an \TMaccessRight{} to some other \TMobj{} in the future.
+Because \TMops{} in the model are only authorized by the presence of \TMaccessRights{}, the safety problem can be approximated using an upper bound on \TMaccessGraphs{}.
+The proof begins by defining the concept of functions which ``conservatively approximate'' the \TMdirAccAGs{} of \TMsystemStates{} between \TMops{}.
+It also provides the concrete approximating function \COQdirAccOp{}.
+The second step of the proof follows the same form as the first, defining how functions ``conservatively approximate'' \TMpotAccAGs{} between \TMdirAcc{} functions and providing the concrete approximating function \COQpotAccOp{}.
+With the exception of the \COQallocate{} \TMop{}, all \COQdirAccOp{} functions are \TMpotTransfers{} and are therefore approximated by the identity function between \TMpotAccAGs{}.
+The remaining \COQallocate{} case is approximated by equating the allocator and fresh \TMobj{}.
+By observing all new \TMaccessEdges{} must name the fresh \TMobj{}, the proof verifies that all \TMpotAcc{} relationships between preexisting \TMobjs{} may only decrease.
+
+\section{Direct Access Approximations}
+
+A solution to the safety problem requires the decidability of whether one \TMobj{} can ever come to hold an \TMaccessRight{} to another.
+Many \TMops{} in \TMmodelName{} have the ability to remove or overwrite \TMcaps{}, making direct comparison difficult.
+Therefore, the \TMmodelName{} verification first defines the structure of functions that ``conservatively approximate'' changes to the \TMdirAccAG{} across semantic \TMops{} and then defines functions satisfying this requirement.
+
+\begin{figure}
+  \begin{center}
+    \FIGdirAccApproxCOQ{}
+  \end{center}
+  \COQDOCdirAccMDep{}
+  \caption{Definition and visualization of \COQdirAccMDep{}.\label{fig:safety:dirAccMDep}}
+\end{figure}
+
+The definition of conservatively approximating functions for \TMdirAcc{} are defined by \COQdirAccMDep{} in \Cref{fig:safety:dirAccMDep}.
+A visual representation of the relationships is included to more intuitively illustrate the definition.
+\COQdirAccMDep{} describes the relationship between a function on \TMsystemState{}, such as an \TMop{}, and an approximating function between \TMdirAccAGs{}.
+An approximating function may be dependent on the \TMsystemState{} to determine which edges are added.
+An approximating function must not only produce a superset of the \TMdirAccAG{}, but must continue to do so on other supersets.
+
+\begin{figure}
+  \COQDOCdirAccM{}
+  \COQDOCdirAccMdirAccMDep{}
+  \caption{Definition of \COQdirAccM{}.\label{fig:safety:dirAccM}}
+\end{figure}
+
+Earlier work first attempted to use approximating functions that did not include dependency on a \TMsystemState{}.
+However, determining which approximating function to select for an \TMop{} requires knowledge of the \TMsystemState{}, leading to the dependent form.
+The definition of \COQdirAccM{} is identical to \COQdirAccMDep{} with this omission and consequently entails a \COQdirAccMDep{} result.
+
+\begin{figure}
+  \COQDOCdirAccDepCompose{}
+  \caption{Composing sequences of \TMdirAcc{} \TMops{}. \label{fig:safety:dirAccMDepComp}}
+\end{figure}
+
+The definition of \COQdirAccMDep{} permits operations and approximating functions to preserve approximation when composed in sequence.
+\Cref{fig:safety:dirAccMDepComp} proves this property as \COQdirAccDepCompose{}.
+The only additional constraint is that functions over \TMsystemState{} must respect \TMsystemStates{} equivalence, a property valid for all \TMops{} in \TMmodelName{}.
+
+\begin{figure}
+  \COQDOCidAG{}
+  \COQDOCreadAG{}
+  \COQDOCwriteAG{}
+  \COQDOCrevokeAG{}
+  \COQDOCdestroyAG{}
+  \COQDOCdirAccMRead{}
+  \COQDOCdirAccMWrite{}
+  \COQDOCdirAccMRevoke{}
+  \COQDOCdirAccMDestroy{}
+  \caption{Trivial approximating functions.\label{fig:safety:dirAccM:trivial}}
+\end{figure}
+
+\TMmodelName{} approximates each \TMop{} with a \TMdirAcc{} approximating function.
+These definitions and theorems are provided three modules: \COQDirectAccess{} contains useful functions and lemmas, \COQDirectAccessSemantics{} verifies properites necessary to approximate each operation, and the functions performing approximations are located in \COQDirectAccessApprox{}.
+Four \TMops{} are approximated by the identity function as demonstrated by the theorems in \Cref{fig:safety:dirAccM:trivial}.
+The theorems for \COQdirAccRead{} and \COQdirAccWrite{} follow trivially as the \TMread{} and \TMwrite{} \TMops{} do not modify the \TMsystemState{}.
+The proofs of \COQdirAccRevoke{} and \COQdirAccDestroy{} demonstrate that no new \TMaccessEdges{} could be added by observing that the \TMrevoke{} and \TMdestroy{} \TMops{} add no new \TMcaps{}.
+Selectively removing edges is not generally a safe operation as it does not generally satisfy the requirements for an approximating function.
+
+\begin{figure}
+  \COQDOCfetchDepAG{}
+  \COQDOCstoreDepAG{}
+  \COQDOCagAddCapByIndirectIndex{}
+  \COQDOCagPushCapByIndices{}
+  \COQDOCdirAccMDepFetch{}
+  \COQDOCdirAccMDepStore{}  
+  \caption{\xmakefirstuc{\TMfetch{}} and \TMstore{} approximating functions.\label{fig:safety:fetchDepAG}\label{fig:safety:storeDepAG}}
+\end{figure}
+
+The \COQfetch{} and \COQstore{} operations add edges for a single \TMcap{} and are therefore  approximated by slightly different surface functions.
+\xmakefirstuc{\COQstore{}} is approximated by \COQagPushCapByIndices{} while \COQagAddCapByIndirectIndex{} approximates the \COQfetch{} \TMop{}.
+Both functions invoke \COQagAddCapByObjIndex{} which runs \COQagAddCap{} to add a \TMcap{} to the \TMaccessGraph{} only when it finds a \TMcap{} at the correct index and the supplied validity test holds.
+The standard validity test used by most operations is defined by \COQagAddCapValidStd{}.
+It requires both the source and target of the new \TMaccessEdge{} to be \TMalive{} in the \TMsystemState{}.
+If all tests pass, the \TMcap{} added to the \TMaccessGraph{} by \COQagAddCap{} is first modified by the supplied \TMcap{} transformation function.
+The distinction between \COQagAddCapByIndirectIndex{} and \COQagPushCapByIndices{} is how the source of the new \TMaccessEdge{} is named.
+\COQagAddCapByIndirectIndex{} names the source indirectly via another \TMcap{} and \COQagPushCapByIndices{} names the source of the new edge directly.
+Additionally, a \TMfetch{} operation using only a \COQwk{} \TMaccessRight{} must use the modifying function \COQweaken{}, which returns a \COQwk{}-only \TMcap{} when \COQwk{} or \COQrd{} are present and an empty \TMaccessRightSet{} otherwise.
+
+  
+\begin{figure}
+  \COQDOCcreateDepAG{}
+  \COQDOCsendDepAG{}
+  \COQDOCagAddCapsSend{}
+  \COQDOCagAddCapsCreate{}
+  \COQDOCagAddCapsByIndexPairList{}
+  \COQDOCdirAccMDepCreate{}
+  \COQDOCdirAccMDepSend{}
+  \caption{\xmakefirstuc{\TMdirAcc} approximations for \TMsend{} and \TMcreate{}. \label{fig:safety:sendDepAG}\label{fig:safety:allocateDepAG}}
+\end{figure}
+
+The \COQagAddCapsSend{} and \COQagAddCapsCreate{} functions approxiamte the \TMsend{} and \TMcreate{} operations.
+Both functions call \COQagAddCapsByIndexPairList{} to add multiple \TMcaps{} via \COQagAddCapByObjIndex{}.
+The \COQagAddCapsSend{} function includes a reply \TMcap{} when specified and uses the standard validity check, while \COQagAddCapsCreate{} always includes a \TMcap{} with all \TMaccessRights{} to the new \TMobj{} and only requires that the source be \TMalive{}.
+The case where an \TMobj{} performs a \TMsend{} \TMop{} to itself is handled as a simplified special case adding only a reply \TMcap{}.
+
+\begin{figure}
+  \COQDOCdirAccOp{}
+  \COQDOCdirAccApproxDepOp{}
+  \caption{Approximation of all operations as \COQdirAccOp{}.\label{fig:safety:dirAccOp}}
+\end{figure}
+
+\pagebreak[0]
+
+All of the presented proofs and definitions are case of a much larger single function approximating an entire \TMop{}.
+The proof unifying all pieces is contained in the \COQAttenuation{} module.
+Both definitions are presented in \Cref{fig:safety:dirAccOp}.
+
+\section{Potential Access Approximations}
+
+\begin{figure}
+  \begin{center}
+    \FIGpotAccApproxCOQ{}
+  \end{center}
+  \COQDOCpotAccMDirAccDep{}
+  \caption{Definition and Visualization of \COQpotAccApproxDirAccDep{}. \label{fig:safety:potAccApproxDirAccDep}}
+\end{figure}
+
+\begin{figure}
+  \COQDOCpotAccMdirAccDepCompose{}
+  \caption{Composing sequences of \TMpotAcc{} \TMops{}. \label{fig:safety:potAccApproxDirAccDepCompose}}
+\end{figure}
+
+The structure of conservatively approximating functions between \TMpotAccAGs{} is defined in \Cref{fig:safety:potAccApproxDirAccDep}.
+The structure of \COQpotAccApproxDirAccDep{} is still dependent upon the \TMsystemState{}, and must therefore retain its relationship through \TMdirAcc{}.
+However, it is only approximating the \TMdirAcc{}-approximating function, and does not ensure \coqvar{Fsa} \coqvar{\ensuremath{Sa}} is approximating \TMdirAcc{}.
+The complete approximation occurs by joining the two definitions.
+The proof that \COQpotAccApproxDirAccDep{} composes in \Cref{fig:safety:potAccApproxDirAccDepCompose} follows the same form as \COQdirAccMDep{}.
+
+\begin{figure}
+  \COQDOCpotAccM{}
+  \COQDOCpotAccMcomputePotAcc{}
+  \COQDOCpotAccMPotAccMDirAccDep{}
+  \caption{Recomputing \TMpotAcc{} preserves \COQpotAccApproxDirAccDep{}. \label{fig:safety:potAccMPotAcc}}
+\end{figure}
+
+Composing \COQpotAccFun{} with another function is often \TMpotAcc{} approximating, as demonstrated in \Cref{fig:safety:potAccMPotAcc}.
+The \COQagPotTransferFnReq{} judgment requires that the function in question be commutative with set addition and equivalence preserving.
+This also guarantees that the function is non-decreasing, though not all non-decreasing functions necessarily have these properties\footnote{The definition of \COQagPotTransferFnReq{} contains all three requirements as the non-decreasing proof was constructed later in the work.}.
+Given these fairly simple requirements of most non-decreasing functions, recomputing \TMpotAcc{} after their application always approximates \TMpotAcc{}.
+
+\begin{figure}
+  \COQDOCpotTransSendDepAg{}
+  \COQDOCpotTransStoreDepAg{}
+  \COQDOCpotTransFetchDepAg{}
+  \caption{\xmakefirstuc{\TMdirAcc} functions produce \TMpotTransfers{}.}
+\end{figure}
+
+With the exception of \COQcreate{}, each \TMdirAcc{}-approximating function describes a \COQpotTransfer{} between \TMaccessGraphs{}.
+Each of these functions is commutative with set addition and equivalence preserving and may be approximated by composing them with \COQpotAccFun{}.
+Because these functions form \TMpotTransfers{} on the original \TMpotAccAG{}, this composition is equivalent to the identity function.
+This cannot hold for \TMcreate{}, as new \TMobjs{} must be granted new \TMaccessRights{}.
+The only remaining question for the safety property is whether these new \TMcaps{} increase the permissions between existing \TMobjs{}.
+
+\begin{figure}
+  \COQDOCinsert{}
+  \COQDOCendow{}
+  \COQDOCendowDep{}
+  \COQDOCpotAccMCreate{}
+  \caption{Approximating \COQcreateDepAG{} with \COQendowDep{}.\label{fig:safety:potAccMCreate}}
+\end{figure}
+
+The \TMcreate{} \TMop{} is approximated by \COQendowDep{} as demonstrated by \Cref{fig:safety:potAccMCreate}.
+The \COQendowDep{} function first checks if the \TMallocate{} \TMop{} is performed before executing the \COQendow{} function.
+The \COQendow{} function approximates \TMallocate{} by fully connecting the allocator and fresh \TMobjs{} using the \COQinsert{} function and then recomputing \TMpotAcc{}.
+Because all \TMcap{} transfers during \TMallocate{} are captured as \TMpotTransfers{} after the initial \TMcap{} is created, \COQendowDep{} must approximate the \TMcreate{} \TMop{}.
+Either \TMcap{} added by the \COQinsert{} function entails the other in \TMpotAcc{}.
+However, the \COQinsert{} function adds both \TMcaps{} to facilitate simpler inference in future proofs.
+
+\begin{figure}
+  \COQDOCpotAccOp{}
+  \COQDOCpotAccMDirAccOp{}
+  \caption{\xmakefirstuc{\TMpotAcc} approximation of \COQdirAccOp{} by \COQpotAccOp{}.}
+\end{figure}
+
+Each of these approximations has been a special case of a larger approximating function: \COQpotAccOp{}.
+Like \COQdirAccOp{}, \COQpotAccOp{} approximates the \TMpotAcc{} of every \TMop{}.
+\xmakefirstuc{\TMpotAcc{}} is approximated by the identity function for all \TMops{} except \TMcreate{}, where it is approximated by \COQendowDep{}.
+This proof is constructed by case analysis given the previous approximations.
+
+\section{Attenuating Permissions}
+
+\begin{figure}
+  \COQDOCagReduce{}
+  \caption{Definition of \COQagReduce{}. \label{fig:safety:agReduce}}
+\end{figure}
+
+The next goal of this chapter is to demonstrate how \TMpotAcc{} is attenuating for each \TMop{}.
+The definition of attenuating is given by \COQagReduce{} of \Cref{fig:safety:agReduce}.
+The \TMaccessGraph{} \coqvar{p'} is attenuating from \coqvar{p} with respect to a set of \TMobjs{} \coqvar{N} when all relationships in \(p'\) between elements in \(N\) can be no worse than the relationships in \(p\).
+
+Because new self-targeting \TMaccessEdges{} may arise via \TMallocation{}, a simple subset relation will not suffice to capture attenuation.
+This occurs because all \TMobjs{} are assumed to have total self-authority, but \TMpotTransfer{} must remain finite.
+An isolated \TMobj{} will not appear in the \TMdirAccAG{} if it has no \TMcaps{}, but the \TMcreate{} \TMop{} adds new \TMaccessEdges{} via \TMcaps{} that justify its inclusion.
+This case is largely uninteresting, but must be handled for precision.
+
+\begin{figure}
+  \COQDOCagReduceTransSubset{}
+  \COQDOCagReduceTrans{}
+  \COQDOCagReduceSubsetAG{}
+  \caption{Properties of \COQagReduce{}.}
+\end{figure}
+
+The fact that \TMattenuations{} are transitive will be used extensively to verify the safety property.
+Additionally, any subset is trivially \TMattenuating{}, causing almost all cases of \COQpotAccOp{} to be \TMattenuating{}.
+Discussing an \TMattenuation{} between \TMobjs{} that are unborn is generally nonsensical.
+Moreover, the set of \TMobjs{} examined for safety will be all those \TMalive{} or \TMdead{} in the \TMsystemState{}.
+Therefore, during the \TMcreate{} \TMop{}, the set of \TMobjs{} under consideration should not name the fresh \TMobj{}.
+To show that authority is attenuating over \COQendow{}, it is sufficient to demonstrate that all new edges have the fresh \TMobj{} as a source or target.
+
+\begin{figure}
+  \COQDOCagReduceInsert{}
+  \COQDOCagReduceEndow{}
+  \caption{\TMinsert{} and \TMendow{} are \TMattenuating{}. \label{fig:safety:attenuatingEndow}}
+\end{figure}
+
+The \COQinsert{} function is \TMattenuating{} by simple case analysis.
+All edges between the allocator and fresh \TMobj{} have the fresh \TMobj{} as a source or target.
+Because \TMattenuations{} are transitive, adding them in any order produces an \TMattenuation{} for the whole function.
+
+\begin{figure}
+  \COQDOCAGproject{}
+  \COQDOCAGprojectEndow{}
+  \caption{\COQAGproject{} and \COQendow{}. \label{fig:safety:AGproject}}
+\end{figure}
+
+The proof that the \COQendow{} function is \TMattenuating{} requires substantial case analysis.
+The following is a simple sketch by contradiction.
+If \COQendow{} is applied to a \TMmaximal{} \TMaccessGraph{}, then all edges added by \TMtransfer{} must have the fresh \TMobj{} as a source or target.
+This property is called a \TMAGprojection{} and is captured by the \COQAGproject{} judgment in \Cref{fig:safety:AGproject}.
+Recall that any \TMtransfer{} on a \TMmaximal{} \TMaccessGraph{} produces an identical \TMaccessGraph{}.
+Were this not the case, the edges required to perform such a \TMtransfer{} must also not identify the fresh \TMobj{}, by inspection.
+However, if these edges did not identify the fresh \TMobj{}, the \TMtransfer{} must have been valid in the \TMmaximal{} graph, so such an edge cannot exist.
+As all cases of \COQpotAccOp{} must be \TMattenuating{}, \COQpotAccOp{} is also \TMattenuating{}.
+
+\begin{figure}
+  \COQDOCagReducePotAccOp{}
+  \caption{\COQpotAccOp{} is \TMattenuating{}.}
+\end{figure}
+
+\section{Safety}
+
+\begin{figure}
+  \COQDOCdirAccExecute{}
+  \COQDOCdirAccExecuteSpec{}
+  \COQDOCdirAccExecuteSpecEqIff{}
+  \COQDOCdirAccExecuteSpecDirAccExecute{}
+  \caption{Approximating sequences of \TMdirAcc{} \TMops{}.}
+\end{figure}
+
+\begin{figure}
+  \COQDOCpotAccExecute{}
+  \COQDOCpotAccExecuteSpec{}
+  \COQDOCpotAccExecuteSpecEqIff{}
+  \COQDOCpotAccExecuteSpecPotAccExecute{}
+  \caption{Approximating sequences of \TMpotAcc{} \TMops{}.}
+\end{figure}
+
+Having demonstrated how the \TMpotAcc{} of each \TMop{} can be conservatively approximated by \TMattenuating{} functions, the remainder of this chapter illustrates how these functions are composed to produce safety.
+Each fully instantiated \TMattenuating{} function can be composed to produce \TMattenuation{} transitively.
+However, each is dependent on a \TMsystemState{} which must be computed after each \TMop{}.
+The functions \COQdirAccExecute{} and \COQpotAccExecute{} approximate a sequence of \TMops{} given an initial \TMsystemState{}.
+Both functional and inductive specifications are included.
+
+\begin{figure}
+  \FIGfullApproxCOQ{}
+  \caption{Visualization of approximating \TMexecution{}. \label{fig:safety:approxExeVis}}
+\end{figure}
+
+\begin{figure}
+  \COQDOCdirAccExecuteApprox{}
+  \COQDOCpotAccExecuteApprox{}
+  \caption{Folding approximating \TMops{} for \TMexecutions{}. \label{fig:safety:approxExe}}
+\end{figure}
+
+The approximating functions correctly approximate the \TMaccessGraphs{} of each \TMop{} sequence.
+Composing \TMdirAccOps{} approximates the \TMdirAcc{} of an \TMop{} sequence.
+Having performed that approximation, the \TMpotAcc{} of an \TMop{} sequence is approximated by folding over \COQpotAccOp{}.
+These properties are defined in \Cref{fig:safety:approxExe} and visualized in \Cref{fig:safety:approxExeVis}.
+
+\begin{figure}
+  \COQDOCnodesNotUnborn{}
+  \COQDOCnodesNotUnbornOpList{}
+  \caption{Nodes that are not \TMunborn{} remain not \TMunborn{}.}
+\end{figure}
+
+As previously stated, it is nonsensical to discuss \TMunborn{} \TMobjs{} in the \TMattenuating{} judgment.
+The predicate \COQnodesNotUnborn{} determines that all \TMrefs{} of a set do not name \TMunborn{} \TMobjs{} in the given \TMsystemState{}.
+As \TMaccessGraphs{} do not track this information, it will be added as a precondition to the safety problem.
+
+\begin{figure}
+  \COQDOCagNodesSpecEndow{}
+  \caption{How the \TMobjs{} in an \TMaccessGraph{} change through \TMendowment{}.\label{fig:safety:agNodesSpecEndow}}
+\end{figure}
+
+Verifying that no \TMaccessEdges{} added during \TMendowment{} identify any existing \TMobjs{} is not sufficient to verify the safety property.
+The change in \TMobjs{} present in an \TMaccessGraph{} must be known precisely.
+The only new \TMobjs{} which may arise from the \TMendow{} function are the newly allocated \TMobj{} and the parent, if it was absent.
+This is verified by \COQagNodesSpecEndow{} in \Cref{fig:safety:agNodesSpecEndow}.
+
+\begin{figure}
+  \COQDOCagReduceCompose{}
+  \caption{\xmakefirstuc{\TMattenuations} are composable}
+\end{figure}
+
+\begin{figure}
+  \COQDOCpotAccExecuteSpecPotAcc{}
+  \caption{\xmakefirstuc{\TMexecuting{}} a sequence of \TMpotAcc{} \TMops{} produces a \TMmaximal{} \TMaccessGraph{}.}
+\end{figure}
+
+There are two helper functions to assist the proof that \TMaccessGraphs{} are \TMattenuating{} over a sequence of \TMops{}.
+The first uses the proof that \TMattenuations{} are transitive to demonstrate how functions producing \TMattenuations{} can be composed.
+The other helper theorem proves that \COQpotAccExecute{} is \TMmaximal{}, provided its initial \TMaccessGraph{} is \TMmaximal{}.
+This ensures that \COQpotAccExecute{} is a \TMpotAccAG{} producing function, in addition to being \TMpotAcc{} approximating.
+
+\begin{figure}
+  \COQDOCexecutePotAccReduce{}
+  \caption{\xmakefirstuc{\TMexecuting{}} a \TMpotAcc{} \TMop{} is \TMattenuating{}. \label{fig:safety:executePotAccReduce}}
+\end{figure}
+
+The proof that \COQpotAccExecute{} is \TMattenuating{} over any \TMobjs{} that are not \TMunborn{} in the initial \TMsystemState{} is given in \Cref{fig:safety:executePotAccReduce}.
+Each \TMop{} is approximated by an \TMattenuating{} function for both \TMdirAcc{} and \TMpotAcc{}.
+The \TMattenuating{} \COQpotAccExecute{} function produces a \TMmaximal{} \TMaccessGraph{} from one already \TMmaximal{}, requiring no additional analysis when applied to an approximating \TMpotAccAG{}.
+By induction, that each step in \COQpotAccExecute{} composes to produce another \TMattenuating{} function.
+Therefore \COQpotAccExecute{} must be \TMattenuating{}.
+
+\begin{figure}
+  \COQDOCexecuteReduce{}
+  \caption{\xmakefirstuc{\TMexecution} is \TMattenuating{}: Safety for Capability systems.}
+\end{figure}
+
+The final theorem of this chapter is the verification of the safety property for capability-based systems.
+As the various approximating functions can be constructed as needed, the proof that the \TMpotAcc{} is \TMattenuating{} simply forgets them.
+Because any \TMattenuations{} are preserved by subset, the \TMpotAcc{} of any future \TMsystemState{} must be an \TMattenuation{} because each approximation is a \TMattenuation{}.
+Since the permissions between any \TMobjs{} that are not \TMunborn{} must be \TMattenuating{} with each \TMop{}, the \TMpotAcc{} initially produced must be preserved through the life of the system, satisfying the safety property.

@@ -1,0 +1,235 @@
+\chapter{System Embedding}
+\label{ch:embed}
+
+This chapter discusses how capability-based systems are embedded in \TMmodelName{}.
+It begins by presenting how  \TMcaps{} are modeled and then walks the \TMsystemState{} structure, the snapshot of the security state of the system.
+It concludes with the operational semantics of the model including semantics for both the security state and potential information flow for each operation.
+
+\section[Names, Access Rights, and Capabilities]{Names, Access Rights, and \\ Capabilities}
+
+\begin{figure}
+  \COQReferences{} Module
+  
+  \COQDOCReferences{}
+  
+  \vspace{10 mm}
+  
+  \COQReferencesImpl{} Module 
+  
+  \COQDOCReferencesImpl{} 
+  \caption{\xmakefirstuc{\TMrefs{}} type and implementation.\label{fig:embed:references} \label{fig:embed:indices}}
+\end{figure}
+
+There are two forms of names in \TMmodelName{}: names for objects called \term{\TMrefs{}} and names for storage locations within an object called \term{\TMidxs{}}.
+Both names must have a total ordering which is both computable and based on equality.
+This ordering requirement was chosen to facilitate faster proofs by easing the requirements of the rewrite tactic.
+These requirements do not obligate any implementation to use such a strong encoding directly; all names reside behind other abstractions.
+
+The Coq standard library includes modules that directly capture the requirements for names.
+The \COQUsualOrderedType{} module from the \COQOrderedTypeEx{} standard library is almost perfect.
+An \COQOrderedType{} is a module containing an equivalence, an ordering relation, and a proof of total ordering while a \COQUsualOrderedType{} extends the \COQOrderedType{} to require term equality for the equivalence relation.
+Unfortunately, it does not include the tactic hints from \COQOrderedType{} module that assist proof automation.
+Therefore, names are built from \COQUsualOrderedTypeWithHints{} module from the \COQOrderedInclude{} module, which reintroduces these hints.
+The trivial implementation supplied by \TMmodelName{} uses natural numbers via the \COQNatAsOT{} module, also included in the \COQOrderedTypeEx{} library.
+
+\begin{figure}
+  \COQDOCAccessRights{}
+  \caption{\COQAccessRights{} module. \label{fig:embed:accessRights}}
+\end{figure}
+
+The system contains four access rights: \COQrd{}, \COQwr{}, \COQwk{}, and \COQtx{}, each conferring the ability to perform various system operations.
+\Cref{sect:embed:semantics} discusses how these permissions are used in detail, but their intent is simple.
+The \COQwr{} permission enables the ability to directly write and overwrite information in the target, or destroy the target altogether.
+The \COQrd{} permission allows a subject to read information and capabilities from the target.
+The \COQwk{} permission is a sub-type of the read permission that authorizes transitive read-only authority.
+Message passing between subjects is authorized by the \COQtx{} permission.
+
+The implementations for most enumerated types in \TMmodelName{} are created by the \COQPOTtoOT{} functor found in the \COQProjectedOrderedType{} module.
+This functor produces an \COQOrderedType{} from a \COQProjectedToNat{} module.
+Modules satisfying \COQProjectedToNat{} must contain some base type, an injection function from that type to the natural numbers, and a proof of injectivity.
+This allows different inductive terms to be quickly defined and used as \COQOrderedType{}s.
+
+\begin{figure}
+  \COQDOCCapabilities{}
+  \caption{\xmakefirstuc{\TMcaps}. \label{fig:embed:caps}}
+\end{figure}
+
+In capability-based systems, a \term{\TMcap{}} is an unforgable binding of a name and permissions.
+This is effectively a product of an \TMref{} and a finite set of \TMaccessRights{}.
+However, the \TMcap{} abstraction hides such an implementation behind accessor functions and two proofs of equivalence.
+Capabilities have the constructor \COQmkCap{} and accessor functions \COQcapTarget{} and \COQcapRights{} with the following properties:
+1) injection: two capabilities are equivalent if and only if their accessors have an equivalent \TMcapTarget{} and \TMcapRight{} and
+2) equivalence: invoking accessors on the constructor produces equivalent inputs.
+
+The capability type also requires a \NMweaken{} function to produce a weakened form of a capability.
+\xmakefirstuc{\TMweakening} a \TMcap{} produces a \TMcap{} with the same \TMcapTarget{}, but eliminates all \TMaccessRights{} except \NMwk{}.
+Because the \NMrd{} also entails the \NMwk{} \TMaccessRight{}, a \TMweakened{} \TMcap{} produces \NMwk{} from a \NMrd{}-only \TMcap{}.
+The \NMweaken{} function is used by the operational semantics to cause \COQwk{} to be a system-enforced, transitive, read-only \TMaccessRight{}.
+
+\section{Objects and System State}
+\label{sect:embed:systemState}
+
+The \term{\TMsystemState{}} represents a snapshot of the permission state in the system at a fixed instant in time.
+Structurally, the \TMsystemState{} is a finite map from a reference to a quadruple of an \TMobj{}, \TMobjLabel{}, \TMobjType{}, and \TMobjSchedule{}.
+All of these types, with the exception of \TMobjs{}, are enumerations defined by injection to the natural numbers using the \COQProjectedToNat{} type.
+An \COQobjLabel{} indicates what phase of the object life-cycle the object is in; it may be \COQunborn{}, \COQalive{}, or \COQdead{}.
+The distinction between \COQactive{} \TMobjs{}, such as processes or threads, and \COQpassive{} storage \TMobjs{} is captured by the \COQobjType{}.
+The \COQobjSchedule{} is presently a placeholder and will not be used in the remainder of the proof.
+
+An \term{\TMobj{}} represents the permission state of a single object in the system and is a finite map from \term{\TMidxs} to \term{\TMcaps}.
+While \TMmodelName{} captures the potential for data motion in the operational semantics, actual data are not represented.
+All \TMobjs{} may contain both \TMcaps{} and data.
+System implementations are free to implement a partition at object granularity.
+\TMmodelName{} makes no guarantee about whether \TMcaps{} are an opaque or visible data structure and conservatively approximates them as visible.\footnote{See \Cref{sect:constructor:capabilitySystems} for more information.}
+
+\begin{figure}
+  \COQDOCObjects{}
+\caption{\xmakefirstuc{\TMobjs}. \label{fig:embed:objs}}
+\end{figure}
+
+\begin{figure}
+  \COQDOCSystemState{}
+\caption{\xmakefirstuc{\TMsystemState}. \label{fig:embed:systemState}}
+\end{figure}
+
+The \TMobj{} and \TMsystemState{} interfaces are a specialization of the \term{\TMOrderedFMap{}} interface, \COQOrderedFMap{}.
+In addition to being an \COQFMap{} with keys as an \COQOrderedType{}, an \TMOrderedFMap{} is also required to have an ordering on its value or data.
+This allows both of these types to be \COQOrderedType{}s with decidable equivalences over them and permitting them to be nested.
+To allow \TMobjs{} and \TMsystemStates{} to also be an \COQOrderedType{}, they include the missing decidable equivalence theorem.
+The \TMsystemState{} data type is implemented by composing \COQProductType{} to produce a quadruple.
+The trivial implementations use the \COQFMapList{} to construct these types.
+
+As mentioned in \Cref{sect:coq:modelAbstraction}, updates to the Coq module system have caused subtyping issues in the \COQFMap{} library.
+It is possible to work around this issue by using pure functors, rather than the type capturing modules.
+Unfortunately, while these types exist for the plain \COQFMap{}, they do not exist for \COQOrderedFMap{}.
+\TMmodelName{} includes the \COQFMapTwo{}* libraries, which are a modification of the \COQFMap{} libraries, but contain a pure form of the \COQOrderedFMapFun{} type and functors.
+
+Many modules have convenience modules to assist in creating legible results and reusable proofs.
+The definitions within these modules will not be discussed until they appear elsewhere and will only be provided if their implementation is not trivial given their description..
+There are four convenience modules, one for each underlying module: \COQCapabilities{}, \COQObjects{}, \COQSystemState{}, and \COQSemantics{}.
+
+\section{Operational Semantics}
+\label{sect:embed:semantics}
+
+The operational semantics over the system state is defined as the execution of an \TMop{} sequence.
+Each \TMop{} is defined in three parts: an \TMop{} precondition, a \TMsystemState{} update function, and an upper bound on information flow between objects.
+The semantic model defines the preconditions for each operation and how the system state is altered upon success.
+Additionally, each operation contains an upper bound on information flow, for both success and failure.
+
+\begin{figure}
+  \COQDOCoperation{}
+  \caption{Definition of all \TMops{}. \label{fig:embed:op}}
+\end{figure}
+
+There are eight operations that form the operational semantics of \TMmodelName{}.
+The \COQread{} and \COQwrite{} operations model only data flow and do not alter the system state in any way, while \COQfetch{} and \COQstore{} operations model capability reads and writes from various objects.
+New objects are allocated using the \COQcreate{} operation, and objects are destroyed using the \COQdestroy{} operation.
+Executing a \COQrevoke{} command will erase an entry in an object map.
+All message-passing protection mechanisms for capability systems are encoded using the \COQsend{} operation.
+
+All \TMops{} have approximately the same structure.
+The first parameter of each operation is always the \TMref{} of the invoking subject.
+The second parameter, with the exception of \TMcreate{}, is the \TMidx{} of the \TMcap{} being invoked.
+In the case of \TMcreate{}, no such capability exists, so the parameter specifies the unborn \TMobj{} being \TMcreated{}.
+The \TMidxs{} being accessed and updated are either passed directly or as a list of \TMidx{} pairs when multiple \TMcaps{} may be transferred.
+The \TMidx{} option permits a \TMsend{} \TMop{} to fabricate a reply.
+
+These \TMops{} should not be thought of as a system call performed by the invoking subject, or specified in parts by all parties.
+They should be considered a specification of which actions the system may take when updating the \TMsystemState{} or shuffling data.
+A well constructed system should not ever perform an invalid \TMop{}.
+The only reason invalid \TMops{} are defined is to permit \TMops{} and \TMop{} sequences to be pure data structures; the semantics will skip over nonsense \TMops{}.
+
+Each of these operations, with the exception of \COQcreate{}, requires a capability containing an appropriate permission.  
+As operations that inspect an object, the \COQread{} and \COQfetch{} operations require \COQrd{} or \COQwk{} access.
+The \COQwr{} \TMaccessRight{} is required by the \TMfetch{}, \TMstore{}, \TMrevoke{}, and \TMdestroy{} operations as they modify object state externally.
+The \COQsend{} operation is handled with its own permission as it potentially produces a bi-directional relationship via an optional reply capability.
+Object allocation through \COQcreate{} is considered universally available and does not require a \TMcap{}. \footnote{Most systems configurations presume processes have the ability to allocate and manage storage.  See \cref{sect:constructor:spacebank}}
+
+\begin{figure}
+  \COQDOCPreconditions{}
+  \caption{Operation preconditions.  From \COQSemanticsDefinitions{}. \label{fig:embed:preconditions}}
+\end{figure}
+
+The definitions for \TMmodelName{} operational semantics are distributed across two modules.
+The library \COQSemanticsDefinitions{} contains all of the operation prerequisites and proofs of their decidability.
+These proofs are later used in decision procedures in the \COQSemantics{} library when defining operation success and failure.
+This separation allows these decision procedures to be included as Boolean decisions in the model signature and implementation.
+
+There are a few omitted definitions from \Cref{fig:embed:preconditions} .
+The \COQFNtargetIsAlive{\coqvar{t}}{\coqvar{a}}{\coqvar{s}} function checks that the target of the \TMcap{} at \TMidx{} \coqvar{t} in \TMobj{} \coqvar{a} has \TMobjLabel{} \TMalive{} in \TMsystemState{} \coqvar{s}.
+Likewise, \COQFNtargetIsActive{\coqvar{t}}{\coqvar{a}}{s} checks that the \TMobjType{} is \TMactive{} in the same manner.
+The \TMsystemState{} convenience library offers the \COQSC{}.\COQFNgetCap{\coqvar{t}}{\coqvar{a}}{\coqvar{s}} function to return an \coqvar{Option} \COQCap{}.\coqvar{t} to find a \TMcap{} at \TMidx{} \coqvar{t} in \TMobj{} \coqvar{a}.
+\COQoptionHasRight{} simply shorthand for mapping \COQCC{}.\COQhasRight{} over an \coqvar{Option} \COQCap{}.\coqvar{t} and returning \COQFalse{} in the \coqvar{None} case.
+
+The \COQSemanticsDefinitions{} library is dependent on the \COQSystemStateType{}, and all prerequisites.
+It begins by defining a common operation prerequisite \COQFNpreReq{\coqvar{a}}{\coqvar{t}}{\coqvar{s}}, which tests that the agent subject \coqvar{a} is \TMalive{} and \TMactive{} in \TMsystemState{} \coqvar{s}, and that the \TMcapTarget{} of the \TMcap{} at \TMidx{} \coqvar{t} is also \NMalive{} in \coqvar{s}.
+All \TMops{} except \TMcreate{} share \COQpreReq{} as a condition on their success.
+Additionally, the target capability must have the appropriate access right as previously defined.
+The exception to this is the \COQFNcreatePreReq{\coqvar{a}}{\coqvar{n}}{\coqvar{s}} which does not test a target \TMcap{}, but checks that the \TMobj{} \(n\) is \TMunborn{}.
+The remainder of the library contains the theorems for the decidability and equivalence of each of these predicates and their support functions.  
+
+\begin{figure}
+  \COQDOCValidStateTransitions{}
+  \caption{State transitions with preconditions satisfied. From \COQSemantics{}. \label{fig:embed:validStateTransitions}}
+\end{figure}
+
+%% \begin{figure}
+%%   \COQDOCInvalidStateTransitions{}
+%%   \caption{State transitions without preconditions satisfied. From \COQSemantics{}. \label{fig:embed:invalidStateTransitions}}
+%% \end{figure}
+
+Valid state transitions and information flow are defined in the \COQSemantics{} library.
+Each state transition for operations where preconditions are satisfied is given in \Cref{fig:embed:validStateTransitions}.
+The theorems describing the trivial case of no state transition when preconditions are not satisfied have been omitted.
+The \NMread{} and \NMwrite{} operations do not cause any state transition in either case and are defined as a single theorem.
+The \COQdoOp{} function concretely unifies all of these specific cases together and is specified in \Cref{fig:embed:doOp}.
+
+\begin{figure}
+  \COQDOCdoOpSpec{}
+  \COQDOCdoOpSpecDoOp{}
+  \caption{Specification for \COQdoOp{}. \label{fig:embed:doOp}}
+\end{figure}
+
+For brevity, certain definitions have been omitted from \Cref{fig:embed:validStateTransitions}.
+\COQoptionMapOne{} and \COQoptionMapTwo{} are specialized \coqvar{Option} structures that combine both mapping and reducing functionality.
+Each is applied to a collection of functions of arity zero through one or two, respectively.
+Once applied to either one or two \coqvar{Option} types, they apply the number of \coqvar{Some} results to the function of matching arity.
+The \TMsystemState{} convenience library also includes the \COQSC{}.\COQcopyCap{} and \COQSC{}.\COQweakCopyCap{} functions to perform a standard or weakening \TMcap{} transfer.
+The \COQSC{}.\COQcopyCapList{} function performs many such copies using an \TMidx{} pair list as a map.
+All \TMcaps{} with a specific target are removed from the system using \COQSC{}.\COQrmCapsByTarget{}.
+\COQSC{}.\COQupdateObj{} updates only the \TMobj{} at a reference and \COQSC{}.\COQsetAlive{} or \COQsetDead{} updated the \TMobjLabel{} appropriately. 
+
+\begin{figure}
+  \FIGflow{}
+  \caption{Reproduction of information flow from \Cref{fig:sketch:flow}.\label{fig:embed:flow}}
+\end{figure}
+
+\begin{figure}
+  \COQDOCreadFromSpec{}
+  \COQDOCreadFromDef{}
+  \caption{Definition of \COQreadFrom{}. \label{fig:embed:readFrom}}.
+\end{figure}
+
+\begin{figure}
+  \COQDOCwroteToSpec{}
+  \COQDOCwroteToDef{}
+  \caption{Definition of \COQwroteTo{}. \label{fig:embed:wroteTo}}
+\end{figure}
+
+
+The potential for data motion is captured by the \COQreadFrom{} and \COQwroteTo{} definitions.
+During an operation, data may flow from any \TMobj{} in the \COQreadFrom{} set to any \TMobj{} in the \COQwroteTo{} set.
+The specification of these functions is given in \Cref{fig:embed:readFrom,fig:embed:wroteTo}.
+However, \Cref{fig:sketch:flow} summarizes the conditions simply, and it is reproduced in \Cref{fig:embed:flow}.
+Self-mutation is not modeled by any \TMops{} and \TMmodelName{} presumes all \TMactive{} objects may alter their own state.
+
+\begin{figure}
+  \COQDOCexecuteSpec{}
+  \COQDOCexecuteDef{}
+\end{figure}
+
+Performing an \TMop{} sequence is modeled by the \COQexecute{} function applied to an \TMop{} list, provided by the \COQExecution{} module.
+Because the semantics will ignore any invalid \TMop{}, it is defined as simply performing the \TMops{} sequentially.
+The only curious property of the \COQexecute{} function is that it performs operations on a list in reverse.
+This is done to align list induction with execution induction.
+An empty list performs no \TMops{} and, given a \TMsystemState{} that is the result of \TMexecuting{} an \TMop{} list, performing another \TMop{} is the result of the \coqvar{cons} constructor and not an \coqvar{append} function.

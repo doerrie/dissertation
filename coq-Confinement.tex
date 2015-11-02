@@ -1,0 +1,252 @@
+\newcommand{\COQDOCagAuthorizedSrc}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_authorized\_src} \coqdocvar{C} \coqdocvar{src} \coqdocvar{acc} := \coqdocvar{CapSet.fold} (\coqdocvar{ag\_add\_cap} \coqdocvar{src}) \coqdocvar{C} \coqdocvar{acc}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagAuthorized}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_authorized} \coqdocvar{E} \coqdocvar{C} := \coqdocvar{RefSet.fold} (\coqdocvar{ag\_authorized\_src} \coqdocvar{C}) \coqdocvar{E} \coqdocvar{AG.empty}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagFullyAuthroized}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_fully\_authorized} \coqdocvar{I} \coqdocvar{E} \coqdocvar{C} :=\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.union} \coqdoceol
+\coqdocindent{1.00em}
+(\coqdocvar{AG.union} (\coqdocvar{Seq.complete\_ag} \coqdocvar{E}) (\coqdocvar{ag\_authorized} \coqdocvar{E} \coqdocvar{C}))\coqdoceol
+\coqdocindent{1.00em}
+(\coqdocvar{ag\_remainder} \coqdocvar{I} \coqdocvar{E}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagRemainder}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_remainder} \coqdocvar{I} \coqdocvar{E} := \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.filter} (\coqdockw{fun} \coqdocvar{edge} \ensuremath{\Rightarrow} \coqdocvar{true\_bool\_of\_sumbool} (\coqdocvar{excluded\_edge\_dec} \coqdocvar{E} \coqdocvar{edge})) \coqdocvar{I}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCexistsCapEdge}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{exists\_cap\_edge} \coqdocvar{tgt} \coqdocvar{rgt} \coqdocvar{C}:= \coqdoceol
+\coqdocindent{1.00em}
+(\coqdocvar{CapSet.Exists} (\coqdocvar{cap\_edge} \coqdocvar{tgt} \coqdocvar{rgt}) \coqdocvar{C}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCconfinement}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{confined\_subsystem\_mutability\_subset\_any\_fully\_authroized\_mutability}:\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{E}, \ensuremath{\lnot} \coqdocvar{RefSet.Empty} \coqdocvar{E} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{C} \coqdocvar{S}, \coqdocvar{authorized\_confined\_subsystem} \coqdocvar{C} \coqdocvar{E} \coqdocvar{S} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{D}, \coqdocvar{dirAcc\_spec} \coqdocvar{S} \coqdocvar{D} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{Ex}, \coqdocvar{obj\_existed} \coqdocvar{Ex} \coqdocvar{S} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{E'}, \ensuremath{\lnot} \coqdocvar{RefSet.Empty} \coqdocvar{E'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{novel\_capabilities} \coqdocvar{C} \coqdocvar{E'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} (\coqdocvar{RefSet.inter} \coqdocvar{E'} (\coqdocvar{RefSet.diff} \coqdocvar{Ex} \coqdocvar{E})) \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{R}, \coqdocvar{ag\_remainder\_spec} \coqdocvar{D} \coqdocvar{E} \coqdocvar{R} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{A'}, \coqdocvar{ag\_fully\_authorized\_spec} \coqdocvar{R} \coqdocvar{E'} \coqdocvar{C} \coqdocvar{A'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{P}, \coqdocvar{Seq.potAcc} \coqdocvar{D} \coqdocvar{P} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{P'}, \coqdocvar{Seq.potAcc} \coqdocvar{A'} \coqdocvar{P'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{M}, \coqdocvar{mutable\_spec} \coqdocvar{P} \coqdocvar{E} \coqdocvar{M} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{M'}, \coqdocvar{mutable\_spec} \coqdocvar{P'} \coqdocvar{E'} \coqdocvar{M'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{RefSet.Subset} (\coqdocvar{RefSet.diff} \coqdocvar{M} \coqdocvar{E}) (\coqdocvar{RefSet.diff} \coqdocvar{M'} \coqdocvar{E'}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagSimplyConfined}[0]{
+  \begin{coqdoccode}
+    \coqdocnoindent
+    \coqdockw{Definition} \coqdocvar{ag\_simply\_confined} \coqdocvar{E} \coqdocvar{x} :=\coqdoceol
+    \coqdocindent{1.00em}
+    \ensuremath{\lnot} (\coqdocvar{Ref.eq} (\coqdocvar{Edges.source} \coqdocvar{x}) (\coqdocvar{Edges.target} \coqdocvar{x})) \ensuremath{\land}\coqdoceol
+    \coqdocindent{1.00em}
+    \ensuremath{\lnot} (\coqdocvar{RefSet.In} (\coqdocvar{Edges.source} \coqdocvar{x}) \coqdocvar{E} \ensuremath{\land}\coqdoceol
+    \coqdocindent{2.00em}
+    \ensuremath{\lnot} \coqdocvar{RefSet.In} (\coqdocvar{Edges.target} \coqdocvar{x}) \coqdocvar{E} \ensuremath{\land}\coqdoceol
+    \coqdocindent{2.00em}
+    \coqdocvar{AccessRight.eq} (\coqdocvar{Edges.right} \coqdocvar{x}) \coqdocvar{wk}).\coqdoceol
+
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCsubsetEqPred}[0]{
+  \begin{coqdoccode}
+    \coqdocnoindent
+    \coqdockw{Definition} \coqdocvar{subset\_eq\_pred} \coqdocvar{P} \coqdocvar{A} \coqdocvar{B} := \coqdoceol
+    \coqdocindent{1.00em}
+    \coqdocvar{AG.Subset} \coqdocvar{A} \coqdocvar{B} \ensuremath{\land} \coqdocvar{subset\_pred} (\coqdockw{fun} \coqdocvar{B} \coqdocvar{A} \ensuremath{\Rightarrow} \coqdocvar{P} \coqdocvar{A} \coqdocvar{B}) \coqdocvar{B} \coqdocvar{A}.\coqdoceol
+
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCsubsetPred}[0]{
+  \begin{coqdoccode}
+    \coqdocnoindent
+    \coqdockw{Definition} \coqdocvar{subset\_pred} \coqdocvar{P} \coqdocvar{A} \coqdocvar{B} := \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{P} \coqdocvar{A} \coqdocvar{B} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{AG.In} \coqdocvar{x} \coqdocvar{A} \ensuremath{\rightarrow} \coqdocvar{AG.In} \coqdocvar{x} \coqdocvar{B}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCagConfined}[0]{
+  \begin{coqdoccode}
+    \coqdocnoindent
+    \coqdockw{Definition} \coqdocvar{ag\_confined} \coqdocvar{E} \coqdocvar{P} \coqdocvar{x} := \coqdoceol
+    \coqdocindent{1.00em}
+    \ensuremath{\lnot} (\coqdocvar{Ref.eq} (\coqdocvar{Edges.source} \coqdocvar{x}) (\coqdocvar{Edges.target} \coqdocvar{x})) \ensuremath{\land}\coqdoceol
+    \coqdocindent{1.00em}
+    \ensuremath{\lnot} (\coqdocvar{AccessRight.eq} (\coqdocvar{Edges.right} \coqdocvar{x}) \coqdocvar{wk} \ensuremath{\land}\coqdoceol
+    \coqdocindent{2.00em}
+    ( \coqdocvar{ag\_ex\_flow} \coqdocvar{E} \coqdocvar{P} (\coqdocvar{Edges.source} \coqdocvar{x}) \ensuremath{\lor} \ensuremath{\lnot} \coqdocvar{ag\_ex\_flow} \coqdocvar{E} \coqdocvar{P} (\coqdocvar{Edges.target} \coqdocvar{x}))).\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCagExFlow}[0]{
+  \begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_ex\_flow} \coqdocvar{E} \coqdocvar{A} \coqdocvar{o} := \coqdocvar{RefSet.Exists} ((\coqdockw{fun} \coqdocvar{e} \ensuremath{\Rightarrow} \coqdocvar{ag\_flow} \coqdocvar{A} \coqdocvar{e} \coqdocvar{o})) \coqdocvar{E}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCagFlow}[0]{
+  \begin{coqdoccode}
+    \coqdocnoindent
+    \coqdockw{Inductive} \coqdocvar{ag\_flow} \coqdocvar{P} \coqdocvar{a} \coqdocvar{b} : \coqdockw{Prop} := \coqdoceol
+    \coqdocindent{1.00em}
+    \ensuremath{|} \coqdocvar{ag\_flow\_refl} : \coqdocvar{Ref.eq} \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{ag\_flow} \coqdocvar{P} \coqdocvar{a} \coqdocvar{b}\coqdoceol
+    \coqdocindent{1.00em}
+    \ensuremath{|} \coqdocvar{ag\_flow\_tx} : \coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{a} \coqdocvar{b} \coqdocvar{tx}) \coqdocvar{P} \ensuremath{\rightarrow} \coqdocvar{ag\_flow} \coqdocvar{P} \coqdocvar{a} \coqdocvar{b}\coqdoceol
+    \coqdocindent{1.00em}
+    \ensuremath{|} \coqdocvar{ag\_flow\_wr} : \coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{a} \coqdocvar{b} \coqdocvar{wr}) \coqdocvar{P} \ensuremath{\rightarrow} \coqdocvar{ag\_flow} \coqdocvar{P} \coqdocvar{a} \coqdocvar{b}\coqdoceol
+    \coqdocindent{1.00em}
+    \ensuremath{|} \coqdocvar{ag\_flow\_wk} : \coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{b} \coqdocvar{a} \coqdocvar{wk}) \coqdocvar{P} \ensuremath{\rightarrow} \coqdocvar{ag\_flow} \coqdocvar{P} \coqdocvar{a} \coqdocvar{b}\coqdoceol
+    \coqdocindent{1.00em}
+    \ensuremath{|} \coqdocvar{ag\_flow\_rd} : \coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{b} \coqdocvar{a} \coqdocvar{rd}) \coqdocvar{P} \ensuremath{\rightarrow} \coqdocvar{ag\_flow} \coqdocvar{P} \coqdocvar{a} \coqdocvar{b}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCsubsetEqAgConfinedMutable}[0]{
+  \begin{coqdoccode}
+    \coqdocnoindent
+    \coqdockw{Theorem} \coqdocvar{subset\_eq\_ag\_confined\_mutable}:\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{P} \coqdocvar{P'} \coqdocvar{E}, \coqdocvar{subset\_eq\_ag\_confined} \coqdocvar{E} \coqdocvar{P'} \coqdocvar{P} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{M}, \coqdocvar{mutable\_spec} \coqdocvar{P} \coqdocvar{E} \coqdocvar{M} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{M'}, \coqdocvar{mutable\_spec} \coqdocvar{P'} \coqdocvar{E} \coqdocvar{M'} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{2.00em}
+    \coqdocvar{RefSet.Equal} \coqdocvar{M} \coqdocvar{M'}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCsubsetEqAgConfinedPotTransferMax}[0]{
+  \begin{coqdoccode}
+    \coqdocnoindent
+    \coqdockw{Theorem} \coqdocvar{subset\_eq\_ag\_confined\_potTransfer\_max}:\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{B} \coqdocvar{D}, \coqdocvar{Seq.potTransfer} \coqdocvar{B} \coqdocvar{D} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{P}, \coqdocvar{Seq.maxPotTransfer} \coqdocvar{P} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{E}, \coqdocvar{subset\_eq\_ag\_confined} \coqdocvar{E} \coqdocvar{P} \coqdocvar{B} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{2.00em}
+    \coqdocvar{subset\_eq\_ag\_confined} \coqdocvar{E} \coqdocvar{P} \coqdocvar{D}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccConfined}[0]{
+  \begin{coqdoccode}
+    \coqdocnoindent
+    \coqdockw{Theorem} \coqdocvar{dirAcc\_confined} : \coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{E} \coqdocvar{D} \coqdocvar{D'}, \coqdocvar{subset\_eq\_ag\_simply\_confined} \coqdocvar{E} \coqdocvar{D} \coqdocvar{D'} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{P}, \coqdocvar{Seq.potAcc} \coqdocvar{D} \coqdocvar{P} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{P'}, \coqdocvar{Seq.potAcc} \coqdocvar{D'} \coqdocvar{P'} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{M}, \coqdocvar{mutable\_spec} \coqdocvar{P} \coqdocvar{E} \coqdocvar{M} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{M'}, \coqdocvar{mutable\_spec} \coqdocvar{P'} \coqdocvar{E} \coqdocvar{M'} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdocvar{RefSet.eq} \coqdocvar{M} \coqdocvar{M'}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCsubsetEqAgSimplyConfinedAgConfined}[0]{
+  \begin{coqdoccode}
+    \coqdocnoindent
+    \coqdockw{Theorem} \coqdocvar{subset\_eq\_ag\_simply\_confined\_ag\_confined} : \coqdockw{\ensuremath{\forall}} \coqdocvar{E} \coqdocvar{A} \coqdocvar{B},\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdocvar{subset\_eq\_ag\_simply\_confined} \coqdocvar{E} \coqdocvar{A} \coqdocvar{B} \ensuremath{\rightarrow} \coqdocvar{subset\_eq\_ag\_confined} \coqdocvar{E} \coqdocvar{A} \coqdocvar{B}.\coqdoceol
+
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCsubsetEqAgConfined}[0]{
+  \begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{subset\_eq\_ag\_confined} \coqdocvar{E} \coqdocvar{A} \coqdocvar{B}:= \coqdocvar{subset\_eq\_pred} (\coqdockw{fun} \coqdocvar{P} \coqdocvar{\_} \ensuremath{\Rightarrow} (\coqdocvar{ag\_confined} \coqdocvar{E} \coqdocvar{P})) \coqdocvar{A} \coqdocvar{B}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCsubsetEqAgSimplyConfined}[0]{
+  \begin{coqdoccode}
+    \coqdocnoindent
+    \coqdockw{Definition} \coqdocvar{subset\_eq\_ag\_simply\_confined} \coqdocvar{E} \coqdocvar{A} \coqdocvar{B} := \coqdoceol
+    \coqdocindent{1.00em}
+    \coqdocvar{subset\_eq\_pred} (\coqdockw{fun} \coqdocvar{\_} \coqdocvar{\_} \ensuremath{\Rightarrow} \coqdocvar{ag\_simply\_confined} \coqdocvar{E}) \coqdocvar{A} \coqdocvar{B}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCconfinedSubsystemMutable}[0]{
+  \begin{coqdoccode}
+    \coqdocnoindent
+    \coqdockw{Theorem} \coqdocvar{confined\_subsystem\_mutable}:\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{C} \coqdocvar{E} \coqdocvar{S}, \coqdocvar{Sub.confined\_subsystem} \coqdocvar{C} \coqdocvar{E} \coqdocvar{S} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{D}, \coqdocvar{dirAcc\_spec} \coqdocvar{S} \coqdocvar{D} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{A}, \coqdocvar{ag\_fully\_authorized\_spec} \coqdocvar{D} \coqdocvar{E} \coqdocvar{C} \coqdocvar{A} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{P}, \coqdocvar{Seq.potAcc} \coqdocvar{D} \coqdocvar{P} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{P'}, \coqdocvar{Seq.potAcc} \coqdocvar{A} \coqdocvar{P'} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{M}, \coqdocvar{mutable\_spec} \coqdocvar{P} \coqdocvar{E} \coqdocvar{M} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdockw{\ensuremath{\forall}} \coqdocvar{M'}, \coqdocvar{mutable\_spec} \coqdocvar{P'} \coqdocvar{E} \coqdocvar{M'} \ensuremath{\rightarrow}\coqdoceol
+    \coqdocindent{1.00em}
+    \coqdocvar{RefSet.Subset} \coqdocvar{M} \coqdocvar{M'}.\coqdoceol
+  \end{coqdoccode}
+}
+
+%% \newcommand{\COQDOC}[0]{
+%%   \begin{coqdoccode}
+%%   \end{coqdoccode}
+%% }

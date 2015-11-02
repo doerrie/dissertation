@@ -1,0 +1,430 @@
+\include{cmd-coqvar}
+
+%%
+%% General notation
+\newcommand{\TMmodelName}[0]{SDM}
+\newcommand{\mapsTo}[3]{\ensuremath{#1 \xmapsto{#3} #2}}
+\newcommand{\mkEdge}[3]{\ensuremath{#1 \xrightarrow{#3} #2}}
+\newcommand{\idFunc}[0]{\NMid}
+
+\newcommand{\identifier}[1]{\textit{#1}}
+\newcommand{\ident}[1]{\identifier{#1}}
+\newcommand{\noident}[1]{#1}
+
+\newcommand{\NMid}[0]{\identifier{id}}
+
+%% permissions
+\newcommand{\NMrd}[0]{\identifier{rd}}
+\newcommand{\NMwr}[0]{\identifier{wr}}
+\newcommand{\NMwk}[0]{\identifier{wk}}
+\newcommand{\NMtx}[0]{\identifier{tx}}
+
+%% set of permission
+\newcommand{\TMaccessRight}[0]{access right}
+\newcommand{\TMaccessRights}[0]{access rights}
+\newcommand{\NMaccessRights}[0]{\ensuremath{R}}
+
+%% power set of permissions
+\newcommand{\TMaccessRightSet}[0]{access right set}
+\newcommand{\TMaccessRightSets}[0]{access right sets}
+\newcommand{\NMaccessRightSet}[0]{\ensuremath{\NMaccessRights^{2}}}
+
+%% references
+\newcommand{\TMref}[0]{object reference}
+\newcommand{\TMrefs}[0]{object references}
+\newcommand{\NMrefs}[0]{\identifier{Ref}}
+
+%% capabilities
+\newcommand{\NMmkCap}[0]{\identifier{mkCap}}
+\newcommand{\FNmkCap}[2]{\ensuremath{\NMmkCap(#1,#2)}}
+
+%% set of capabilities
+\newcommand{\TMcap}[0]{capability}
+\newcommand{\TMcaps}[0]{capabilities}
+\newcommand{\NMcaps}[0]{\identifier{Cap}}
+
+
+%% indices
+\newcommand{\TMidx}[0]{index}
+\newcommand{\TMidxs}[0]{indices}
+\newcommand{\NMidxs}[0]{\identifier{Idx}}
+
+%% objects
+\newcommand{\TMobj}[0]{object}
+\newcommand{\TMobjs}[0]{objects}
+\newcommand{\NMobjs}[0]{\identifier{Obj}}
+
+%% labels
+\newcommand{\TMunborn}[0]{unborn}
+\newcommand{\TMalive}[0]{alive}
+\newcommand{\TMdead}[0]{dead}
+\newcommand{\NMunborn}[0]{\identifier{unborn}}
+\newcommand{\NMalive}[0]{\identifier{alive}}
+\newcommand{\NMdead}[0]{\identifier{dead}}
+
+%% set of labels
+\newcommand{\TMobjLabel}[0]{object label}
+\newcommand{\TMobjLabels}[0]{object labels}
+\newcommand{\NMobjLabels}[0]{\ensuremath{L}}
+
+%% types
+\newcommand{\TMactive}[0]{active}
+\newcommand{\NMactive}[0]{\identifier{active}}
+\newcommand{\TMpassive}[0]{passive}
+\newcommand{\NMpassive}[0]{\identifier{passive}}
+
+%% set of types
+\newcommand{\TMobjsType}[0]{object's type}
+\newcommand{\TMobjType}[0]{object type}
+\newcommand{\TMobjTypes}[0]{object types}
+\newcommand{\NMobjTypes}[0]{\ensuremath{T}}
+
+%% set of schedules
+\newcommand{\TMobjSchedule}[0]{object schedule}
+\newcommand{\TMobjSchedules}[0]{object schedules}
+
+%% set of system states
+\newcommand{\TMsystemState}[0]{system state}
+\newcommand{\TMsystemStates}[0]{system states}
+\newcommand{\NMsystemStates}[0]{\ensuremath{S}}
+
+%% state inspection predicates
+\newcommand{\NMhasRight}[0]{\identifier{hasRight}}
+\newcommand{\FNhasRight}[4]{\ensuremath{\NMhasRight(#1,#2,#3,#4)}}
+\newcommand{\NMisLabel}[0]{\identifier{isLabel}}
+\newcommand{\FNisLabel}[3]{\ensuremath{\NMisLabel(#1,#2,#3)}}
+\newcommand{\NMisType}[0]{\identifier{isType}}
+\newcommand{\FNisType}[3]{\ensuremath{\NMisType(#1,#2,#3)}}
+\newcommand{\NMisUnborn}[0]{\identifier{isUnborn}}
+\newcommand{\FNisUnborn}[2]{\ensuremath{\NMisUnborn(#1,#2)}}
+\newcommand{\NMisAlive}[0]{\identifier{isAlive}}
+\newcommand{\FNisAlive}[2]{\ensuremath{\NMisAlive(#1,#2)}}
+\newcommand{\NMisDead}[0]{\identifier{isDead}}
+\newcommand{\FNisDead}[2]{\ensuremath{\NMisDead(#1,#2)}}
+\newcommand{\NMisActive}[0]{\identifier{isActive}}
+\newcommand{\FNisActive}[2]{\ensuremath{\NMisActive(#1,#2)}}
+\newcommand{\NMpreReqActor}[0]{\identifier{preReqActor}}
+\newcommand{\FNpreReqActor}[2]{\ensuremath{\NMpreReqActor(#1,#2)}}
+\newcommand{\NMtargetIsAlive}[0]{\identifier{targetIsAlive}}
+\newcommand{\FNtargetIsAlive}[3]{\ensuremath{\NMtargetIsAlive(#1,#2,#3)}}
+\newcommand{\NMpreReqCommon}[0]{\identifier{preReqCommon}}
+\newcommand{\FNpreReqCommon}[3]{\ensuremath{\NMpreReqCommon(#1,#2,#3)}}
+\newcommand{\NMpreReq}[0]{\identifier{preReq}}
+\newcommand{\FNpreReq}[2]{\ensuremath{\NMpreReq(#1,#2)}}
+\newcommand{\NMhasCap}[0]{\identifier{hasCap}}
+\newcommand{\FNhasCap}[3]{\ensuremath{\NMhasCap(#1,#2,#3)}}
+
+%% operation helper functions
+\newcommand{\TMweaken}[0]{weaken}
+\newcommand{\TMweakened}[0]{weakened}
+\newcommand{\TMweakening}[0]{weakening}
+\newcommand{\NMweaken}[0]{\identifier{weaken}}
+\newcommand{\FNweaken}[1]{\ensuremath{\NMweaken(#1)}}
+
+\newcommand{\NMobjTarget}[0]{\identifier{objTarget}}
+\newcommand{\FNobjTarget}[3]{\ensuremath{\NMobjTarget(#1,#2,#3)}}
+
+%% operation terms and names
+\newcommand{\TMread}[0]{read}
+\newcommand{\TMwrite}[0]{write}
+\newcommand{\TMfetch}[0]{fetch}
+\newcommand{\TMstore}[0]{store}
+\newcommand{\TMrevoke}[0]{revoke}
+\newcommand{\TMdestroy}[0]{destroy}
+\newcommand{\TMallocate}[0]{allocate}
+\newcommand{\TMcreate}[0]{\TMallocate}
+\newcommand{\TMallocated}[0]{allocated}
+\newcommand{\TMcreated}[0]{\TMallocated}
+\newcommand{\TMallocation}[0]{allocation}
+\newcommand{\TMsend}[0]{send}
+\newcommand{\TMsending}[0]{sending}
+\newcommand{\NMread}[0]{\identifier{read}}
+\newcommand{\NMwrite}[0]{\identifier{write}}
+\newcommand{\NMfetch}[0]{\identifier{fetch}}
+\newcommand{\NMstore}[0]{\identifier{store}}
+\newcommand{\NMrevoke}[0]{\identifier{revoke}}
+\newcommand{\NMdestroy}[0]{\identifier{destroy}}
+\newcommand{\NMcreate}[0]{\identifier{allocate}}
+\newcommand{\NMsend}[0]{\identifier{send}}
+\newcommand{\FNread}[2]{\ensuremath{\NMread(#1,#2)}}
+\newcommand{\FNwrite}[2]{\ensuremath{\NMwrite(#1,#2)}}
+\newcommand{\FNfetch}[4]{\ensuremath{\NMfetch(#1,#2,#3,#4)}}
+\newcommand{\FNstore}[4]{\ensuremath{\NMstore(#1,#2,#3,#4)}}
+\newcommand{\FNrevoke}[3]{\ensuremath{\NMrevoke(#1,#2,#3)}}
+\newcommand{\FNdestroy}[2]{\ensuremath{\NMdestroy(#1,#2)}}
+\newcommand{\FNcreate}[4]{\ensuremath{\NMcreate(#1,#2,#3,#4)}}
+\newcommand{\FNsend}[4]{\ensuremath{\NMsend(#1,#2,#3,#4)}}
+
+
+\newcommand{\TMacting}[0]{acting}
+\newcommand{\NMacting}[0]{\identifier{\TMacting}}
+\newcommand{\FNacting}[1]{\ensuremath{\NMacting(#1)}}
+\newcommand{\TMactor}[0]{\TMacting{} subject}
+\newcommand{\NMactor}[0]{\NMacting}
+\newcommand{\FNactor}[1]{\FNacting{#1}}
+
+\newcommand{\TMop}[0]{operation}
+\newcommand{\TMops}[0]{operations}
+\newcommand{\NMop}[0]{\identifier{op}}
+
+\newcommand{\FNopArrow}[1]{\ensuremath{\xrightarrow {#1}}}
+\newcommand{\FNsingleOp}[3]{\ensuremath{#1 \FNopHead{#2}{#3}}}
+\newcommand{\FNopHead}[2]{\ensuremath{\FNopArrow{#1} #2}}
+\newcommand{\FNopTail}[2]{\ensuremath{\dots \FNopArrow{#1} #2}}
+
+\newcommand{\NMdoOp}[0]{\identifier{doOp}}
+\newcommand{\FNdoOp}[2]{\ensuremath{\NMdoOp(#1,#2)}}
+
+\newcommand{\NMreadFrom}[0]{\identifier{readFrom}}
+\newcommand{\FNreadFrom}[2]{\ensuremath{\NMreadFrom(#1,#2)}}
+\newcommand{\NMwroteTo}[0]{\identifier{wroteTo}}
+\newcommand{\FNwroteTo}[2]{\ensuremath{\NMwroteTo(#1,#2)}}
+\newcommand{\NMreadFromSpec}[0]{\identifier{readFromSpec}}
+\newcommand{\FNreadFromSpec}[2]{\ensuremath{\NMreadFromSpec(#1,#2)}}
+\newcommand{\NMwroteToSpec}[0]{\identifier{wroteToSpec}}
+\newcommand{\FNwroteToSpec}[2]{\ensuremath{\NMwroteToSpec(#1,#2)}}
+
+
+
+\newcommand{\NMcapTx}[0]{\identifier{multiCapCopy}}
+\newcommand{\FNcapTx}[3]{\ensuremath{\NMcapTx(#1,#2,#3)}}
+
+\newcommand{\NMremoveCapsByRef}[0]{\identifier{removeCapsByRef}}
+\newcommand{\FNremoveCapsByRef}[2]{\ensuremath{\NMremoveCapsByRef(#1,#2)}}
+
+
+%% access
+
+
+\newcommand{\TMaccessEdge}{access edge}
+\newcommand{\TMaccessEdges}{access edges}
+\newcommand{\TMaccessGraph}{access graph}
+\newcommand{\TMaccessGraphs}{access graphs}
+
+\newcommand{\TMedgeSource}{source}
+\newcommand{\TMedgeTarget}{target}
+\newcommand{\TMedgeRight}{right}
+
+\newcommand{\NMpotTransfer}[0]{\identifier{potTransfer}}
+\newcommand{\FNpotTransfer}[2]{\ensuremath{\NMpotTransfer(#1,#2)}}
+\newcommand{\TMpotTransfer}[0]{potential transfer}
+\newcommand{\TMpotTransfers}[0]{potential transfers}
+
+\newcommand{\TMmaximal}[0]{maximal}
+\newcommand{\NMmaximal}[0]{\identifier{maximal}}
+\newcommand{\FNmaximal}[1]{\ensuremath{\NMmaximal(#1)}}
+
+
+\newcommand{\TMmutated}[0]{mutated}
+\newcommand{\TMmutation}[0]{mutation}
+\newcommand{\TMmutations}[0]{mutations}
+\newcommand{\NMmutated}[0]{\identifier{mutated}}
+\newcommand{\FNmutated}[2]{\ensuremath{\NMmutated(#1,#2)}}
+\newcommand{\NMmutatedDef}[0]{\identifier{mutated\_def}}
+\newcommand{\FNmutatedDef}[3]{\ensuremath{\NMmutatedDef(#1,#2,#3)}}
+
+\newcommand{\TMmutable}[0]{mutable}
+\newcommand{\TMmutability}[0]{mutability}
+\newcommand{\NMmutable}[0]{\identifier{mutable}}
+\newcommand{\FNmutable}[1]{\ensuremath{\NMmutable(#1)}}
+\newcommand{\FNmutableTwo}[2]{\ensuremath{\FNmutable{#1}(#2)}}
+
+\newcommand{\NMadd}[0]{\identifier{add}}
+\newcommand{\FNadd}[2]{\ensuremath{\NMadd(#1,#2)}}
+\newcommand{\FNaddEq}[3]{\ensuremath{\FNadd{#1}{#2} = #3}}
+
+\newcommand{\TMtransfer}[0]{transfer}
+\newcommand{\TMtransfers}[0]{transfers}
+\newcommand{\NMtransfer}[0]{\identifier{transfer}}
+\newcommand{\FNtransfer}[2]{\ensuremath{\NMtransfer(#1,#2)}}
+
+\newcommand{\TMdirAcc}[0]{direct access}
+\newcommand{\TMdirAccAG}[0]{direct access graph}
+\newcommand{\TMdirAccAGs}[0]{direct access graphs}
+\newcommand{\NMdirAcc}[0]{\identifier{dirAcc}}
+\newcommand{\FNdirAcc}[1]{\ensuremath{\NMdirAcc(#1)}}
+
+\newcommand{\TMpotAcc}[0]{potential access}
+\newcommand{\TMpotAccAG}[0]{potential access graph}
+\newcommand{\TMpotAccAGs}[0]{potential access graphs}
+\newcommand{\NMpotAcc}[0]{\identifier{potAcc}}
+\newcommand{\FNpotAcc}[2]{\ensuremath{\NMpotAcc(#1,#2)}}
+
+\newcommand{\NMcompPotAcc}[0]{\NMpotAcc}
+\newcommand{\FNcompPotAcc}[1]{\ensuremath{\NMcompPotAcc(#1)}}
+\newcommand{\TMcompPotAcc}[0]{compute potential access}
+
+
+\newcommand{\TMcompleteAG}[0]{complete access graph}
+\newcommand{\NMcompleteAG}[0]{\identifier{completeAG}}
+\newcommand{\FNcompleteAG}[1]{\ensuremath{\NMcompleteAG(#1)}}
+
+\newcommand{\TMagNodes}[0]{access graph objects}
+\newcommand{\NMagNodes}[0]{\identifier{agObjRefs}}
+\newcommand{\FNagNodes}[1]{\ensuremath{\NMagNodes(#1)}}
+
+
+\newcommand{\TMinsert}[0]{insert}
+\newcommand{\NMinsert}[0]{\identifier{insert}}
+\newcommand{\FNinsert}[2]{\ensuremath{\NMinsert(#1,#2)}}
+
+\newcommand{\TMendow}[0]{endow}
+\newcommand{\NMendow}[0]{\identifier{endow}}
+\newcommand{\FNendow}[2]{\ensuremath{\NMendow(#1,#2)}}
+\newcommand{\FNendowTwo}[3]{\ensuremath{\FNendow{#1}{#2}(#3)}}
+
+\newcommand{\TMprojection}[0]{projection}
+\newcommand{\TMprojections}[0]{projections}
+\newcommand{\TMAGprojection}[0]{\TMprojection}
+\newcommand{\TMAGprojections}[0]{\TMprojections}
+\newcommand{\TMAGprojecting}[0]{projecting}
+\newcommand{\NMprojection}[0]{\identifier{projection}}
+\newcommand{\FNprojection}[2]{\ensuremath{\NMprojection(#1,#2)}}
+\newcommand{\FNprojectionTwo}[4]{\ensuremath{\FNprojection{#1}{#2}(#3,#4)}}
+
+\newcommand{\TMdirAccOp}[0]{direct access operation}
+\newcommand{\TMdirAccOps}[0]{direct access operations}
+\newcommand{\NMdirAccOp}[0]{\identifier{dirAccOp}}
+\newcommand{\FNdirAccOp}[2]{\ensuremath{\NMdirAccOp(#1,#2)}}
+
+\newcommand{\TMpotAccOp}[0]{potential access operation}
+\newcommand{\TMpotAccOps}[0]{potential access operations}
+\newcommand{\NMpotAccOp}[0]{\identifier{potAccOp}}
+\newcommand{\FNpotAccOp}[2]{\ensuremath{\NMpotAccOp(#1,#2)}}
+\newcommand{\FNpotAccOpTwo}[3]{\ensuremath{\FNpotAccOp{#1}{#2}(#3)}}
+
+\newcommand{\NMedgeTx}[0]{\identifier{edgeCopy}}
+\newcommand{\FNedgeTx}[4]{\ensuremath{\NMedgeTx(#1,#2,#3,#4)}}
+
+\newcommand{\NMreply}[0]{\identifier{reply}}
+\newcommand{\FNreply}[3]{\ensuremath{\NMreply(#1,#2,#3)}}
+
+\newcommand{\NMreplyCap}[0]{\identifier{replyCap}}
+\newcommand{\FNreplyCap}[3]{\ensuremath{\NMreplyCap(#1,#2,#3)}}
+
+\newcommand{\TMrestrict}[0]{restrict}
+\newcommand{\NMrestrict}[0]{\identifier{restrict}}
+\newcommand{\FNrestrict}[2]{\ensuremath{\NMrestrict(#1,#2)}}
+
+\newcommand{\TMextant}[0]{extant}
+\newcommand{\NMextant}[0]{\identifier{extant}}
+\newcommand{\FNextant}[1]{\ensuremath{\NMextant(#1)}}
+
+\newcommand{\TMdirMutable}{directly mutable}
+\newcommand{\TMdirMutability}{direct mutability}
+\newcommand{\TMpotMutable}{potentially mutable}
+\newcommand{\TMpotMutability}{potential mutability}
+
+\newcommand{\TMsubsystem}[0]{subsystem}
+\newcommand{\TMsubsystems}[0]{subsystems}
+
+\newcommand{\TMextantSubs}[0]{extant subsystems}
+\newcommand{\TMextantSub}[0]{extant subsystem}
+\newcommand{\NMextantSub}[0]{\identifier{extantSub}}
+\newcommand{\FNextantSub}[2]{\ensuremath{\NMextantSub(#1,#2)}}
+
+\newcommand{\TMconstructive}[0]{constructive}
+\newcommand{\TMconstructor}[0]{constructor}
+\newcommand{\TMconfinement}[0]{confinement}
+
+
+\newcommand{\TMconstrSubs}[0]{constructive subsystems}
+\newcommand{\TMconstrSub}[0]{constructive subsystem}
+\newcommand{\NMconstrSub}[0]{\identifier{constructiveSub}}
+\newcommand{\FNconstrSub}[2]{\ensuremath{\NMconstrSub(#1,#2)}}
+
+\newcommand{\TMmutableInd}[0]{mutable induction}
+\newcommand{\NMmutableInd}[0]{\identifier{mutableInd}}
+\newcommand{\FNmutableInd}[2]{\ensuremath{\NMmutableInd(#1,#2)}}
+
+\newcommand{\NMconfinedSub}[0]{\identifier{confinedSub}}
+\newcommand{\FNconfinedSub}[3]{\ensuremath{\NMconfinedSub(#1,#2,#3)}}
+
+\newcommand{\TMauthorizedSet}[0]{authorized set}
+\newcommand{\NMauthorizedSet}[0]{\identifier{authorizedSet}}
+\newcommand{\FNauthorizedSet}[2]{\ensuremath{\NMauthorizedSet(#1,#2)}}
+
+\newcommand{\TMconfinementTest}[0]{confinement test}
+\newcommand{\NMconfinementTest}[0]{\identifier{confinementTest}}
+\newcommand{\FNconfinementTest}[3]{\ensuremath{\NMconfinementTest(#1,#2,#3)}}
+
+\newcommand{\TMfullAuthAG}[0]{fully authorized access graph}
+\newcommand{\NMfullAuthAG}[0]{\identifier{fullAuthAG}}
+\newcommand{\FNfullAuthAG}[3]{\ensuremath{\NMfullAuthAG(#1,#2,#3)}}
+
+\newcommand{\TMauthAG}[0]{authorized access graph}
+\newcommand{\NMauthAG}[0]{\identifier{authAG}}
+\newcommand{\FNauthAG}[2]{\ensuremath{\NMauthAG(#1,#2)}}
+
+\newcommand{\TMagSimplyConfined}[0]{simple confinement for access graphs}
+\newcommand{\TMagSimpleConfinement}[0]{simple confinement for access graphs}
+\newcommand{\NMagSimplyConfined}[0]{\identifier{agSimpConf}}
+\newcommand{\FNagSimplyConfined}[3]{\ensuremath{\NMagSimplyConfined(#1)(#2,#3)}}
+
+\newcommand{\TMagConfined}[0]{confinement for access graphs}
+\newcommand{\TMagConfinement}[0]{confinement for access graphs}
+\newcommand{\NMagConfined}[0]{\identifier{agConf}}
+\newcommand{\FNagConfined}[3]{\ensuremath{\NMagConfined(#1)(#2,#3)}}
+
+\newcommand{\TMexFlow}[0]{flow existence}
+\newcommand{\NMexFlow}[0]{\identifier{exFlow}}
+\newcommand{\FNexFlow}[3]{\ensuremath{\NMexFlow(#1,#2,#3)}}
+
+
+
+%% \newcommand{\COQname}[0]{\coqvar{name}}
+
+\newcommand{\TMcapSource}[0]{source}
+\newcommand{\TMcapSources}[0]{sources}
+\newcommand{\TMcapRight}[0]{right}
+\newcommand{\TMcapRights}[0]{rights}
+\newcommand{\TMcapTarget}[0]{target}
+\newcommand{\TMcapTargets}[0]{targets}
+\newcommand{\TMagObj}[0]{Access Graph Object}
+\newcommand{\TMagObjs}[0]{Access Graph Objects}
+
+\newcommand{\TMinserting}[0]{inserting}
+
+\newcommand{\TMattenuate}[0]{attenuate}
+\newcommand{\TMreduce}[0]{\TMattenuate{}}
+\newcommand{\TMattenuating}[0]{attenuating}
+\newcommand{\TMreducing}[0]{\TMattenuating{}}
+\newcommand{\TMattenuation}[0]{attenuation}
+\newcommand{\TMreduction}[0]{\TMattenuation{}}
+\newcommand{\TMattenuations}[0]{attenuations}
+\newcommand{\TMreductions}[0]{\TMattenuations{}}
+\newcommand{\TMendowment}[0]{endowment}
+
+\newcommand{\TMexecute}[0]{execute}
+\newcommand{\TMexecution}[0]{execution}
+\newcommand{\TMexecutions}[0]{executions}
+\newcommand{\TMexecuting}[0]{executing}
+
+\newcommand{\TMdirAccMutability}[0]{direct mutability}
+\newcommand{\TMpotAccMutability}[0]{potential mutability}
+
+\newcommand{\TMOrderedFMap}{Ordered \COQFMap{}}
+
+\newcommand{\TMautonomous}[0]{\TMconstructive{}}
+\newcommand{\TMagRemainder}[0]{\TMaccessGraph{} remainder}
+
+\newcommand{\TMindexed}[0]{indexed}
+
+\newcommand{\TMmutableExecute}[0]{operational mutability}
+\newcommand{\TMmutablePotAccExecute}[0]{direct operational mutability}
+\newcommand{\TMmutableDirAccExecute}[0]{potential operational mutability}
+
+\newcommand{\TMobjExisted}[0]{existed}
+
+\newcommand{\TMagFullyAuthorized}[0]{fully authorized \TMaccessGraph{}}
+\newcommand{\TMschedule}[0]{schedule}
+
+\newcommand{\TMvoid}[0]{void}
+
+\newcommand{\TMSW}[0]{SW}
+
+
+%% \newcommand{\TMname}[0]{name}
+
+\newcommand{\idk}[0]{{\bf ???}}
+

@@ -1,0 +1,169 @@
+\chapter{The Coq Proof Assistant}
+\label{ch:coq}
+
+The \TMmodelName{} verification is formalized using the Coq proof assistant.
+This chapter begins by motivating Coq as a good candidate for a verification system.
+It then presents a brief overview of the term language of Coq with a focus on some the features used in \TMmodelName{}.
+
+\section{Why Coq}
+
+This section discusses the reasons Coq was chosen as the mechanized verifier for \TMmodelName{}.
+It describes how higher-order logics can simplify first-order problems by permitting developers to generalize proofs.
+It argues that intuitionistic logics are natural choices for automated verification, as truth values are represented as programs inhabiting a type.
+It discusses how Coq implements both of these features and articulates the useful features of the Coq standard library for the \TMmodelName{} verification.
+
+The high degree of automation available in first-order systems makes them appear very desirable.
+However, the ability to generalize theorems in higher-order proof systems makes them more practical than first-order systems.
+Any finite problem can be expressed in a first-order logic.
+However, without the ability to generalize theorems, developers quickly become burdened with a multitude of specialized proof obligations.
+Many first-order proof systems offer the ability to write functions to generalize these proofs.
+However, these functions cannot be verified, increasing the unverified surface of the proof and consequently undermining confidence.
+Although the safety problem and confinement policy for capability-based systems can be expressed as first-order problems, this verification effort uses Coq because it is a higher-order proof assistant.
+
+Most higher-order logics available fit into two categories: classical higher-order predicate logic and intuitionistic type theory.
+For proofs that can be automatically verified, intuitionistic and classical logics have the same expressive power.
+They differ in how they view the concept of truth.
+Classical logics reason about truth and falsehood directly, relying upon meta-analysis like term rewriting to prove a theorem.
+Intuitionistic logic reasons about construction and refutation directly, requiring a witness for every truth.
+These witnesses make statements in intuitionistic logic stronger than classical logic.
+
+The concept of how truth is constructed directly informs computational verification.
+Proofs as constructions and proofs as meta-inferences necessarily operate in different ways.
+Constructions and theorems have a direct relationship with software terms and types according to the Curry-Howard isomorphism. \msdnote{Not citing}
+In Coq, proofs as programs can be directly written by the developer and can be directly manipulated by other programs without resorting to meta-theory, simple type checking may suffice.
+This reduces the amount of meta-logic necessary to express properties and forms very natural proofs.
+
+Verifying a theorem in Coq is the act of constructing a program satisfying a type representing the theorem.
+To any developer acquainted with parametric polymorphism and (co)inductive data types, reading and manipulating these programs will be familiar.
+Base definitions and functions are executable programs that can be readily understood by developers unfamiliar with proofs, reducing mental overhead.
+While specifying a program precisely can give the developer a great deal of power, Coq also includes a wide array of tools to help construct programs automatically.
+Coq includes a tactic meta-language and pattern-matching system to assist the developer when searching for a program.
+These are combined into a hint system that can be combined to produce a high degree of automation for domains that are highly syntactically driven.
+
+The \TMmodelName{} verification utilizes a number of features of the Coq standard library.
+Boolean decidability is used to place most propositions into Boolean logic, making them computationally decidable.
+Decidability is a critical problem because undecidability hides the unknowable; a theorem with an unknowable assumption can still be verified.
+By ensuring that all propositional hypotheses are isomorphic to Boolean functions, \TMmodelName{} ensures that the results are always known.
+
+The Coq standard library also provides meta-theory support for equivalence relations.
+The rewrite tactic in Coq can perform automated rewriting of any equivalence relation, not just built-in equality.
+It requires only that relevant terms respect the equivalence relation for relevant types.
+This permits the model to reasoning about potentially different, but semantically identical, types and terms.
+
+The last major features of the Coq standard library utilized by \TMmodelName{} are the axiom-free finite set and map libraries. \cite{CoqFSet}
+These are very large productions modeled after the OCaml Set and Map libraries.
+They include a collection of supplemental libraries containing useful theorems pertinent to their interface as well as implementations including a fully concrete definition using lists.
+
+\section{The Coq Term Language}
+
+\Cref{ch:embed,ch:access,ch:safety,ch:flow,ch:confinement} contain a detailed theorem walk-through of the confinement verification in Coq.
+As previously stated in \Cref{sect:intro:confidence}, one goal of this dissertation is to produce confidence in the confinement verfification result.
+This dissertation presumes that reviewers have confidence in the proof assistant and it therefore does not discuss the mechanics of the proof construction.
+As such, this section focuses exclusively on the useful portions of the Gallina term language of Coq.
+
+Gallina is a higher-order functional language and constructive dependent type system that implements higher-order intuitionistic logic.
+The syntax and semantics of Gallina are based on OCaml functions and data-types, but with dependently typed parametric polymorphism.
+It contains the usual functions, anonymous functions, and fixpoints along with cofixpoints (sometimes called lazy fixpoints).
+(Co)Inductive types are a generalized notion of (co)data-type with (co)constructor definitions.
+Gallina also includes a highly type-generalized pattern matching system for (co)constructors.
+
+All terms in Coq belong to one of three sorts: \coqkw{Set}, \coqkw{Prop}, and \coqkw{Type}.
+\coqkw{Set} is the sort of ``specifications'' or programs, and \coqkw{Prop} is the sort of ``propositions'' or theorems.
+The difference between the two is how they handle the type \mbox{\coqvar{*} \(\rightarrow\) \coqvar{*}}.
+The type \mbox{\coqkw{Set} \(\rightarrow\) \coqkw{Set}} is not in the sort \coqkw{Set}, but the type \coqkw{Prop} \(\rightarrow\) \coqkw{Prop} is in the sort \coqkw{Prop}.
+This makes \coqkw{Prop} impredicative, in that its terms may be self-defining, and \coqkw{Set} predicative, in that it is not.
+The sort \coqkw{Type} is stratified and somewhat complex.
+\coqkw{Type} is used very little in this effort and may be considered parametric for either \coqkw{Prop} or \coqkw{Set}.
+
+Unlike general programming languages, all functions in Coq are obliged to terminate.
+Definitions and anonymous functions do not permit recursion and simply terminate.
+Fixpoints permit structural recursion that can be automatically inferred.
+General functions permit the developer to specify both the function and the termination measure, though it may be possible for Coq to infer this as well.
+Because all functions must terminate, (co)inductive data types are often used to express general propositions as dependent type families.
+
+The connection between programs and proofs can be summarized in relationships with functions and inductive types.
+Implication and universal quantification are expressed by dependent function types, respectively with or without a named parameter.
+\coqvar{A} \(\rightarrow\) \coqvar{B} is syntactically the same as \(\forall\) (\coqkw{\_}:\coqvar{A}), \coqvar{B} where \coqkw{\_} is any free variable.
+\coqvar{True} is the universally inhabited type and \coqvar{False} is the universally uninhabited type.
+Negation, written \(\neg\) \coqvar{A} is syntactically \coqvar{A} \(\rightarrow\) \coqvar{False}.
+
+Most other constructions are inductive types or involve pattern matching.
+Conjunction, disjunction, and existential quantification are all inductive types.
+The type (\coqvar{and} \coqvar{A} \coqvar{B}), written \coqvar{A} \(\wedge\) \coqvar{B}, has one constructor \coqvar{conj} requiring terms of types \coqvar{A} and \coqvar{B}.
+The type (\coqvar{or} \coqvar{A} \coqvar{B}), written \coqvar{A} \(\vee\) \coqvar{B}, has two constructors \coqvar{proj1} and \coqvar{proj2} requiring only one term of type \coqvar{A} or \coqvar{B}, respectively.
+Existential quantification over a predicate has one introduction constructor, \coqvar{ex\_intro}, that can only be constructed by a witness satisfying the quantified proposition.
+
+\section{Model Abstraction}
+\label{sect:coq:modelAbstraction}
+
+\TMmodelName{} is constructed as an abstract implementation to allow it to be used as a framework for future system verifications.
+Operating systems are not the only capability-based system; capability-based systems also include virtual machines, language runtimes, and distributed systems.
+As an abstract model, \TMmodelName{} focus on the heart of the confinement problem, producing a result applicable across all domains.
+
+\TMmodelName{} utilizes the Coq module type system as an abstraction mechanism.
+This decision was motivated by the use of module type abstraction in the axiom-free finite set library.
+Because abstractions and axioms are the same structure in Coq, \TMmodelName{} also provides a trivial implementation to produce an axiom-free result.
+It is often the case that the abstract module types are verbatim software from implementation modules.
+However, it is not possible to produce them by type inference in Coq version 8.3pl2.
+As a work-around, the project includes simple tool to syntactically create a module type based on each trivial implementation through very simple annotations.
+
+This verification includes the very primitive Perl script ``typeify.pl'' to automatically produce precise module types from module functors.
+It does not process the full language of Coq, but processes the commands line-by-line using a very small state transition routine over a very strict module format.
+The module must contain only one internal module functor, declared on a single line, and the functor parameter list must match the module type parameter list.
+Theorems are abstracted by replacing the keyword ``Theorem'' with ``Parameter'' and removing all lines between commands ``Proof.'' and ``Qed.''
+Although Coq allows theorems to nest and elide the ``Proof'' command, we do not handle these cases.
+Two commands are supported as comments to provide better abstraction in the generated types.
+The ``(* ABSTRACT *)'' command processes a ``Definition'' into an appropriate ``Parameter'' allowing other modules to override these definitions with other implementations.
+The ``(* TYPE\_REMOVE *)'' command eliminates the subsequent line in the generated type altogether and is often used to eliminate helper theorems and lemmas.
+Any potential errors introduced by this transformation will be caught when the original module against the generated signature.
+
+It is necessary that each module functor and signature be pure, in that all dependencies are completely captured by parametricity.
+The use of existentially declaring a module type loses type information in Coq 8.3 in ways that would be available in Coq 8.2.
+Therefore, updated versions of the \COQFMap{} finite map libraries have been constructed to produce appropriate types.
+The pattern of constructing pure functors from the trivial implementation is prevalent throughout \TMmodelName{} and produces an axiom-free proof with a type signature that can be satisfied in future efforts,
+While this syntactic type construction is used wherever possible, there are certain portions of the proof which are encoded manually.
+
+The following conventions regarding module names are used throughout this dissertation.
+Modules that are also files have the \coqfilemodule{FileModule} font face where as inner modules have the \coqvar{InnerModule} font face.
+The locations of each inner module should be clear from the surrounding context.
+File modules containing functor implementations are suffixed with -\coqfilemodule{Impl}, while modules constructing a fully complete implementation by functor application are suffixed with -\coqfilemodule{Appl}.
+File modules containing type signatures, or those which have no abstraction, are given no suffix.
+Convenience file modules with supplemental libraries are suffixed with -\coqfilemodule{\_Conv} and are further suffixed as above.
+All abstract module types passed as parameters and convenience modules share the same naming convention throughout the proof, which is summarized in \cref{table:coq:moduleConvention}.
+
+\begin{table}
+  \centering
+  \begin{tabular}{| l | l |}
+    \hline
+    Instance & Declaration and location \\
+    \hline \hline
+    \COQARSet{} & \COQFSet{} of \COQAccessRight{} \\
+    \COQRef{} & \COQReferenceType{} module of \COQReferences{}.v\\
+    \COQRefS{} &  \COQRefSetType{} module of \COQRefSets{}.v\\
+    \COQRefSet{} & \COQReference{} \COQFSet{} of \COQRefS{} \\
+    \COQEdges{} &  \COQAccessEdgeType{} module of \COQAccessEdges{}.v \\
+    \COQAccessGraph{} & \COQAccessGraphType{} module of \COQAccessGraphs{}.v\\
+    \COQAG{} & \COQFSet{} of \COQAccessGraphType{} \\
+    \COQSeq{} & \COQSeqAccType{} module of \COQSequentialAccess{}.v\\
+    \COQCap{} & \COQCapabilityType{} of \COQCapabilities{}.v\\
+    \COQCC{} & \COQCapabilityConv{} of \COQCapabilitiesUConv{}.v \\
+    \COQCapS{} &  \COQCapSetType{} \\
+    \COQCapSet{} & \COQCapability{} \COQFSet{} of \COQCapS{} \\
+    \COQInd{} & \COQIndexType{} of \COQIndicies{}.v\\
+    \COQObj{} & \COQObjectType{} of \COQObjects{}.v \\
+    \COQOC{} & \COQObjectConv{} of \COQObjectsUConv{}.v \\
+    \COQSys{} & \COQSystemStateType{} of \COQSystemState{}.v \\
+    \COQSC{} & \COQSystemStateConv{} of \COQSystemStateUConv{}.v \\
+    \COQSemDefns{} &  \COQSemanticsDefinitionsType{} of \COQSemanticsDefinitions{}.v \\
+    \COQSem{} &  \COQSemanticsType{} of \COQSemantics{}.v \\
+    \COQSemConv{} & \COQSemanticsConv{} of \COQSemanticsUConv{}.v \\
+    \COQExe{} &  \COQExecutionType{} of \COQExecution{}.v\\
+    \COQMut{} &  \COQMutationType{} of \COQMutation{}.v \\
+    \COQSub{} &  \COQSubsystemType{} of \COQSubsystem{}.v \\
+    \hline
+  \end{tabular}
+  \caption{Declaration and location of common module names.\label{table:coq:moduleConvention}}
+\end{table}
+
+
+

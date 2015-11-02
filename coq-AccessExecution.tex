@@ -1,0 +1,254 @@
+\newcommand{\COQDOCdirAccDepCompose}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_dep\_compose} : \coqdockw{\ensuremath{\forall}} \coqdocvar{Fs}, \coqdocvar{Proper} (\coqdocvar{Sys.eq} \ensuremath{\Longrightarrow} \coqdocvar{Sys.eq}) \coqdocvar{Fs} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{Fsa}, \coqdocvar{dirAcc\_approx\_dep} \coqdocvar{Fs} \coqdocvar{Fsa} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{Fs'} \coqdocvar{Fsa'}, \coqdocvar{dirAcc\_approx\_dep} \coqdocvar{Fs'} \coqdocvar{Fsa'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{dirAcc\_approx\_dep} (\coqdocvar{compose} \coqdocvar{Fs'} \coqdocvar{Fs}) \coqdoceol
+\coqdocindent{10.50em}
+(\coqdockw{fun} \coqdocvar{s} \ensuremath{\Rightarrow} (\coqdocvar{compose} (\coqdocvar{Fsa'} (\coqdocvar{Fs} \coqdocvar{s})) (\coqdocvar{Fsa} \coqdocvar{s}))).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCpotAccApproxdirAccDepCompose}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{potAcc\_approx\_dirAcc\_dep\_compose}:\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{Fs}, \coqdocvar{Proper} (\coqdocvar{Sys.eq} \ensuremath{\Longrightarrow} \coqdocvar{Sys.eq}) \coqdocvar{Fs} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{Fsa}, \coqdocvar{dirAcc\_approx\_dep} \coqdocvar{Fs} \coqdocvar{Fsa} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Proper} (\coqdocvar{Sys.eq} \ensuremath{\Longrightarrow} \coqdocvar{AG.eq} \ensuremath{\Longrightarrow} \coqdocvar{AG.eq}) \coqdocvar{Fsa} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{Fp}, \coqdocvar{potAcc\_approx\_dirAcc\_dep} \coqdocvar{Fsa} \coqdocvar{Fp} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} (\coqdocvar{Fs'}:\coqdocvar{Sys.t}\ensuremath{\rightarrow}\coqdocvar{Sys.t}) \coqdocvar{Fsa'}, \coqdocvar{Proper} (\coqdocvar{Sys.eq} \ensuremath{\Longrightarrow} \coqdocvar{AG.eq} \ensuremath{\Longrightarrow} \coqdocvar{AG.eq}) \coqdocvar{Fsa'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{Fp'}, \coqdocvar{potAcc\_approx\_dirAcc\_dep} \coqdocvar{Fsa'} \coqdocvar{Fp'} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{potAcc\_approx\_dirAcc\_dep} (\coqdockw{fun} \coqdocvar{s} \ensuremath{\Rightarrow} (\coqdocvar{compose} (\coqdocvar{Fsa'} (\coqdocvar{Fs} \coqdocvar{s})) (\coqdocvar{Fsa} \coqdocvar{s}))) \coqdoceol
+\coqdocindent{12.00em}
+(\coqdockw{fun} \coqdocvar{s} \ensuremath{\Rightarrow} (\coqdocvar{compose} (\coqdocvar{Fp'} (\coqdocvar{Fs} \coqdocvar{s})) (\coqdocvar{Fp} \coqdocvar{s}))).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCpotAccMdirAccDepCompose}[0]{\COQDOCpotAccApproxdirAccDepCompose}
+
+\newcommand{\COQDOCdirAccExecute}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Fixpoint} \coqdocvar{dirAcc\_execute} \coqdocvar{op\_list} \coqdocvar{s} : (\coqdocvar{AG.t} \ensuremath{\rightarrow} \coqdocvar{AG.t}) :=\coqdoceol
+\coqdocnoindent
+\coqdockw{match} \coqdocvar{op\_list} \coqdockw{with}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{nil} \ensuremath{\Rightarrow} \coqdocvar{id\_ag}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{cons} \coqdocvar{op} \coqdocvar{tail} \ensuremath{\Rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{compose} (\coqdocvar{dirAcc\_op} \coqdocvar{op} (\coqdocvar{Exe.execute} \coqdocvar{s} \coqdocvar{tail})) (\coqdocvar{dirAcc\_execute} \coqdocvar{tail} \coqdocvar{s})\coqdoceol
+\coqdocnoindent
+\coqdockw{end}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccExecuteSpec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{dirAcc\_execute\_spec} : \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{list} \coqdocvar{Sem.operation} \ensuremath{\rightarrow} (\coqdocvar{Sys.t} \ensuremath{\rightarrow} \coqdocvar{AG.t} \ensuremath{\rightarrow} \coqdocvar{AG.t}) \ensuremath{\rightarrow} \coqdockw{Prop} :=\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{dirAcc\_execute\_spec\_nil} : \coqdocvar{dirAcc\_execute\_spec} \coqdocvar{nil} (\coqdockw{fun} (\coqdocvar{s}:\coqdocvar{Sys.t}) (\coqdocvar{a}:\coqdocvar{AG.t}) \ensuremath{\Rightarrow} \coqdocvar{a})\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{dirAcc\_execute\_spec\_cons} : \coqdockw{\ensuremath{\forall}} \coqdocvar{op} \coqdocvar{op\_list} \coqdocvar{Fp}, \coqdocvar{dirAcc\_execute\_spec} \coqdocvar{op\_list} \coqdocvar{Fp} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{dirAcc\_execute\_spec} (\coqdocvar{cons} \coqdocvar{op} \coqdocvar{op\_list}) \coqdoceol
+\coqdocindent{2.00em}
+(\coqdockw{fun} \coqdocvar{s} \ensuremath{\Rightarrow} \coqdocvar{compose} (\coqdocvar{dirAcc\_op} \coqdocvar{op} (\coqdocvar{Exe.execute} \coqdocvar{s} \coqdocvar{op\_list})) (\coqdocvar{Fp} \coqdocvar{s})).\coqdoceol
+\end{coqdoccode}
+}
+
+
+\newcommand{\COQDOCdirAccExecuteSpecEqIff}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_execute\_spec\_eq\_iff}: \coqdockw{\ensuremath{\forall}} \coqdocvar{opList} \coqdocvar{Fsa},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{dirAcc\_execute\_spec} \coqdocvar{opList} \coqdocvar{Fsa} \ensuremath{\leftrightarrow} \coqdocvar{Fsa} = (\coqdocvar{dirAcc\_execute} \coqdocvar{opList}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccExecuteSpecDirAccExecute}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_execute\_spec\_dirAcc\_execute}: \coqdockw{\ensuremath{\forall}} \coqdocvar{op\_list},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{dirAcc\_execute\_spec} \coqdocvar{op\_list} (\coqdocvar{dirAcc\_execute} \coqdocvar{op\_list}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCpotAccExecute}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Fixpoint} \coqdocvar{potAcc\_execute} \coqdocvar{op\_list} \coqdocvar{s} : (\coqdocvar{AG.t} \ensuremath{\rightarrow} \coqdocvar{AG.t}) := \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{match} \coqdocvar{op\_list} \coqdockw{with}\coqdoceol
+\coqdocindent{2.00em}
+\ensuremath{|} \coqdocvar{nil} \ensuremath{\Rightarrow} \coqdocvar{id\_ag}\coqdoceol
+\coqdocindent{2.00em}
+\ensuremath{|} \coqdocvar{cons} \coqdocvar{op} \coqdocvar{tail} \ensuremath{\Rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{compose} (\coqdocvar{potAcc\_op} \coqdocvar{op} (\coqdocvar{Exe.execute} \coqdocvar{s} \coqdocvar{tail})) (\coqdocvar{potAcc\_execute} \coqdocvar{tail} \coqdocvar{s})\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{end}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCpotAccExecuteSpec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{potAcc\_execute\_spec} : \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{list} \coqdocvar{Sem.operation} \ensuremath{\rightarrow} (\coqdocvar{Sys.t} \ensuremath{\rightarrow} \coqdocvar{AG.t} \ensuremath{\rightarrow} \coqdocvar{AG.t}) \ensuremath{\rightarrow} \coqdockw{Prop} :=\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{potAcc\_execute\_spec\_nil} : \coqdocvar{potAcc\_execute\_spec} \coqdocvar{nil} (\coqdockw{fun} (\coqdocvar{s}:\coqdocvar{Sys.t}) (\coqdocvar{a}:\coqdocvar{AG.t}) \ensuremath{\Rightarrow} \coqdocvar{a})\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{potAcc\_execute\_spec\_cons} : \coqdockw{\ensuremath{\forall}} \coqdocvar{op} \coqdocvar{op\_list} \coqdocvar{Fp}, \coqdocvar{potAcc\_execute\_spec} \coqdocvar{op\_list} \coqdocvar{Fp} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{potAcc\_execute\_spec} (\coqdocvar{cons} \coqdocvar{op} \coqdocvar{op\_list}) \coqdoceol
+\coqdocindent{2.00em}
+(\coqdockw{fun} \coqdocvar{s} \ensuremath{\Rightarrow} \coqdocvar{compose} (\coqdocvar{potAcc\_op} \coqdocvar{op} (\coqdocvar{Exe.execute} \coqdocvar{s} \coqdocvar{op\_list})) (\coqdocvar{Fp} \coqdocvar{s})).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCpotAccExecuteSpecEqIff}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{potAcc\_execute\_spec\_eq\_iff}: \coqdockw{\ensuremath{\forall}} \coqdocvar{opList} \coqdocvar{Fsa},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{potAcc\_execute\_spec} \coqdocvar{opList} \coqdocvar{Fsa} \ensuremath{\leftrightarrow} \coqdocvar{Fsa} = (\coqdocvar{potAcc\_execute} \coqdocvar{opList}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCpotAccExecuteSpecPotAccExecute}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{potAcc\_execute\_spec\_potAcc\_execute}: \coqdockw{\ensuremath{\forall}} \coqdocvar{op\_list},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{potAcc\_execute\_spec} \coqdocvar{op\_list} (\coqdocvar{potAcc\_execute} \coqdocvar{op\_list}).\coqdoceol
+\end{coqdoccode}
+} 
+
+
+\newcommand{\COQDOCobjsNotUnbornOpList}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{objs\_not\_unborn\_oplist} : \coqdockw{\ensuremath{\forall}} \coqdocvar{n} \coqdocvar{s}, \coqdocvar{objs\_not\_unborn} \coqdocvar{n} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{opL} \coqdocvar{s'}, \coqdocvar{Exe.execute\_def} \coqdocvar{s} \coqdocvar{opL} \coqdocvar{s'} \ensuremath{\rightarrow} \coqdocvar{objs\_not\_unborn} \coqdocvar{n} \coqdocvar{s'}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCnodesNotUnbornOpList}[0]{\COQDOCobjsNotUnbornOpList}
+
+
+\newcommand{\COQDOCagObjsSpecEndow}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{ag\_objs\_spec\_endow}: \coqdockw{\ensuremath{\forall}} \coqdocvar{p} \coqdocvar{p\_objs}, \coqdocvar{Seq.ag\_objs\_spec} \coqdocvar{p} \coqdocvar{p\_objs} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{n} \coqdocvar{p'\_objs}, \coqdocvar{Seq.ag\_objs\_spec} (\coqdocvar{endow} \coqdocvar{a} \coqdocvar{n} \coqdocvar{p}) \coqdocvar{p'\_objs} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{RefSet.eq} \coqdocvar{p'\_objs} (\coqdocvar{RefSet.add} \coqdocvar{a} (\coqdocvar{RefSet.add} \coqdocvar{n} \coqdocvar{p\_objs})).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagNodesSpecEndow}[0]{\COQDOCagObjsSpecEndow}
+
+\newcommand{\COQDOCagAttenuatingCompose}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{AG\_attenuating\_compose}: \coqdockw{\ensuremath{\forall}} \coqdocvar{objs} \coqdocvar{p} \coqdocvar{Fp1}, \coqdocvar{AG\_attenuating} \coqdocvar{objs} \coqdocvar{p} (\coqdocvar{Fp1} \coqdocvar{p}) \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{Fp2}, \coqdocvar{AG\_attenuating} \coqdocvar{objs} (\coqdocvar{Fp1} \coqdocvar{p}) (\coqdocvar{compose} \coqdocvar{Fp2} \coqdocvar{Fp1} \coqdocvar{p}) \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG\_attenuating} \coqdocvar{objs} \coqdocvar{p} (\coqdocvar{compose} \coqdocvar{Fp2} \coqdocvar{Fp1} \coqdocvar{p}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagReduceCompose}[0]{\COQDOCagAttenuatingCompose}
+
+\newcommand{\COQDOCpotAccExecuteSpecPotAcc}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{potAcc\_execute\_spec\_potAcc}: \coqdockw{\ensuremath{\forall}} \coqdocvar{p}, \coqdocvar{Seq.maxTransfer} \coqdocvar{p} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{op\_list} \coqdocvar{Fp'}, \coqdocvar{potAcc\_execute\_spec} \coqdocvar{op\_list} \coqdocvar{Fp'} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{s}, \coqdocvar{Seq.maxTransfer} (\coqdocvar{Fp'} \coqdocvar{s} \coqdocvar{p}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCexecutePotAccAttenuating}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{execute\_potAcc\_attenuating}: \coqdoceol
+\coqdocindent{2.50em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{op\_list} \coqdocvar{Fsa}, \coqdocvar{dirAcc\_execute\_spec} \coqdocvar{op\_list} \coqdocvar{Fsa} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.50em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{Fp}, \coqdocvar{potAcc\_execute\_spec} \coqdocvar{op\_list} \coqdocvar{Fp} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.50em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{i}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{i} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{p}, \coqdocvar{Seq.potAcc} \coqdocvar{i} \coqdocvar{p} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.50em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{objs}, \coqdocvar{objs\_not\_unborn} \coqdocvar{objs} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.50em}
+\coqdocvar{AG\_attenuating} \coqdocvar{objs} \coqdocvar{p} (\coqdocvar{Fp} \coqdocvar{s} \coqdocvar{p}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCexecutePotAccReduce}[0]{\COQDOCexecutePotAccAttenuating}
+
+\newcommand{\COQDOCexecuteAttenuating}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{execute\_attenuating} : \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{i}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{i} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{p}, \coqdocvar{Seq.potAcc} \coqdocvar{i} \coqdocvar{p} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{op\_list} \coqdocvar{s'}, \coqdocvar{Exe.execute\_def} \coqdocvar{s} \coqdocvar{op\_list} \coqdocvar{s'} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{i'}, \coqdocvar{dirAcc\_spec} \coqdocvar{s'} \coqdocvar{i'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{p'}, \coqdocvar{Seq.potAcc} \coqdocvar{i'} \coqdocvar{p'} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{objs}, \coqdocvar{objs\_not\_unborn} \coqdocvar{objs} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG\_attenuating} \coqdocvar{objs} \coqdocvar{p} \coqdocvar{p'}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCexecuteReduce}[0]{\COQDOCexecuteAttenuating}
+
+\newcommand{\COQDOCdirAccExecuteApprox}[0]{
+\begin{coqdoccode}
+\coqdocnoindent    
+\coqdockw{Theorem} \coqdocvar{dirAcc\_execute\_approx} : \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{op\_list} \coqdocvar{Fsa}, \coqdocvar{dirAcc\_execute\_spec} \coqdocvar{op\_list} \coqdocvar{Fsa} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{dirAcc\_approx\_dep} (\coqdockw{fun} \coqdocvar{s} \ensuremath{\Rightarrow} (\coqdocvar{Exe.execute} \coqdocvar{s} \coqdocvar{op\_list})) \coqdocvar{Fsa}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCpotAccExecuteApprox}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{potAcc\_execute\_approx} :\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{op\_list} \coqdocvar{Fsa}, \coqdocvar{dirAcc\_execute\_spec} \coqdocvar{op\_list} \coqdocvar{Fsa} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{Fp}, \coqdocvar{potAcc\_execute\_spec} \coqdocvar{op\_list} \coqdocvar{Fp} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{potAcc\_approx\_dirAcc\_dep} \coqdocvar{Fsa} \coqdocvar{Fp}.\coqdoceol
+\end{coqdoccode}
+}
+
+
+% updated to git
+

@@ -1,0 +1,201 @@
+\chapter{Access Graphs and Potential Access}
+\label{ch:access}
+
+This chapter presents \TMaccessGraphs{} as the abstract structure for describing authority about multiple \TMsystemStates{}
+There are many different types of \TMaccessGraphs{} used by \TMmodelName{}.
+The \TMdirAcc{} relation translates a \TMsystemState{} to an \TMaccessGraph{} with the same authority.
+The \TMcompleteAG{} for a set of \TMobjs{} defines an \TMaccessGraph{} where each \TMobj{} has total authority to every other \TMobj{}.
+\Term{\TMpotAcc} is the judgment defining the worst-case access that a system may ever come to have.
+
+\Term{\TMpotAcc{}} is used extensively throughout \TMmodelName{}.
+It is built from the \COQtransfer{} relation: the smallest possible \TMaccessRight{} \TMtransfer{} in an \TMaccessGraph{}.
+It defines a \TMpotTransfer{} as a sequence of \COQtransfer{}s.
+It then presents the definition of a \TMmaximal{} \TMaccessGraph{} along with the proof that for each initial \TMaccessGraph{} there is only one \TMaccessGraph{} that is both \TMmaximal{} and reachable by \TMpotTransfer{}, called the \TMpotAccAG{}.
+The \TMpotAcc{} of a \TMsystemState{} is the \TMpotAccAG{} of that system's \TMdirAccAG{}.
+Finally, this chapter demonstrates this by verifying that \TMpotTransfer{} forms a complete partial order when rooted at some initial \TMaccessGraph{} and computing \TMpotAcc{} as a function in \COQSet{}.
+
+\section{Access Graph Structure}
+
+\Term{\TMaccessGraphs} are the structure used by \TMmodelName{}  to perform nearly all permission and information flow reasoning.
+\xmakefirstuc{\TMaccessGraphs{}} express \TMsystemStates{} abstractly, representing many \TMsystemStates{} simultaneously.
+They condense permission information encoded in \TMsystemState{} to precisely the permissions held between \TMobjs{}, rather than their \TMcaps{}.
+An \TMaccessGraph{} is a finite set of \term{\TMaccessEdges}, each a triple in \( \COQReferenceType{} * \COQReferenceType{} * \COQAccessRight{} \).
+The edge \mkEdge{src}{tgt}{ar} indicates that \coqvar{src} holds an \coqvar{ar} access right to \coqvar{tgt}.
+As a collection of edges, the \TMaccessGraph{} makes no assertions about the nature of \TMobjs{} within it.
+If any additional constraints are required, they must be carried alongside the \TMaccessGraph{}.
+
+\begin{figure}
+  \COQDOCAccessEdge{}
+  
+  \COQDOCAccessGraph{}
+  \caption{\xmakefirstuc{\TMaccessGraph{}} interface definition. \label{fig:access:accessGraphs}}
+\end{figure}
+
+As a Coq module, the \TMaccessGraph{} is constructed as an \COQFSetList{} with an \COQAccessEdge{} element type.
+To satisfy the \COQusualOrderedType{} interface, the \COQAccessEdge{} module is constructed as two \COQProductType{}s.
+The entire functor is parameterized over the \COQReferenceType{} module interface.
+The concrete implementation uses the \COQFSetList{} functor as it provides an equivalence relation based on identical data structures.
+
+\section{Direct Access}
+
+\begin{figure}
+  \COQDOCdirAccSpec{}
+  \caption{Inductive definition of \TMdirAccAG{}. \label{fig:access:dirAccSpec}}
+\end{figure}
+
+\begin{figure}
+  \COQDOCdirAccSimpl{}
+  \caption{Simplified, but not complete definition of \TMdirAccAG{}. \label{fig:access:dirAccSimpl}}
+\end{figure}
+
+The \Term{\TMdirAccAG{}} of a \TMsystemState{} is the \TMaccessGraph{} containing edges for every \TMcap{} held by \TMalive{} \TMobjs{} whose target is also \TMalive{}.
+This forms a reduction of the \TMsystemState{}, as many \TMcaps{} may justify the existence of a single edge.
+\xmakefirstuc{\TMcaps} held by \TMdead{} or \TMunborn{} \TMobjs{} are ignored as they may not be invoked and cannot be transferred.
+\xmakefirstuc{\TMcaps} targeting \TMunborn{} \TMobjs{} are elided as they are removed before allocation.
+\xmakefirstuc{\TMaccessRights} that appear within multiple \TMcaps{} naming the same \TMobj{} are represented by a single edge, further abstracting the \TMsystemState{}.
+Therefore, any analysis of \TMaccessGraphs{} necessarily considers how \TMaccessRights{} within a \TMcap{} could operate were they independent.
+
+The libraries \COQDirectAccess{} and \COQDirectAccessImpl{} contain the interface and implementation of \TMdirAcc{}, respectively.
+The \COQdirAccSpec{} predicate definition shown in \Cref{fig:access:dirAccSpec} defines \TMdirAcc{} using set comprehension.
+It captures the equivalences needed to reason about different \TMsystemStates{} and \TMaccessGraphs{}.
+As such, it is a bit cumbersome, and the verification usually relies upon \COQdirAccSimpl{} for most requirements.
+
+\begin{figure}
+  \COQDOCdirAccInner{}
+  \COQDOCdirAccOuter{}
+  \COQDOCdirAcc{}
+  \COQDOCdirAccSpecDirAcc{}
+  \caption{\COQdirAcc{} function and lemmas. \label{fig:access:dirAcc}}
+\end{figure}
+
+The remainder of the \COQDirectAccessImpl{} module defines the \COQdirAcc{} function in \COQSet{} and demonstrates that it is equivalent to the \COQdirAccSpec{} proposition.
+Various map fold functions are used to construct the appropriate \TMaccessGraph{} from an \COQAGempty{} accumulator.
+The definition of \COQdirAcc{} in \COQSet{} and proof of equivalence together produce both decidability and existence proofs for \COQdirAccSpec{}.
+
+\begin{figure}
+  \COQDOCagAddCap{}
+  \COQDOCagAddCapEquiv{}
+  \COQDOCagAddCapNondecr{}
+  \COQDOCagAddCapAddCommute{}
+  \COQDOCagAddCommute{}
+  \caption{Definition of \COQagAddCap{} and supplemental lemmas. \label{fig:access:agAddCap} \label{fig:access:agAddCommute}}
+\end{figure}
+
+\TMmodelName{} defines a number of reusable functions and lemmas as part of the \COQdirAcc{} definition.
+Each of the functions named \COQagAddCap{}* adds \TMcaps{} to an \TMaccessGraph{} using the base \COQagAddCap{} function.
+The \COQagAddCap{} function adds all edges represented by a single \TMcap{} into an \TMaccessGraph{}.
+The \COQagAddCap{} function, and similar functions based thereon, all preserve equivalence, are non-decreasing, and are commutative with set addition.
+\Cref{fig:access:agAddCap} contains the definition of \COQagAddCap{} and supplemental lemmas.
+The other definitions will be presented as needed, but theorem definitions will not accompany them.
+For the full implementation, please review the proof.
+
+\section{Potential Access}
+
+\begin{figure}
+  \COQDOCtransfer{}
+  \caption{Definition of \COQtransfer{}. \label{fig:access:transfer}}
+\end{figure}
+
+The \term{\TMpotAccAG} is the \TMaccessGraph{} representing the greatest potential permission state of a initial \TMaccessGraph{}.
+The definition of a \TMpotAccAG{} is the closure of the \COQtransfer{} relation, a micro-operation of permission transfer.
+The constructors for a \TMtransfer{} describe the seven methods by which new edges may appear in an \TMaccessGraph{}.
+
+Each \COQtransfer{} constructor relates two \TMaccessGraphs{} by the inclusion of a single edge justified by an \TMaccessRight{}.
+The \COQtransferRead{} constructor describes how an edges with the \NMrd{} permission may add a new edge and is similar to the \NMfetch{} \TMop{}.
+A \NMwr{} permission authorizes any permission to be transferred in the other direction as performed by the \COQtransferWrite{} constructor.
+The constructor for the \NMwk{} case, \COQtransferWeak{}, handles how \NMwk{} permissions are transferred.
+\COQtransferReply{} and \COQtransferSend{} cover the \NMtx{} permission authorizing a reply or authorizing a transfer through inter-process communication.
+There are also two constructors admitting self-targeting edges.
+To keep the number of edges finite, some other edge in the \TMaccessGraph{} is required to identify an object before adding its self-targeting edges.
+The cases \COQtransferSelfSrc{} and \COQtransferSelfTgt{} admit self-targeting edges for objects named by the source or target of an existing edge, respectively.
+
+\begin{figure}
+  \COQDOCtransferMonotonic{}
+  \COQDOCtransferLUB{}
+  \caption{\COQtransfer is monotonic and has a least upper bound. \label{fig:access:transferMonotonic}\label{fig:access:transferLUB}}
+\end{figure}
+
+A \TMtransfer{} forms a restriction of the subset partial order which continues to be a partial order.
+As \TMtransfer{} always relates two \TMaccessGraphs{} by a single \TMaccessEdge{}, it must be monotonic.
+Because a \TMtransfer{} performs judgments based solely upon the existence of edges and not their absence, any edge added by a \TMtransfer{} will continue to be valid regardless of what new edges exist, including other \TMtransfers{}.
+Therefore, there is always a least upper bound for any two \TMtransfers{} on the same initial graph.
+The definition of \COQtransferLUB{} captures the specific case for \TMtransfer{}.
+
+\begin{figure}
+  \COQDOCpotTransfer{}
+  \caption{Definition of \COQpotTransfer{}. \label{fig:access:potTransfer}}
+\end{figure}
+
+\begin{figure}
+  \COQDOCpotTransferLUB{}
+  \caption{Theorems about \COQpotTransfer{}. \label{fig:access:potTransferLUB}}
+\end{figure}
+
+A \TMpotTransfer{} is any sequence of \TMtransfers{}, even empty ones, and is defined by \COQpotTransfer{}.
+The \COQtransfer{} least upper bound can be extended to \COQpotTransfer{} such that any two \TMpotTransfers{} rooted sharing the same base have a least upper bound.
+\xmakefirstuc{\TMpotTransfer{}} forms a partial order over all possible \TMtransfers{} starting with a base \TMaccessGraph{}.
+\xmakefirstuc{\TMpotTransfer{}} is reflexive by inspection and transitive by simple induction.
+It must also be anti-symmetric since, as a sequence of \TMtransfers{}, it is non-decreasing.
+This least upper bound on \TMpotTransfer{} is used heavily in this verification as it permits \TMtransfers{} sharing an initial \TMaccessGraph{} to be reordered.
+
+\begin{figure}
+  \COQDOCmaxTrans{}
+  \COQDOCmaxPotTrans{}
+  \COQDOCmaxTransferMaxPotTransfer{}
+  \COQDOCpotAcc{}
+  \caption{Both definitions of \TMmaximal{} and \COQpotAcc{}.\label{fig:access:potAcc}}
+\end{figure}
+  
+The supremum of \TMpotTransfer{} is \term{\TMpotAcc{}} as it represents the most permissive state after a sequence of \TMtransfers{}.
+It is defined as the \TMaccessGraph{} that is both \TMmaximal{} and reachable by \TMpotTransfer{}.
+The usual definition of \term{\TMmaximal{}} applies: an \TMaccessGraph{} is \TMmaximal{} precisely when all \TMpotTransfers{} are to equivalent graphs.
+To reduce case analysis, we often use the equivalent definition of \TMmaximal{} claiming that all \TMtransfers{} are to equivalent graphs.
+Because \TMpotTransfer{} always has a least upper bound, every \TMmaximal{} \TMaccessGraph{} is also a \TMpotAccAG{}.
+
+\section{Computing Potential Access}
+
+\begin{figure}
+  \COQDOCagObjsSpec{}
+  \COQDOCcompleteAgSpec{}
+  \caption{Definition for \COQagObjsSpec{} and \COQcompleteAgSpec{}. \label{fig:access:agObjs}}
+\end{figure}
+
+\begin{figure}
+  \COQDOCAGallObjs{}
+  \COQDOCagObjsSpecAGallObjs{}
+  \COQDOCagAllObjsTransfer{}
+  \caption{Theorem demonstrating constancy of \TMagObjs{} through \TMtransfer{}. \label{fig:access:agObjsTransfer}}
+\end{figure}
+
+\begin{figure}
+  \COQDOCtransferDec{}
+  \caption{\COQtransfer{} as a Boolean decision.}
+\end{figure}
+
+The remainder of \COQSequentialAccess{} contains proofs that \COQtransfer{} is decidable and \COQpotAcc{} is computable in its first input.
+To accomplish this, both properties are computed as functions in \COQSet{}.
+Verifying the \COQtransfer{} judgment is a Boolean is substantial case analysis, but is obvious by inspection.
+The definition of \TMpotTransfer{} cannot be used to compute the \TMpotAccAG{} as it is far too general and does not guarantee progress.
+
+The function \COQcomputePotAcc{} computes \TMpotAcc{} by finding a single sequence of \TMtransfers{} that always adds a novel edge at each step.
+For novelty to produce a sound measure, there must be a theoretical limit to the number of new edges.
+By inspection, \TMtransfer{} does not alter which \TMrefs{} are in an \TMaccessGraph{}, it only adds edges between existing \TMrefs{}.
+The \COQagObjsSpec{} judgment extracts the \TMrefs{} from an \TMaccessGraph{} and this value remains unchanged by the \TMtransfer{} and \TMpotTransfer{} relations.
+The \TMcompleteAG{} for these \TMrefs{}, the \TMaccessGraph{} containing an edge with every \TMaccessRight{} and pair of \TMrefs{} available, is used as this upper limit.
+The measure conjecture \COQdistFromComplete{} computes the cardinality of the set difference of the \TMcompleteAG{} and the current \TMaccessGraph{}.
+
+\begin{figure}
+  \COQDOCcomputePotAcc{}
+  \COQDOCpotAccPotAccFun{}
+  \caption{Definition of \COQcomputePotAcc{} and proof satisfying \COQpotAcc{}.\label{fig:access:computePotAcc}}
+\end{figure}
+
+The method used to \TMpotAcc{} is not efficient, but demonstrably yields a correct result by exhaustion.
+\COQpotAccFun{} iterates over the \TMcompleteAG{} until it finds an edge satisfying the \COQtransfer{} relation when added to the initial \TMaccessGraph{}.
+If it finds such an edge, it adds the edge to the initial \TMaccessGraph{} and recurses.
+If no such edge exists in the \TMcompleteAG{} the current \TMaccessGraph{} must be \TMmaximal{}.
+Consequently it must also be the \TMpotAccAG{}.
+
+The majority of \TMmodelName{} is concerned with the relationships surrounding \TMpotAcc{}.
+\Term{\TMpotAcc} is central to both the safety property and statically bounding data motion.
+Although there are other \TMaccessGraphs{} used by \TMmodelName{}, they will be defined in \Cref{ch:confinement} when used.

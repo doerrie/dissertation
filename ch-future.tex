@@ -1,0 +1,188 @@
+\chapter{Future Work}
+\label{ch:future}
+
+This chapter presents some opportunities for improvements and extensions to \TMmodelName{}.
+Performance has been a relevant issue throughout this effort and, although it is not relevant to confidence and therefore is not presently addressed, there are some enhancements that must be performed before \TMmodelName{} may be realistically extended.
+Like any software project, there are also some areas where the proof is poorly structured in ways which may undermine confidence. 
+Although they do not impact the general result, they should be refactored to make theorems more readily understood.
+The last section discusses some of the extensions \TMmodelName{} is eventually intended to support.
+
+\section{Improve Performance}
+
+The \TMmodelName{} proof presently takes over a week to compile on a single-threaded processor and uses over 12 GB of RAM.
+The Make environment permits up to three jobs to run simultaneously, each requiring a core and 12 GB of RAM, allowing a machine with over 42 GB of RAM to compile much faster.
+As discussed in \Cref{sect:coq:modelAbstraction}, \TMmodelName{} depends on the \COQFSet{} libraries and therefore uses module functors and signatures as an abstraction mechanism.
+Unfortunately, as these module signatures grow in complexity, the obligations of the type checker grow exponentially.
+Any future effort will need to address this issue before extending the model.
+This section focuses on two improvements that will help with this problem.
+
+\subsection{From Modules to Typeclasses}
+
+The use of the Coq module system has the greatest impact on compilation performance in \TMmodelName{}.
+Modules in Coq are generative and use subtyping for abstraction.
+In generative module systems, two identical applications of a module functor to a module produce two distinct modules.
+This means that every module or signature must be unique and it appears that every module parameter must be checked independently of all other parameters.
+Using the pure functor paradigm causes an exponential overhead on early modules.
+While checking type signatures should be a terminating procedure for Coq modules, various single module instances of \TMmodelName{} were terminated after a week of run-time with a working-set over 80 GB of memory.
+Type-checking modules is a non-interactive process, which compounds the problem as the developer is unable to assist the verifier in constructing a solution.
+
+Typeclasses offer many of the abstraction features provided by the module system, but do so by leveraging the core term language and automation features.
+Consequently, much of the Coq standard library is migrating away from modules in favor of typeclasses.
+A typeclass is conceptually a record type used as a signature, and instances of a typeclass are records satisfying that signature precisely.
+The remainder of naming conventions and type search proceed through a specialized typeclass ``binder'' look-up table and the automated hint database.
+
+The primary benefit of typeclasses is that they put the developer back in control of how proof requirements are discharged.
+All proof obligations for a class or instance that are not solved by the automation system are presented to the developer.
+If a typeclass is not in scope, or multiple typeclass binders of the same name are in scope, the developer may manually specify which should be used in any context.
+Because the Gallina is applicative and does not admit subtyping, typeclasses avoid the exponential overhead in the module system.
+A typeclass instance provides precisely the proof satisfying an abstraction boundary, but does not lose the underlying structure as is the case with module subtypes.
+Therefore, the first step to any future effort using \TMmodelName{} is to migrate modules to type classes.
+
+Unfortunately, migrating \TMmodelName{} to typeclasses will require refactoring the \COQFSet{} and \COQFMap{} libraries, along with other dependencies.
+These modules are among the largest productions in the COQ standard library and it is unclear how much effort this task will be.
+Although the \COQMSet{} libraries are a somewhat modern update to the \COQFSet{} libraries, the \COQFMap{} structures have are not included and neither suite has been updated to use typeclasses.
+
+
+\subsection{Proof Enhancements}
+
+Due to the high cost of recompiling \TMmodelName{}, many general theorems about \COQFSet{}s or \TMsystemStates{} appear in later modules where they are first used.
+Many of these theorems can replace previous theorems in the \TMmodelName{} definition and support libraries, and this could improve efficiency by reducing the total number of theorems to compile.
+Some of these are over-specialized for \TMaccessGraphs{} or other structures and could also improve efficiency and readability if refactored.
+While all of this effort would improve efficiency and increase confidence, it should not be attempted until after \TMmodelName{} has been converted to use typeclasses.
+
+There are two specific alterations in this regard that would have a major impact on efficiency and confidence.
+First, the \COQagPotTransferFnReq{} definition should be altered by eliminating the \COQagNondecr{} requirement, as it can be derived from the definition of \COQagAddCommute{} and \COQagEquiv{}.\pagebreak[0]
+Second, the theorems describing \COQendow{} should use \COQAGproject{} for uniformity and \COQmutable{} should be rephrased in terms of \COQagFlow{} and \COQagExFlow{}.
+This will eliminate a substantial amount of what is now duplicated verification effort by unifying a number of concepts that were not simultaneously envisioned.
+
+\section{Improve Confidence}
+
+\xmakefirstuc{\TMmodelName} contains a number of issues that obfuscate the problem statement.
+While not exactly flaws in the model, adjusting these definitions to align with developer intuitions would improve confidence in the final result.
+These alterations are therefore highly recommended as future work.
+
+\subsection{Minor Complexities}
+
+\label{sect:future:complexities}
+
+The definition of \COQcopyCapList{} currently folds \COQcopyCap{} over the list of \TMidx{} pairs.
+This design decision was made because it is an easy induction to describe and follows the pattern of non-allocating systems.
+However, this pattern undermines confidence in the interpretation of an \TMidx{} map when an \TMobj{} updates itself.
+When an \TMidx{} appears as a destination in the list and later appears as a source, the intended meaning of such a map may not have been what was intended.
+In this case, the first invocation of \COQcopyCap{} will overwrite the destination location, causing this \TMcap{} to be copied in subsequent invocations.
+While such lists can always be refactored into logically equivalent ones using temporary storage in the same \TMobj{}, requiring systems which provide intermediate allocations to frame their operations in this way is counter-productive.
+The \COQcopyCapList{} operation should preserve the map intuition by allocating temporary storage for all capabilities, transferring them to temporary storage, and then copying them to the destination.
+The \COQcopyCap{} function should then invoke \COQcopyCapList with a single element.
+
+\xmakefirstuc{\TMmodelName} does not contain a no-op \TMop{}, implicitly assuming that all \TMactive{} \TMobjs{} are self-mutating.
+The model captures this in the definitions of \COQmutated{} and \COQmutable{}.
+However, in the semantics, the definitions of \COQreadFrom{} and \COQwroteTo{} do not capture this intuition.
+The \COQreadFrom{} judgment declares that all \TMops{} read from the invoking \TMobj{} in addition to other sources, but this is not the case for \COQwroteTo{}.
+This undermines confidence as it does not appear to capture all flow during an \TMop{}, and therefore should be included as part of the \COQwroteTo{} specification.
+All new information flows will evaporate during when examining \COQmutated{}, leaving the remainder of the proof largely untouched.
+
+In retrospect, the reflexive cases of \COQtransfer{} introduced more problems than they solved.
+\xmakefirstuc{\TMrefs{}} and \TMaccessEdges{} can spring into being justified by the underlying \TMsystemState{} rather than by examining an \TMaccessGraph{}.
+This required additional predicates to be carried along with an \TMaccessGraph{} during every stage of the proof.
+One possible solution is to alter the \TMdirAccAG{} to add all reflexive edges for \TMobjs{} that are \TMalive{}.\pagebreak[1]
+This would cause the definition of \COQagObjs{} to be identical to the live \TMobjs{} and eliminate many corner-cases during their analysis.
+This alteration may make \COQpotTransfer{} more amenable to analysis in future efforts that specialize the \TMaccessGraph{} structure to distinguish \TMactive{} and \TMpassive{} \TMobjs{} as not all \TMobjs{} should be considered to have total self-authority.
+
+\subsection{Flow for System Error Handling}
+
+When the invocation of a capability cannot be performed by the system, most capability-based systems offer some degree of error reporting.
+For example, attempting to invoke a capability identifying a destroyed object could result in an error message reply fabricated by the system.
+These errors are different from those returned by the recipient as they potentially reveal information about the recipient without its consent.
+Great care is needed when handling system error-reporting as it is possible to unintentionally introduce ambient authority.
+Therefore, \TMmodelName{} does not presently take a stance on the issue and does not permit any information flow due to error reporting.
+
+Fitting existing capability-based systems with system-initiated error reporting into \TMmodelName{} can be done without modification.
+In systems where all invocations are synchronous, like EROS, the destruction of an object can be modeled as though the object remains alive but behaves according to the specification of the \term{\TMvoid{} \TMobj{}}.
+As the behavior of the \TMvoid{} \TMobj{} is specified by the system, the underlying object storage may be safely freed.
+In systems permitting asynchronous invocations, there must be a distinction between invoking a \TMcap{} and invoking an \TMobj{}.
+This can be conceptually handled by modeling each system \TMobj{} with two \TMobjs{} in \TMmodelName{}: a subject which may potentially respond with an error and the \TMobj{} with the intended behavior.
+
+Both of these strategies are cumbersome to envision when the \TMcaps{} present \emph{already} capture the information flow that occurs during an error response.
+Altering the state of an \TMobj{} requires the \COQwr{} access right, which permits information to flow from the invoking subject to the target.
+Any information that could be encoded by destroying the \TMobj{} could have been written directly.
+Similarly, a capability with \COQrd{} authority permits information to flow from the target object to the invoking subject, allowing the \TMobj{} state to be read along with anything else.
+\xmakefirstuc{\TMmodelName} can be extended to directly incorporate error reporting for capability invocations by permitting the \TMobjLabel{} to encode data.
+
+Updating the \TMobjLabel{} to be accessible data can be accomplished with two changes.
+The first alteration modifies \COQwroteTo{} for the \COQdestroy{} \TMop{} to include the destroyed \TMobj{}.
+This alteration adds no new authority because the \COQdestroy{} \TMop{} requires the \COQwr{} permission, so the half-bit of data could just as easily have been written using the \COQwrite{} \TMop{}.
+The second update to the model adds a new \TMop{}: \coqvar{isAlive}.
+The \coqvar{isAlive} \TMop{} prerequisite requires a \COQwk{} or \COQrd{} \TMcap{}, but examines only \COQpreReqCommon{} removing the need for the target to be \TMalive.
+The \COQreadFrom{} and \COQwroteTo{} values for this \TMop{} are identical to \COQread{}, and therefore the half-bit result is also authorized.
+Any error handling that might occur can be modeled as the system performing this \TMop{} instead of the error-free \TMops{}.
+
+This extension to \TMmodelName{} has significant impact on the interpretation of \TMaccessRights{} in systems that support error-reporting for asynchronous invocations.
+The only \TMaccessRight{} permitted to notice an error is \COQrd{}; the \COQwr{} permission does not authorize error reporting by itself.
+In systems where \TMops{} requiring \COQwr{} may receive errors, it is necessary that the \COQwr{} always entails \COQrd{} to permit this \TMop{}.
+When this is the case, all errors can be modeled using the \coqvar{isAlive} \TMop{}.
+
+\subsection{Improve Fully Authorized Access Graphs}
+\label{sect:future:filterFullyAuthAG}
+
+The present definition of the \TMagFullyAuthorized{} does not eliminate nonsensical \TMcaps{} identifying \TMdead{} \TMobjs{}.
+This is not a great concern because the confinement test may be posed without these \TMcaps{} producing a conceptually equivalent test.
+However, their inclusion erodes confidence in the proof as the theorem does not directly pattern-match with the constructor pattern.
+
+Filtering the authorized set of \TMcaps{} before determining the \TMagFullyAuthorized{} will produce an identical \TMaccessGraph{} to the one formed by filtering these \TMcaps{} before the confinement test.
+Constructing this proof follows from case analysis.
+Each \TMaccessEdge{} is in one of three sets: the \TMagRemainder{}, the complete \TMaccessGraph{} of the subsystem, or the authorized \TMaccessEdges{}.
+Filtering these \TMcaps{} cannot impact the complete \TMaccessGraph{} of the subsystem, and no \TMcap{} targeting a \TMdead{} \TMobj{} can impact the \TMdirAccAG{} as it ignores them.
+Computing the filtered set of \TMcaps{} is the same whether it is specified before or after testing confinement, producing identical \TMaccessGraphs{}.
+Therefore, the \TMmutability{} of an authorized set containing \TMcaps{} naming \TMdead{} \TMobjs{} must be bounded by the \TMagFullyAuthorized{} that does not contain them.
+
+\section{Model Extensions}
+
+There are a number of extensions to \TMmodelName{} that would increase confidence in the result or facilitate future verification endeavors.
+Extending the model to permit object reclamation will permit the model to more closely resemble a real system implementation.
+While support for application verification exists, it can be enhanced by restructuring the \TMsystemState{}.
+Finally, verifying the constructor mechanism directly as an implementation archetype would further increase confidence in the result.
+
+\subsection{Object Reclamation}
+\label{sect:future:objReclamation}
+
+The confinement proof does not rely on a finite number of \TMunborn{} \TMobjs{}, which indicates that the finite system requirement could be relaxed to only include \TMextant{} \TMobjs{}.
+However, as facilitating \TMdead{} \TMobj{} reclamation is intended as future work, this change is not currently present.
+Recall that all \TMunborn{} \TMobjs{} must have all \TMcaps{} naming them removed from the \TMsystemState{} before they may be marked \TMalive{}.
+Therefore, the only reason a \TMdead{} \TMobj{} may not be safely marked \TMunborn{} is because the name of the \TMobj{} no longer holds consistent meaning over the life of the system.
+Consequentially, enriching the structure of \TMrefs{} or \TMcaps{} to admit structural reclamation without logical reclamation will alleviate this constraint and admit \TMobj{} reclamation.
+Therefore, with a sufficiently rich naming structure, an unbounded number of \TMobjs{} can be managed from a finite \TMsystemState{} in future endeavors.
+
+\subsection{Application Verification}
+
+Presently, \TMmodelName{} provides support for verifying future application behavior through the \TMidx{} structure.
+When embedding the behavior of applications, theorems may use \TMidxs{} to identify precisely which \TMcaps{} are invoked.
+In many capability-based systems, the ability to inspect the physical representation of a capability is not universally available to applications.
+As such, applications cannot inspect their capabilities to determine behavior and can only distinguish \TMcaps{} by \TMidx{}.
+By identifying which \TMobjs{} have known behavior, the ability to quantify the impact of invoking \TMcaps{} as part of an application configuration becomes possible.
+
+Restructuring the \TMsystemState{} will assist future verification of application behavior.
+Presently, the \TMsystemState{} is a map onto an ordered tuple containing all \TMobj{} information.
+This arrangement is sub-optimal as \TMobj{} meta-data is not easily carried alongside an \TMaccessGraph{}.
+Splitting the \TMsystemState{} into two maps, the \TMobj{} map and the meta-data map, would simplify constraint management across \TMaccessGraph{}.
+
+This creates other avenues for application verification.
+The definition of \COQtransfer{} could be refined to distinguish between \TMactive{} and \TMpassive{} objects.
+While not relevant for confinement, the subject/object distinction can have significant impact on security policies that only rely on the inability of \TMpassive{} \TMobjs{} to invoke capabilities.
+The \TMschedule{} structure is a placeholder originally intended to permit suspending and resuming processes to facilitate scheduler policies.
+\xmakefirstuc{\TMobjs{}} could be further refined to distingusih those that only hold data, from those that also may hold \TMcaps{}.
+Other behaviors in the system or for applications may be carried between both \TMsystemStates{} and \TMaccessGraphs{} with a partitioned map.
+
+\subsection{Recursive Constructor}
+
+The most obvious application verification to perform in the future is to model the constructor application in \TMmodelName{}.
+As a post-condition, the present confinement verification describes the obligation of any constructor in how it instantiates future subsystems.
+These constraints can be phrased inductively to describe how confined subsystems might instantiate other subsystems under the same obligations.
+Folding these obligations to build an inductive definition of confinement is the first step to verifying a constructor archetype.
+
+The second part of verifying a constructor application model is to verify the confinement test as a precondition.
+There are two interesting parts of this verification that are readily identifiable.
+First, the constructive test will require the use of \TMidx{} management to ensure that the constructor destroys all \TMcaps{} naming its yield after calling into it.
+Second, the system will need to name those components of the system that comprise constructors so as to simulate their invocation via \COQtx{} \TMcaps{}.
+Using the inductive definition of confinement, it should be possible to verify the recursive constructor case.
+
+

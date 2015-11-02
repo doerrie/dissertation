@@ -1,0 +1,794 @@
+\tikzset{lcap/.style={->,semithick}}
+\tikzset{bicap/.style={<->,semithick}}
+\tikzset{acc/.style={minimum size=8mm,node distance=22mm}}
+
+%% Here are names of theorems and references that will be used throughout this section.
+%% Scope them so they are not visible elsewhere
+
+\begingroup
+
+\input{cmd-SW}
+
+\chapter{The SW Model}
+\label{ch:SW}
+
+\TMmodelName{} was initially conceived as a mechanical verification of the \TMSW{} confinement proof \cite{ShapiroWeber2000} with some additional features.
+During the verification process, \TMmodelName{} diverged from \TMSW{} in response to extensions, verification pressures, and discovered flaws.
+As \TMSW{} informs much of \TMmodelName{}, this chapter presents a comparison of the two models and proposing corrections to \TMSW{} based on the \TMmodelName{} proof.
+
+This chapter begins by discussing some of the differences between \TMSW{} and \TMmodelName{} and proposes some minor changes that are not crucial to the heart of the proof, but necessary for completeness.
+It then presents the two major flaws of \TMSW{} identified by \TMmodelName{}: the base case of the main theorem and Lemma 4.
+It concludes with a proposal that fits the verified solution of \TMmodelName{} into \TMSW{} to form a result that does not significantly alter the main theorem of \TMSW{}.
+
+\section{Differences Between Models}
+\label{sec:SW:model}
+\label{sec:SW:model:def}
+
+Although \TMmodelName{} and \TMSW{} are very similar, they differ in a few critical ways.
+Their system states differ as \TMSW{} represents the state of \TMobjs{} in disjoint sets instead of tagging each \TMobj{} with meta-data in the map.
+The sets are \existset{S} and \deadset{S} with all remaining objects in \(S\) as being available, and correspond to \COQalive{} and \COQunborn{} \TMobjLabels{}.
+The set of objects \objectset{} in \TMSW{} is permitted to be infinite where it is presently finite in \TMmodelName{}, though this is addressed in \Cref{sect:future:objReclamation}.
+Additionally, \TMmodelName{} contains more \TMobj{} meta-data and uses an \TMidx{} structure in \TMobjs{} to refer to \TMcaps{}.
+
+This chapter uses different font faces to represent concepts in each proof.
+Definitions from \TMSW{} are written in \ensuremath{\mathbf{bold face}}, while definitions from \TMmodelName{} are written in \ensuremath{regular face}.
+Unless otherwise specified, most definitions herein are referring to \TMSW{} definitions or updated definitions from this chapter.
+
+\begin{figure}
+  \begin{tabular}{l}
+    If \( \singleop{S_n}{S_{n+1}}{\createapp{p}{a}} \) and \( a \subseteq \capsetapp{S_n}{p} \), then \\
+    \( \textnormal{let} o' \in \objectset - \existset{S_n} - \deadset{S_n} \; \textnormal{in} \)
+  \end{tabular}
+  \[
+  \begin{array}{rl}
+    \existset{S_{n+1}} & = \existset{S_n} \cup \{o'\} \\
+    \capset{S_{n+1}} & = \existset{S_n}[o' \rightarrow a][p \rightarrow \capsetapp{S_n}{p} \cup \obcapapp{o'}{\rightsset}] 
+  \end{array}
+  \]
+  \caption{\modellbl{} : \create{} operation. \label{def:SW:create}}
+\end{figure}
+
+Most of the operations in \TMmodelName{} are identical to those in \TMSW{} with the exception that they are described using \TMidxs{} instead of \TMcaps{}.
+The \create{} operation has been renamed to \COQallocate{}, the \invoke{} operation has been renamed \COQsend{}, and the \execright{} access right has been renamed to \COQtx{} to avoid confusion in terminology.
+Additionally, the \COQsend{} operation includes an optional reply \TMcap{}.
+The \TMSW{} \create{} operation will receive special attention in this chapter.
+
+\begin{figure}
+Let \rightscpo be the CPO where \( \rightsbot = \norights, \rightstop = \rightsset, \rightscpo = 2^{\rightsset} \text{ and } \rightsleq\) is defined by 
+\[ x \subseteq y \Rightarrow x \rightsleq y \; \forallspaced{x,y}{\in \rightsset} \]
+\caption{\modellbl{} : \rightscpo definition.\label{def:SW:rights-cpo}}
+\end{figure}
+
+\TMmodelName{} does not define a complete partial order over access rights, but instead lifts this CPO to \TMaccessGraphs{} by subset inclusion and \COQtransfer{}.
+All of the relationships between access rights are captured in the \COQtransfer{} relation, similar to \transaccess{} in \TMSW{}
+The definition of \rightscpo{} from \TMSW{} is included in \Cref{def:SW:rights-cpo} for reference.
+
+\begin{figure}
+If \ensuremath{S \in \stateset}, then we define \ensuremath{\diracc{S} : \objectset \times \objectset \rightarrow \rightscpo} by
+\[ \diraccapp{S}{x}{y} = \mathbf{lub}(\{ a | (x,y,a) \in \mathbf{DASet}\}) \]
+where
+\[
+  \begin{array}{rll}
+    \multicolumn{3}{l}{\daset =} \\
+    & \{(o,\target{c},\rights{c}) & | o \in \objectset, c \in \capsetapp{S}{o}\} \\
+    \cup & \{(\target{c},o, \allrights) & | o \in \objectset, c \in \capsetapp{S}{o}, \execright \in \rights{c} \} 
+  \end{array}
+\]
+\caption{\label{def:SW:DirAcc} \modellbl{} : \diracc{} definition.}
+\end{figure}
+
+The definition of \COQdirAcc{} in \TMmodelName{} closely follows the definition of \diracc{} in \TMSW{}.
+The primary difference is that the \execright{} case does not produce \(\top\) authority in \COQdirAcc{}.
+In \TMmodelName{} this is also managed as emergent behavior in the \COQtransfer{}.
+
+\begin{figure}
+If \( S \in \stateset \), then the potential access relation, \( \potacc{S} \) is the limit of the series \( T_0,T_1,T_2,\dots \) where
+\begin{align*}
+T_0 &= \diracc{S} \\
+\forallspaced{x,y}{T_{i+1}(x,y)} &= \lub\{T_i(x,y),\combineB{T_i}{x}{y}\})
+\end{align*}
+where 
+\[ \combineB{A}{x}{z} = \lub(\{a | \exists y \in \objectset \; \textnormal{such that} \; a = \transaccessapp{x}{y}{z}\}) \]
+and
+\[ 
+\transaccessapp{x}{y}{z} = 
+\left\{
+\begin{array}{ll}
+  \bot & \textnormal{if} \; A(x,y) = \bot \\
+  A(y,z) & \textnormal{if} \; \{\readright, \execright\} \cap A(x,y) \neq \norights \} \\
+  \{\weakright\} & \textnormal{if} \; \{\weakright, \readright, \execright\} \cap A(x,y) = \{\weakright\} \land \\
+                 & \{\weakright,\readright\} \cap A(y,z) \neq \norights \\
+  \rightsbot & \textnormal{otherwise} \\
+\end{array}
+\right.
+\]
+\caption{\modellbl{} : \potacc{} definition. \label{def:SW:PotAcc}}
+\end{figure}
+
+Most of the differences between \TMmodelName{} and \TMSW{} appear in how they structure \TMpotAcc{}.
+In \TMSW{}, \potacc{} is defined directly in terms of \diracc{} as the closure of \combine{}: a very large combinator of the least upper bound of \transaccess{}.
+\TMmodelName{} breaks these relations apart using \TMaccessGraphs{} as an intermediate structure.
+Therefore, the definition of \COQpotAcc{} is meaningful over many different \TMaccessGraphs{}, not only the \TMdirAccAG{}.
+This allows \TMmodelName{} to restructure \transaccess{} into \COQtransfer{} as a micro-operation of access right transfer.
+This eases mechanical reasoning about \TMpotAcc{} from any reachable \TMaccessGraph{} by allowing justifications in the closure to be simply reordered.
+Therefore, \COQtransfer{} subsumes the previously mentioned properties from \diracc{} and \rightscpo{}.
+
+Reflexivity in \TMpotAcc{} is another major difference between \TMSW{} and \TMmodelName{}.
+\TMSW{} does not define \diracc{} or \potacc{} as reflexive closures, only transitive ones.
+\TMmodelName{} ensures that \COQpotAcc{} contains all reflexive \TMaccessEdges{} through \COQtransfer{} causing \TMdirAcc{} to remain a simple translation.
+Reflexivity of access will become very important in the discussion below.
+
+\section{Minor Errata}
+\label{sec:SW:errata}
+
+\begin{figure}
+If \ensuremath{S \in \stateset}, then
+\[ \mutableapp{S}{E} = \{y|\exists x \in E, \{\writeright,\execright\} \cap \potaccapp{S}{x}{y} \neq \norights \} \]
+\caption{\modellbl{} : \mutable{}. \label{def:SW:mutable}}
+\end{figure}
+
+\begin{figure}
+If \ensuremath{S \in \stateset}, then
+\[ \mutableapp{S}{E} = 
+\begin{array}{ll}
+  \{y | \exists x \in E, & \{\writeright, \execright\} \cap \potaccapp{S}{x}{y} \neq \norights \lor \\
+  & \{\readright, \weakright\} \cap \potaccapp{S}{y}{x} \neq \norights  \} 
+\end{array}
+\]   
+\caption{Correction to \mutable{}. \label{def:SW:errata:mutable}}
+\end{figure}
+
+There are a few minor errata in \TMSW{} that, while their meaning may be inferred given context, must be corrected before addressing large changes.
+The four alterations are to \mutable{} (resp. \readable{}), \rightsset{}, \transaccess{}, and information flow via the \create{} operation.
+\Cref{def:SW:mutable} presents \mutable{} from \TMSW{}, which is intended to capture all potential information flow.
+However, the \readright{} and \weakright{} rights are omitted and \readable{} is simply the inverse of \mutable{}.
+Because \transaccess{} in \potacc{} propagates existing permissions, \readright{} and \weakright{} access rights will never be considered.
+This is fixed by adding the missing condition to \mutable{} using the definition in \Cref{def:SW:errata:mutable}.
+It is not necessary to alter \readable{}, as the change to \mutable{} corrects both definitions.
+
+\begin{figure}
+Let \rightscpo{} be the CPO where \( \rightsbot = \norights, \rightstop = \rightsset, \rightscpo = 2^{\rightsset} \text{ and } \rightsleq\) is defined by 
+\[
+\forallspaced{x,y \in \rightsset}{
+x \rightsleq{} y =
+\left\{
+\begin{array}{ll}
+x - \{\weakright,\readright\} \subseteq y - \{\weakright,\readright\} & \text{if } \weakright \in x \land \readright \in y\\
+x \subseteq y & otherwise
+\end{array}
+\right.}
+\]
+\caption{Correction to \modellbl{} : \rightscpo.\label{def:SW:errata:rights-cpo}}
+\end{figure}
+
+The \weakright{} permission is interpreted inconsistently in \TMSW{} and is not always considered a positive permission.
+The \readright{} permission conveys all of the authority that the \weakright{} permission does.
+Therefore, \readright{} should be considered a proper subtype of \weakright{}.
+In practice, these two permissions do not appear together, however, the model does not exclude this possibility.
+By implementing this change in \rightscpo{}, it will trickle down to all other aspects of the proof including \lub{} and \potacc{} definitions.
+
+
+\begin{figure}
+\[ 
+\transaccessapp{x}{y}{z} = 
+\left\{
+\begin{array}{ll}
+  A(y,z) & \textnormal{if} \; \{\readright, \execright\} \cap A(x,y) \neq \norights \} \\
+  A(y,z) & \textnormal{if} \; \{\writeright, \execright\} \cap A(y,x) \neq \norights \} \\
+  \{\weakright\} & \textnormal{if} \; \{\weakright, \readright, \execright\} \cap A(x,y) = \{\weakright\} \land \\
+  & \{\weakright,\readright\} \cap A(y,z) \neq \norights \\
+  \rightsbot & \textnormal{otherwise} \\
+\end{array}
+\right.
+\]
+\caption{Correction to \transaccess.\label{def:SW:errata:transaccess}}
+\end{figure}
+
+
+In \TMSW{}, the underlying transitive operation capturing potential permission transfers is defined by \transaccess{}.
+Unfortunately, \transaccess{} neglects a discussion of \writeright{} permissions being capable of transferring other permissions.
+The missing case should invert the transitivity rule handling the \readright{} and \execright{} case.
+The updated definition also omits first \(\bot\) case, as it is fully subsumed by the last case.
+
+The last minor correction involves the definition of information flow for the \create{} operation.
+The \readfrom{} and \wroteto{} relations are used to define potential information flow for a given operation.
+It is important to note that the \create{} operation may send capabilities from the parent to the child.
+\emph{Capability flow is information flow} and it must be captured to avoid incorrect analysis.
+The only correction to the \TMSW{} model is to alter the definition of \wrotetoapp{\createapp{p}{a}} to be \(\{p,n\}\), where \(n\) is the newly created object.
+
+\section{Major Concerns}
+
+This section addresses two of the major issues in the \TMSW{} verification.
+The first demonstrates that the main theorem's induction hypothesis is invalid in the base case and proposes a simple solution.
+The second illustrates a flaw in \thmauthred{}, required for the main theorem.
+
+It is worth noting that the discovery of both flaws occurred as the direct outcome of interacting with the proof assistant.
+Attempts to verify similar theorems in \TMmodelName{} arrived at obviously erroneous goals which, with some careful examination, lead to the counterexamples presented below.
+Ultimately, these counterexamples informed changes in the structure of the proof execution leading to a nearly identical conclusion.
+
+\subsection{Invalid Induction Hypothesis}
+\label{sec:SW:basecase}
+\begin{figure}
+\[
+\mutatedapp{E}{\multiop{S}{n}} \cap \existedset{S_0} \subseteq \mutableapp{S_0}{E}
+\]
+\caption{\modellbl{} : Main Theorem.\label{def:SW:mainTheorem}}
+\end{figure}
+
+\begin{figure}
+Assume that for all sets \(F\),
+\[
+\mutatedapp{F}{\multiop{S}{n-1}} \cap \existedset{S_0} \subseteq \mutableapp{S_0}{F}
+\]
+\caption{\modellbl{} : Induction Hypothesis.\label{def:SW:mainIH}}
+\end{figure}
+
+\begin{figure}
+\[
+\forallspaced{E}{E \subseteq \mutableapp{S_0}{E}}
+\]
+\caption{Property: \mutable{} is non-decreasing.\label{prop:SW:mutable:nondecreasing}}
+\end{figure}
+
+
+The main theorem \TMSW{} attempts to prove the theorem in \Cref{def:SW:mainTheorem} by induction on \(n\).
+This relies on the induction hypothesis for n-1 as shown in \Cref{def:SW:mainIH}.
+\TMSW{} claims that the base case is trivial, yet it is straightforward to violate.
+\mutated{} is always growing the initial subsystem \(E\), while \mutable{} only considers what \(E\) can mutate via \potacc{}.
+When no operations are performed, the base case reduces to the property of \Cref{prop:SW:mutable:nondecreasing}: \mutable{} is non-decreasing.
+However, \thmMutationIsMutable{} of the \TMSW{} excludes the initial subsystem \(E\) from what is considered mutable, indicating that the base case does not hold.
+
+To help visualize counterexamples, concrete instances are described visually.
+System states are represented as graphs in the same manner as \TMmodelName{}.
+As \TMSW{} considers all \TMobjs{} \TMactive{}, objects are circles and capabilities are edges in the \TMsystemState{} diagram.  
+As with \TMmodelName{} diagrams, capabilities are labeled with their access right set and the border and fill of objects indicate their label.
+{\bf Dead} objects are gray, an object that {\bf exists} has a solid border, and an {\bf available} object has a dashed border.
+Access relations are also visually represented, but they consist only of relationships in \rightscpo{} between \TMobjs{} which have no border.
+
+
+\begin{figure}
+\centering
+\begin{tikzpicture}[auto]
+  
+  \matrix[column sep=10mm, row sep=10mm, ampersand replacement=\&]{
+
+  \node [subjectAlive]           (A)    {A}; \&
+  \node [subjectAlive]           (A')   {B}; \&
+
+  \node [acc]                    (dA)   {A}; \&
+  \node [acc]                    (dA')  {B}; \\ 
+  };
+  \draw [capArrow] (A) edge  node[midway,above] {\tiny \(\rightsset\)} (A');
+  \draw [capArrow] (dA) edge  node[midway,above] {\tiny \(\allrights\)} (dA');
+
+\end{tikzpicture}
+\[
+\mathbf{mutated}_{\{A\}}(S_0) \cap \{A,B\} = \{A\} \nsubseteq \{B\} = \mathbf{mutable}_{S_0}(\{A\})
+\]
+\caption{Contradiction: \label{fig:SW:mainIH}System State \(S_0\) and \potacc{S_0} which violates the induction hypothesis.\label{cont:SW:mainIH}}
+\end{figure}
+
+The counterexample in \Cref{cont:SW:mainIH} illustrates that the present definition of \mutable{} is not non-decreasing.
+When no operations are performed, \(\mutable{\ensuremath{E}} = E\).
+However, \daset{} does not capture this access, and therefore it must not be present in \diracc{\ensuremath{S_0}} or \potacc{\ensuremath{S_0}}.
+Therefore, \(\mutableapp{\ensuremath{S_0}}{\{A\}} = \{B\}\) which is not a superset of \(\{A\}\).
+
+\begin{figure}
+  \[
+  \begin{array}{rll}
+    \multicolumn{3}{l}{\daset =} \\
+    & \{(o,\target{c},\rights{c}) & | o \in \objectset, c \in \capsetapp{S}{o}\} \\
+    \cup & \{(\target{c},o, \allrights) & | o \in \objectset, c \in \capsetapp{S}{o}, \execright \in \rights{c} \} \\
+    \cup & \{(o,o, \allrights) & | o \in \objectset \} \\  
+  \end{array}
+  \]
+  \caption{Correction to \daset{}. \label{def:SW:fix:DASet}}
+\end{figure}
+
+
+This problem can be avoided by altering the definition of \mutable{} to conform to the property in \Cref{prop:SW:mutable:nondecreasing}.
+There are two potential solutions: alter \mutable{} to have this property directly, or alter the definition of \daset{} to cause \potacc{} to be a transitive reflexive closure.
+In \TMmodelName{}, \mutable{} was altered to be non-decreasing in addition to altering \potacc{} to be a transitive reflexive closure without altering \daset{}.
+In hindsight, it is better to alter \diracc{} to be reflexive, as in \Cref{def:SW:fix:DASet}, as this simplifies relations between access relations.
+For more information on this future work in \TMmodelName{}, see \Cref{sect:future:complexities}.
+
+\subsection{Violating \thmauthred{}}
+\label{sec:SW:authred}
+
+\begin{figure}
+If \( \singleop{S_0}{S_1}{\alpha} \), then for all E,
+\[ \mutableapp{S_1}{E} \cap \existedset{S_0} \subseteq \mutableapp{S_0}{E \cap \existedset{S_0}} \]
+\caption{\modellbl{} : \thmauthred{} \label{def:SW:auth_red}}
+\end{figure}
+
+The main theorem also relies on \thmauthred{}, which also contains flaws that must be corrected to present a solution.
+\thmauthred{} in the \modellbl{} misquantifies the initial subsystem \(E\) and is consequentially too general to be correct.
+The subsystem \(E\) admits \emph{any} subset of \objectset, including any \emph{unborn} objects.
+This permits unborn objects that will be descended from subsystems \emph{outside} of \(E \cap \existedset{S}\).
+Because \(E\) is unrestricted in this way, it is possible to construct an example where elements of some initial \(E\) become children of an external subsystem, connecting \(E\) to a previously unconnected subsystem.
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[auto]
+    
+    \matrix[column sep=10mm, row sep=10mm, ampersand replacement=\&]{
+      
+      \node[subjectAlive]     (A)  {\(A_1\)}; \&
+      \&
+      \node[subjectAlive]     (B)  {\(B_1\)}; \&[+5mm]
+      \node[acc]     (dA')   {\(A_1\)}; \&
+      \&
+      \node[acc]     (dB)    {\(B_1\)};
+      \\
+      \node[subjectAlive]     (A') {\(A_2\)}; \&
+      \node[subjectUnborn]    (U)  {\(A_u\)}; \&
+      \node[subjectAlive]     (B') {\(B_2\)}; \& 
+      \node[acc]     (dA)    {\(A_2\)}; \&
+      \node[acc]     (dU)    {\(A_u\)}; \&
+      \node[acc]     (dB')   {\(B_2\)};
+      \\
+    };
+    
+    
+    \path [capArrow] (A) edge [bend left=15]  node[midway,right] {\tiny \rightsset} (A');
+    \path [capArrow] (A') edge [bend left=15]  node[midway,left] {\tiny \rightsset} (A);
+    
+    \path [capArrow] (B) edge [bend left=15]  node[midway,right] {\tiny \rightsset} (B');
+    \path [capArrow] (B') edge [bend left=15]  node[midway,left] {\tiny \rightsset} (B);
+
+    \path [capArrow] (dA) edge [bend left=15] node[midway,left] {\tiny \allrights} (dA');
+    \path [capArrow] (dA') edge [bend left=15] node[midway,right] {\tiny \allrights} (dA);
+    
+    \path [capArrow] (dB) edge [bend left=15]  node[midway,right] {\tiny \allrights} (dB');
+    \path [capArrow] (dB') edge [bend left=15] node[midway,left] {\tiny \allrights} (dB);
+    
+    %% Self loops
+    
+    \path [capArrow] (A) edge [loop left]  node[midway,above] {\tiny \rightsset} (A);
+    \path [capArrow] (B) edge [loop left]  node[midway,above] {\tiny \rightsset} (B);
+    
+    \path [capArrow] (dA) edge [loop left]  node[midway,above] {\tiny \allrights} (dA);
+    \path [capArrow] (dA') edge [loop left]  node[midway,above] {\tiny \allrights} (dA');
+    \path [capArrow] (dB) edge [loop right]  node[midway,above] {\tiny \allrights} (dB);
+    \path [capArrow] (dB') edge [loop right]  node[midway,above] {\tiny \allrights} (dB');
+    
+  \end{tikzpicture}
+  \caption{\label{fig:SW:authred:S0}System State \(S_0\) and \(\mathbf{PotAcc}_{S_0}\) to violate \thmauthred{}.}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \begin{tikzpicture}[auto]
+      
+      \matrix[column sep=10mm, row sep=10mm, ampersand replacement=\&]{
+        
+        \node[subjectAlive]     (A)  {\(A_1\)}; \&
+        \&
+        \node[subjectAlive]     (B)  {\(B_1\)}; \&[+5mm]
+        \node[acc]     (dA')   {\(A_1\)}; \&
+        \&
+        \node[acc]     (dB)    {\(B_1\)};
+        \\
+        \node[subjectAlive]     (A') {\(A_2\)}; \&
+        \node[subjectUnborn]    (U)  {\(A_u\)}; \&
+        \node[subjectAlive]     (B') {\(B_2\)}; \& 
+        \node[acc]     (dA)    {\(A_2\)}; \&
+        \node[acc]     (dU)    {\(A_u\)}; \&
+        \node[acc]     (dB')   {\(B_2\)};
+        \\
+      };
+
+        \path [lcap] (B) edge  node[midway,above,sloped] {\tiny \rightsset} (U);
+        \path [lcap] (U) edge  node[midway,below,sloped] {\tiny \rightsset} (B');
+
+        %% come back and change each of these to two labeled caps.
+
+      \path [capArrow] (A) edge [bend left=15]  node[midway,right] {\tiny \rightsset} (A');
+      \path [capArrow] (A') edge [bend left=15]  node[midway,left] {\tiny \rightsset} (A);
+            
+      \path [capArrow] (B) edge [bend left=15]  node[midway,right] {\tiny \rightsset} (B');
+      \path [capArrow] (B') edge [bend left=15]  node[midway,left] {\tiny \rightsset} (B);
+
+      \path [capArrow] (dA) edge [bend left=15] node[midway,left] {\tiny \allrights} (dA');
+      \path [capArrow] (dA') edge [bend left=15] node[midway,right] {\tiny \allrights} (dA);
+      
+      \path [capArrow] (dB) edge [bend left=15]  node[midway,right] {\tiny \allrights} (dB');
+      \path [capArrow] (dB') edge  node[midway,left] {\tiny \allrights} (dB);
+      
+      \path [capArrow] (dB) edge  node[midway,below,sloped] {\tiny \allrights} (dU);
+      \path [capArrow] (dU) edge [bend left=15]  node[midway,above,sloped] {\tiny \allrights} (dB);
+
+      \path [capArrow] (dU) edge  node[midway,above] {\tiny \allrights} (dB');
+      \path [capArrow] (dB') edge [bend left=15]  node[midway,below] {\tiny \allrights} (dU);
+        
+        %% Self loops
+        
+        \path [lcap] (A) edge [loop left]  node[midway,above] {\tiny \rightsset} (A);
+        \path [lcap] (B) edge [loop left]  node[midway,above] {\tiny \rightsset} (B);
+        \path [lcap] (dA) edge [loop left]  node[midway,above] {\tiny \allrights} (dA);
+        \path [lcap] (dA') edge [loop left]  node[midway,above] {\tiny \allrights} (dA');
+        \path [lcap] (dB) edge [loop right]  node[midway,above] {\tiny \allrights} (dB);
+        \path [lcap] (dB') edge [loop right]  node[midway,above] {\tiny \allrights} (dB');
+        \path [lcap] (dU) edge [loop left]  node[midway,above] {\tiny \allrights} (dU);
+        
+        
+    \end{tikzpicture}
+  \end{center}
+  \caption{\label{fig:SW:authred:S1}System State \(S_1\) and \(\mathbf{PotAcc}_{S_1}\) to violate \thmauthred{}.}
+\end{figure}
+
+\pagebreak[4]
+
+Consider the result of a \create{} operation on \(S_0\) as in \Cref{fig:SW:authred:S0}.
+If the operation is:
+\[\singleop{S_0}{S_1}{\createapp{p}{\{\obcapapp{\ensuremath{B_2}}{\rightsset}\}}}\] 
+then assuming that there exists an object \(A_u \in \objectset \), the result of this \create{} operation will be \(S_1\), shown in \Cref{fig:SW:authred:S1}.
+This example is constructed such that the error occurs using either the original \TMSW{} definitions or the modifications to this point.
+With \(A_u\) as the unborn object to be created by \ensuremath{B_2}, examine \thmauthred{} with \(E = \{A_1, A_2, A_u\}\).
+It is now possible for \(\{A_1, A_2, A_u\}\) to modify \(B_*\) where before it was not.
+
+\begin{figure}
+\begin{align*}
+\mutableapp{S_0}{\{A_1,A_2,A_u\} \cap \existedset{S_0}} &= \mutableapp{S_0}{\{A_1,A_2,A_u\}} \cap \{A_1,A_2,B_1,B_2\} \\
+&= \{A_1,A_2,A_u\} \cap \{A_1,A_2,B_1,B_2\} \\
+&= \{A_1,A_2\} \\
+\\
+\mutableapp{S_1}{\{A_1,A_2,A_u\}} \cap \existedset{S_0} &= \mutableapp{S_1}{\{A_1,A_2,A_u\}} \cap \{A_1,A_2,B_1,B_2\} \\
+&= \{A_1,A_2,A_u,B_1,B_2\} \cap \{A_1,A_2,B_1,B_2\} \\
+&= \{A_1,A_2,B_1,B_2\}
+\end{align*}
+\caption{Value of \mutable{} for \(S_0\) and \(S_1\).}
+\end{figure}
+
+\begin{figure}
+\thmauthred{} states that
+If \( \singleop{S_0}{S_1}{\alpha} \), then for all E,
+\[
+\mutableapp{S_1}{E} \cap \existedset{S_0} \subseteq \mutableapp{S_0}{E \cap \existedset{S_0}}
+\]
+But for the example defined above, when \(E = \{A_1, A_2, A_u\}\) :
+\[
+\mutableapp{S_1}{E} \cap \existedset{S_0} = \{A_1,A_2,B_1,B_2\} \nsubseteq \{A_1,A_2\} = \mutableapp{S_0}{E \cap \existedset{S_0}}
+\]
+\caption{Contradiction of \thmauthred{}. \label{cont:SW:authred}}
+\end{figure}
+
+As this example uses \allrights{} relationships, no alterations thus far could not prevent this problem.
+The reflexivity alteration for \daset{} is subsumed by including sufficient self-authority to cause reflexivity.
+Corrections in \rightscpo{} and \mutable{} are uninteresting as all capabilities are fully permissive.
+The contradiction does not examine the definition of \mutated{} and therefore does not involve the modification of \wroteto{} from \Cref{sec:SW:basecase}.
+
+\section{Solution}
+\label{sec:SW:solution}
+
+The absurdity of \thmauthred{} arises from the ability to ask questions about unborn objects without knowing their lineage.
+The main theorem never quantifies \thmauthred{} with such an absurd E, but the analysis skips this detail.
+The solution is similar to \TMmutableExecute{} from \TMmodelName{}.
+
+\subsection{Relating Access Relations}
+
+\begin{figure}
+  \begin{tabular}{l}
+    If \(\AccessRel{A} : \objectset \times \objectset \rightarrow\ \rightscpo \) is a resource relationship, \\
+    then \(\ProjPotAccA{\mathcal{A}} : \objectset \times \objectset \rightarrow \AccessRel{A}\) is defined to be:
+  \end{tabular}
+\[
+\ProjPotAccC{\AccessRel{A}}{p}{u}{x}{y} = 
+\left\{
+\begin{array}{ll}
+  \top & \textnormal{if} \; x = p \land y = u \\
+  \top & \textnormal{if} \; x = u \land y = p \\
+  \top & \textnormal{if} \; x = p \land y = p \\  
+  \top & \textnormal{if} \; x = u \land y = u \\
+  \AccessRelApp{A}{p}{y} & \textnormal{if } x = u \\
+  \AccessRelApp{A}{x}{p} & \textnormal{if } y = u \\
+  \AccessRelApp{A}{x}{y} & \textnormal{otherwise}
+\end{array}
+\right.
+\]
+\caption{Definition of \ProjPotAcc{}.\label{def:SW:ProjPotAcc}}
+\end{figure}
+
+
+
+Integrating solutions from \TMmodelName{} begins by describing the relationships between access relations over each operation.
+From the updated definitions, \potacc{} is a transitive reflexive closure and should approximate all operations except \create{}.
+It is impossible for \potacc{} to approximate \create{}, as there is no advance knowledge about the lineage of new objects.
+However, in the worst case, a newly created object is just as permissive as its creator.
+This relationship between access relations is given by \ProjPotAcc{} in \Cref{def:SW:ProjPotAcc}.
+Given \ProjPotAcc{}, it is possible to demonstrate that \potacc{} approximates all operations, as shown in \Cref{thm:SW:ProjPotAccOp}.
+
+\begin{figure}
+If \( \singleop{S_0}{S_1}{\createapp{p}{a}} \) then if \(u\) is selected as a newly created object,
+\[
+\potacc{S_1} \leq \ProjPotAccB{\potacc{S_0}}{p}{u}
+\]
+and in all other cases
+\[
+\potacc{S_1} \leq \potacc{S_0}
+\]
+where the definition of \(\leq\) is overloaded on access relations to have the meaning
+\[
+\AccessRel{A} \leq \AccessRel{B} \Leftrightarrow \forall x,y \; \AccessRelApp{A}{x}{y} \leq \AccessRelApp{B}{x}{y}
+\]
+\caption{Theorem: \ProjPotAcc{} approximates all operations.\label{thm:SW:ProjPotAccOp}}
+\end{figure}
+
+
+%% This proof is solved by very exhaustive case analysis that follows the \COQagProjectEndow{} theorem in \Cref{fig:safety:AGproject} in \TMmodelName{}.
+This proof is solved by very exhaustive case analysis similar to the \TMmodelName{} theorem \COQagProjectEndow{} in \Cref{fig:safety:AGproject}.
+It should also be apparent that under a transitive reflexive closure, if \AccessRel{A} has converged over \combine{}, then \ProjPotAccA{\AccessRel{A}} has also converged.
+This proof is less obvious, but is similar to the \TMmodelName{} theorem \COQAGProjectMaximal{} in \Cref{fig:flow:AGProjectMaximal}.
+Such converged resource relationships will be called \maximal{} throughout the remainder of this chapter.
+
+\begin{figure}
+If \multiop{S}{n} is an execution, then \multiop{\AccessSeq{P}}{n} is defined such that
+\[
+\forall i \; \AccessSeqElem{P}{i} = \potacc{S_i}
+\]
+\caption{Definition of potential access relation sequences.\label{def:SW:potAccRel}}
+\end{figure}
+
+\begin{figure}
+  \begin{tabular}{l}
+    If \multiop{\AccessSeq{P}}{n}\\
+    and \multiop{\AccessSeq{Q}}{n} are \maximal{} access relation sequences,\\
+    then \rightsleq is overloaded as
+  \end{tabular}
+\[
+\multiopfree{\AccessSeq{P}}{n} \rightsleq \multiopfree{\AccessSeq{Q}}{n} \Leftrightarrow \forall i \; \AccessSeqElem{P}{i} \rightsleq \AccessSeqElem{Q}{i}
+\]
+\caption{Definition of one maximal access relation sequence approximating another.\label{def:SW:potAccRelApprox}}
+\end{figure}
+
+It is now possible to define notation relating sequences of access relations that are sourced from executions, as shown in \Cref{def:SW:potAccRel,def:SW:potAccRelApprox}.
+For clarity, the \rightsleq{} operator is further overloaded for \maximal{} relation sequences.
+
+\subsection{Mutable Lineage}
+
+\begin{figure}
+  \[ \mutableapp{\AccessRel{A}}{E} =
+  \begin{array}{ll}
+    \{y | \exists x \in E, & \{\writeright, \execright\} \cap \AccessRelApp{A}{x}{y} \neq \norights \; \lor \\ 
+    & \{\readright, \weakright\} \cap \AccessRelApp{A}{y}{x} \neq \norights\}
+  \end{array}
+  \]
+\caption{Parameterized definition of \mutable{}.\label{SW:def:newMutable}}
+\end{figure}
+
+With the introduction of transformations between access relationships, the definition of mutability is too specific to incorporate new relationships as it is still dependent on \potacc{}.
+Therefore, \mutable{} must be parameterized over any access relationship \(\AccessRel{A}\) as in \Cref{SW:def:newMutable}.
+Although this chapter has striven to preserve notation from \TMSW{}, it is necessary to deviate slightly to accomplish this change.
+
+\begin{figure}
+If \AccessRel{A} and \AccessRel{B} are access relations and \(E\) and \(F\) are object sets, then
+\[ \AccessRel{A} \rightsleq \AccessRel{B} \land E \subseteq F \; \Rightarrow \mutableapp{\AccessRel{A}}{E} \subseteq \mutableapp{\AccessRel{B}}{F} \]
+\caption{Theorem: \mutable{} respects ordering. \label{SW:thm:mutableRespectful}}
+\end{figure} 
+
+This form of \mutable{} respects the various ordering relations for all parameters.
+Therefore, as the \ProjPotAcc{} relationship preserves these orderings, \mutable{} must respect \ProjPotAcc{} as well.
+The theorem in \Cref{SW:thm:mutableRespectful} corresponds to the \COQproperMutableSpec{} theorem from \TMmodelName{} show in \Cref{fig:flow:mutableProperties}.
+
+\begin{figure}
+  \begin{tabular}{l}
+    If \(\multiop{S}{n}\) is an execution, \\
+    and \(\multiop{\AccessSeq{P}}{n} \rightsleq \multiopfree{\AccessSeq{Q}}{n}\), \\
+    and \(E \subseteq \existedset{S_0}\), and \( q_i = \multiopfree{\AccessSeq{Q}}{i}\) are sub-sequences
+  \end{tabular}
+  \[
+  \begin{array}{rcl}
+    \mutableLineageApp{E}{\AccessSeqElem{Q}{0}} & = & \mutableapp{\AccessSeqElem{Q}{0}}{E} \\
+    \mutableLineageApp{E}{\singleopfree{\AccessSeqElem{Q}{i-1}}{\AccessSeqElem{Q}{i}}} & = & \mutableapp{\AccessSeqElem{Q}{i}}{E} \\
+    \mutableLineageApp{E}{q_n} & = & \mutableLineageApp{\mutableLineageApp{E}{q_{n-1}}}{\singleopfree{\AccessSeqElem{Q}{n-1}}{\AccessSeqElem{Q}{n}}}
+  \end{array}
+  \]
+  \caption{Definition of \mutableLineage{}.\label{def:SW:mutableLineage}}
+\end{figure}
+
+\begin{figure}
+  \begin{tabular}{l}
+    If \(\multiop{S}{n}\) is an execution, \\
+    and \(\multiop{\AccessSeq{P}}{n} \rightsleq \multiopfree{\AccessSeq{Q}}{n}\), \\
+    and \(E \subseteq \existedset{S_0}\), \\
+    and \( e_i = \multiop{S}{i}\) are sub-executions, \\
+    and \( q_i = \multiopfree{\AccessSeq{Q}}{i}\) are sub-sequences
+  \end{tabular}
+  \[
+  \mutatedapp{E}{e_n} \subseteq \mutableLineageApp{E}{q_n}
+  \]
+  \caption{Theorem: \mutated{} is captured by of a \mutableLineage{}.\label{thm:SW:mutatedmutableLinage}}
+\end{figure}
+
+The definition of \mutableLineage{} in \Cref{def:SW:mutableLineage} sets up a sequence of \mutable{}s to capture object lineage while approximating \mutated{}, similar to \COQmutableExecute{} in \TMmodelName{} shown in \Cref{fig:flow:mutableExecute}.
+The induction strategy for \mutableLineage{} is identical to \mutated{} except that it starts with what is \mutable{} and cycles \mutable{} at each step.
+However, as it will become important to abstract over approximations, the definition does not directly perform reasoning on \potacc{S_n}.
+Therefore, the definition of \mutableLineage{} is quite abstract.
+If all \potacc{} operations are approximated reflexively, the theorem begins look a bit more like \mutable{} and it should become clear that \mutableLineage{} also approximates \mutated{} as shown in \Cref{thm:SW:mutatedmutableLinage}.
+In \TMmodelName{}, this theorem corresponds to \COQmutableDirAccExecuteApproxMutated{} in \Cref{fig:flow:mutatedapprox}.
+
+\begin{figure}
+  \begin{tabular}{l}
+    If \(E\) and \(F\) are object sets, \\
+    and \(\multiopfree{\AccessSeq{P}}{n} \leq \multiopfree{\AccessSeq{Q}}{n}\), \\
+    and \( p_i = \multiopfree{\AccessSeq{P}}{i}\) are sub-sequences, \\
+    and \( q_i = \multiopfree{\AccessSeq{Q}}{i}\) are sub-sequences,
+  \end{tabular}
+\[ 
+E \subseteq F \; \Rightarrow \mutableLineageApp{E}{p_i} \subseteq \mutableLineageApp{F}{q_i}
+\]
+\caption{Theorem: \mutableLineage{} respects ordering. \label{SW:thm:mutableLineageRespectful}}
+\end{figure} 
+
+Since \mutableLineage{} is defined inductively over \mutable{} -- which respects approximations and subset as shown in \Cref{SW:thm:mutableRespectful} -- it too must respect approximations and subset.
+This is presented in \Cref{SW:thm:mutableLineageRespectful} and is similar to the \TMmodelName{} theorem \COQproperMutableExecute{} in \Cref{fig:flow:properMutableExecute}.
+
+\subsection{Lineage}
+
+\begin{figure}
+  \begin{tabular}{l}
+    If \AccessRel{C} is an access relation, \\
+    let \lineage{\AccessRel{C}} be the inductively defined set rooted at a \maximal{} \AccessRel{C}: \\
+  \end{tabular}
+\[
+\begin{array}{rl}
+  \mathcal{C} \in \lineage{\AccessRel{C}} & \\
+  \ProjPotAccB{\AccessRel{A}}{p}{u} \in \lineage{\AccessRel{C}} & \textnormal{if} \;
+          \AccessRel{A} \in \lineage{\AccessRel{C}} \land  
+          p \in \AccessRel{A} \land
+          u \notin \AccessRel{A}
+\end{array}
+\]
+where definition of \( \in \) is overloaded as \( \forallspaced{o,\AccessRel{A}}{o \in \AccessRel{A} \Leftrightarrow \AccessRelApp{A}{o}{o} \neq \rightsbot }\) 
+
+And let \linleq{} be the CPO defined by:
+\[
+\begin{array}{rcll}
+\AccessRel{A} & \linleq & \AccessRel{A} & \\
+\AccessRel{A} & \linleq & \ProjPotAccB{\AccessRel{A}}{p}{u} & \textnormal{if} \; p \in \AccessRel{A} \land u \notin \AccessRel{A}
+\end{array}
+\]
+Note, \(\bot = \AccessRel{C}\) and \linleq{} is anti-symmetric by the definition of subset and \ProjPotAcc.
+\caption{Definition : \lineage{R}.\label{SW:def:Lin}}
+\end{figure}
+
+The partial order \lineage{\AccessRel{R}} using \ProjPotAcc{} as in \Cref{SW:def:Lin} is defined to assist reasoning about \mutableLineage{}.
+The purpose of \lineage{\AccessRel{R}} is to fully abstract all possible lineage hierarchies rooted at access relation \AccessRel{R}.
+Primarily, this abstracts all series of create operations, as the preconditions of \lineage{\AccessRel{R}} are always satisfied by any sequence of operations due to state transitions.
+Additionally, \lineage{\AccessRel{R}} parameterizes theorems without needing to instantiate them through laborious notation.
+The notion of \lineage{R} as a partial order is not directly present in \TMmodelName{} as it would require restructuring many previous theorems.
+
+\begin{figure}
+If \(\multiop{S}{n}\) is an execution, \(E \subseteq \existedset{S_0}\), then
+\[
+\existsspaced {\AccessSeq{L} \in \lineage{\potacc{S_0}}} {\mathbf{PotAcc}_{S_n} \rightsleq \AccessSeq{L}}
+\]
+or 
+\[
+\existsspaced {\multiopfree{\AccessSeq{L}}{n} \in \lineage{\potacc{S_0}}} {\multiop{\AccessSeq{P}}{n} \rightsleq \multiopfree{\AccessSeq{L}}{n}}
+\]
+\caption{Theorem: \lineage{} approximates \potacc{}. \label{thm:SW:ProjPotAccApprox}}
+\end{figure}
+
+For any sequence of executions, \potacc{S_n} can be approximated by member of \lineage{\potacc{S_0}} using the theorem from \Cref{thm:SW:ProjPotAccOp}.
+This is justified for two reasons.  First, all non-create operations are self-approximating.  
+Second, because \potacc{S_0} is \maximal{} and \ProjPotAcc{} is \maximal{} given a \maximal{} input, this sequence must be \maximal{} by induction.
+This notion is presented in \Cref{thm:SW:ProjPotAccApprox} and loosely corresponds to the \TMmodelName{} theorem \COQmutableExecuteDirAccSubsetPotAcc{} in \Cref{fig:flow:mutableExecuteSpecializations}.
+
+\begin{figure}
+If \multiop{S}{n} is an execution, 
+and \(\multiopfree{\AccessSeq{L}}{n} \in \lineage{\potacc{S_0}}\)
+and \(E \subseteq \existedset{S_0}\), 
+and \( l_i = \multiopfree{\AccessSeq{L}}{i}\) are sub-sequences
+\[
+\mutableLineageApp{E}{l_i} \subseteq \existedset{S_i}
+\]
+\caption{Theorem : \mutableLineage{} always {\bf existed}.\label{SW:thm:mutableLineageExisted}}
+\end{figure}
+
+\mutableLineage{E} cannot exceed \existedset{S_n} in every step for sequences in \lineage{\potacc{S_0}}, as it relies on \potacc{} and \ProjPotAcc{}, both of which do not consider non-existent \TMobjs{}.
+Theorem \ref{SW:thm:mutableLineageExisted} captures this invariant formally in \Cref{fig:safety:agNodesSpecEndow} and corresponds to \COQagNodesSpecEndow{} theorem in \TMmodelName{}.
+Presently, it is a useful diagnostic for determining if the erroneous cases of SW \thmauthred{} have been fixed.
+It will be specialized for precision in the theorem in \Cref{SW:thm:mutableLineage:singleLin}.
+
+\subsection{Main Theorem}
+\label{SW:sec:maintheorem}
+
+\begin{figure}
+  \begin{tabular}{l}
+    If \multiop{S}{n} is an execution, \\
+    and \(\multiop{\AccessSeq{P}}{n} \rightsleq \multiopfree{\AccessSeq{L}}{n} \in \lineage{\potacc{S_0}}\), \\
+    and \(E \subseteq \existedset{S_{i-1}}\), \\
+  \end{tabular}
+  \[
+  \begin{array}{ll}
+    \multicolumn{2}{l}{\mutableLineageApp{E}{\singleopfree{\AccessSeqElem{L}{i-1}}{\AccessSeqElem{L}{i}}} \subseteq} \\
+     \hspace{10mm} & \left\{ 
+    \begin{array}{rl}
+      E \cup \{u\} & \textnormal{if} \; \AccessSeqElem{L}{i} = \ProjPotAccB{\AccessSeqElem{L}{i-1}}{p}{u} \land p \in E \\
+      E & \textnormal{if } \AccessSeqElem{L}{i} = \ProjPotAccB{\AccessSeqElem{L}{i-1}}{p}{u} \land p \notin E \\
+      E & \textnormal{if } \AccessSeqElem{L}{i} = \AccessSeqElem{L}{i-1}
+    \end{array}
+    \right.
+  \end{array}
+  \]
+  \caption{Theorem: \mutableLineage{} grows only by new \TMobjs{} at each step. \label{SW:thm:mutableLineage:singleLin}}
+\end{figure}
+
+There are two other theorems required to successfully prove the main theorem.  
+Consider how \mutableLineage{} changes over sequences in \lineage{R}.  
+Each stepin \lineage{R} is given by some \ProjPotAccB{\AccessRel{A}}{p}{u}.
+If \(p \in E\), then \mutableLineage{} can only grown by u, otherwise \mutableLineage{} is constant.
+Another way of stating this is that \ProjPotAcc{} is surjective on set inclusion.
+As the only objects added to \mutableLineage{} are not members of \existedset{S_0}, they are excluded when intersecting the result with what initially existed.
+As the base case of \mutableLineage{} is \mutable{}, this induction must hold.
+Although these properties are many individual theorems in \TMmodelName{}, they are presented as a single property in \Cref{SW:thm:mutableLineage:singleLin}.
+
+\begin{figure}
+  \begin{tabular}{l}
+    If \(\multiop{S}{n}\) is an execution, \\
+    and \(\multiop{\AccessSeq{P}}{n} \leq \multiopfree{\AccessSeq{L}}{n} \in \lineage{\potacc{S_0}}\), \\
+    and \(E \subseteq \existedset{S_i}\), \\
+    and \( l_i = \multiopfree{\AccessSeq{L}}{i}\) are sub-sequences
+  \end{tabular}
+\[
+\mutableLineageApp{E}{l_n} \cap \existedset{S_0} \subseteq \mutableapp{\potacc{S_0}}{E}
+\]
+\caption{Theorem: \mutableLineage{} is \mutable{}. \label{SW:thm:mutableLineage:Lin}}
+\end{figure}
+
+The \(E \subseteq \existedset{S_i}\) requirement is an invariant of \mutableLineage{} over \lineage{}, so that constraint can be satisfied.
+The remaining cases are evident by examination of the theorem in \Cref{thm:SW:ProjPotAccOp}.
+Using the result in \Cref{SW:thm:mutableLineage:singleLin} as an induction step, the theorem in \Cref{SW:thm:mutableLineage:Lin} is produced.
+
+\begin{figure}
+  \begin{tabular}{l}
+    If \(\multiop{S}{n}\) is an execution,\\
+    and \(E \subseteq \existedset{S_i}\),\\
+    and \( e_i = \multiop{S}{i}\) are sub-executions
+    \end{tabular}
+  \[
+  \mutatedapp{\potacc{S_0}}{e_n} \cap \existedset{S_0} \subseteq \mutableapp{\potacc{S_0}}{E}
+  \]
+  Proof:
+  \[
+  \begin{array}{rl}
+    %left
+    \mutatedapp{\potacc{S_0}}{e_n} \cap S_0^{existed} & \subseteq \mutableapp{\potacc{S_0}}{E} \\
+    \multicolumn{2}{l}{\textnormal{let} \; p_i = \multiop{\AccessSeq{P}}{i} \textnormal{in}} \\
+    %right
+    \multicolumn{2}{r}{\textnormal{by Definition}} \\
+    %left
+    \mutableLineageApp{E}{p_n} \cap \existedset{S_0} & \subseteq \mutableapp{\potacc{S_0}}{E} \\
+    %right
+    \multicolumn{2}{r}{\textnormal{by Theorem \ref{thm:SW:mutatedmutableLinage} instantiated reflexively}} \\
+    %left
+    \multicolumn{2}{l}{\textnormal{let} \; \multiop{\AccessSeq{P}}{n} \rightsleq \multiopfree{\AccessSeq{L}}{n} \in \lineage{\potacc{S_0}}} \\
+    \multicolumn{2}{l}{\textnormal{and} \; l_i = \multiopfree{\AccessSeq{L}}{i} \; \textnormal{in}} \\
+    %right
+    \multicolumn{2}{r}{\textnormal{by Theorem \ref{thm:SW:ProjPotAccApprox}}} \\
+    %left
+    \mutableLineageApp{E}{l_n} \cap \existedset{S_0} & \subseteq \mutableapp{\potacc{S_0}}{E} \\
+    %right
+    \multicolumn{2}{r}{\textnormal{by Theorem \ref{SW:thm:mutableLineageRespectful}}} \\
+    \multicolumn{2}{r}{\textnormal{this is Theorem \ref{SW:thm:mutableLineage:Lin}}}
+  \end{array}
+  \]
+  \caption{Corrected final theorem and proof. \label{SW:thm:correctedMain}}
+\end{figure}
+
+With the exception of a parameterized definition of \mutable{}, the statement of the main theorem in \Cref{SW:thm:correctedMain} is identical to the \TMSW{} theorem.
+Discharging the main theorem proceeds by subset transitivity and previous definitions.
+From \Cref{thm:SW:mutatedmutableLinage}, \mutableLineage{} approximates \mutated{} and may be substituted by transitivity.
+There must exist a lineage in \(\lineage{\potacc{S_0}}\) that approximates \potacc{}.
+Because \mutableLineage{} preserves ordering in \Cref{SW:thm:mutableLineageRespectful}, it must also approximate \potacc{} and may be substituted by transitivity.
+The remaining relation is precisely that \mutableLineage{} is \mutable{} from \Cref{SW:thm:mutableLineage:Lin}.
+Therefore, the main theorem holds; what is \mutated{}, when restricted to what {\bf existed}, is a subset of what was determined \mutable{}.
+
+As \TMmodelName{} began as a mechanical verification attempt for \TMSW{}, it can be used to correct the proof execution.
+The corrections in this chapter are altered from those found in \TMmodelName{}, but follow the spirit of that proof.
+They also contain some of the suggestions and simplifications found in \Cref{ch:future} on future work.
+These alterations generally impact the proof execution, but do not significantly impact the statement of the main theorem in \TMSW{}.
+Previous conclusions based on the \TMSW{} result \cite{Shapiro03thepractical} can be expected to hold without modification.
+
+\endgroup

@@ -1,0 +1,41 @@
+\newcommand{\COQDOCmutableSpec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{mutable\_spec} \coqdocvar{p} \coqdocvar{objs} \coqdocvar{mut} := \coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{RefSet.In} \coqdocvar{x} \coqdocvar{mut} \ensuremath{\leftrightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.In} \coqdocvar{x} \coqdocvar{objs} \ensuremath{\lor}\coqdoceol
+\coqdocindent{1.00em}
+(\coqdocvar{\ensuremath{\exists}} \coqdocvar{e}, \coqdocvar{RefSet.In} \coqdocvar{e} \coqdocvar{objs} \ensuremath{\land}\coqdoceol
+\coqdocindent{2.00em}
+(\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{e} \coqdocvar{x} \coqdocvar{tx}) \coqdocvar{p} \ensuremath{\lor} \coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{e} \coqdocvar{x} \coqdocvar{wr}) \coqdocvar{p} \ensuremath{\lor} \coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{x} \coqdocvar{e} \coqdocvar{wk}) \coqdocvar{p} \ensuremath{\lor}\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{x} \coqdocvar{e} \coqdocvar{rd}) \coqdocvar{p})).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCmutableSpecSubset}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{mutable\_spec\_subset}: \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{n} \coqdocvar{n'}, \coqdocvar{RefSet.Subset} \coqdocvar{n'} \coqdocvar{n} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{p} \coqdocvar{p'},  \coqdocvar{AG.Subset} \coqdocvar{p'} \coqdocvar{p} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{m}, \coqdocvar{mutable\_spec} \coqdocvar{p} \coqdocvar{n} \coqdocvar{m} \ensuremath{\rightarrow} \coqdockw{\ensuremath{\forall}} \coqdocvar{m'}, \coqdocvar{mutable\_spec} \coqdocvar{p'} \coqdocvar{n'} \coqdocvar{m'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{RefSet.Subset} \coqdocvar{m'} \coqdocvar{m}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCproperMutableSpec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{Proper\_mutable\_spec}: \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Proper} (\coqdocvar{AG.eq} \ensuremath{\Longrightarrow} \coqdocvar{RefSet.eq} \ensuremath{\Longrightarrow} \coqdocvar{RefSet.eq} \ensuremath{\Longrightarrow} \coqdocvar{impl}) \coqdocvar{mutable\_spec}.\coqdoceol
+\end{coqdoccode}
+}
+

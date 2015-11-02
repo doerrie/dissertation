@@ -1,0 +1,244 @@
+\newcommand{\COQDOCtransfer}[0]{
+\begin{coqdoccode}  
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{transfer} (\coqdocvar{a} \coqdocvar{b} : \coqdocvar{AG.t}) : \coqdockw{Prop} :=\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{transfer\_self\_src} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{rgt} \coqdocvar{rgt'}: \coqdocvar{accessRight}) (\coqdocvar{src} \coqdocvar{tgt}:\coqdocvar{Ref.t}),\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt} \coqdocvar{rgt}) \coqdocvar{a} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AGProps.Add} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{src} \coqdocvar{rgt'}) \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{transfer} \coqdocvar{a} \coqdocvar{b}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{transfer\_self\_tgt} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{rgt} \coqdocvar{rgt'}: \coqdocvar{accessRight}) (\coqdocvar{src} \coqdocvar{tgt}:\coqdocvar{Ref.t}),\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt} \coqdocvar{rgt}) \coqdocvar{a} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AGProps.Add} (\coqdocvar{Edges.mkEdge} \coqdocvar{tgt} \coqdocvar{tgt} \coqdocvar{rgt'}) \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{transfer} \coqdocvar{a} \coqdocvar{b}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{transfer\_read} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{rgt}: \coqdocvar{accessRight}) (\coqdocvar{src} \coqdocvar{tgt} \coqdocvar{tgt'}:\coqdocvar{Ref.t}),\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt} \coqdocvar{rd}) \coqdocvar{a} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{tgt} \coqdocvar{tgt'} \coqdocvar{rgt}) \coqdocvar{a} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AGProps.Add} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt'} \coqdocvar{rgt}) \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{transfer} \coqdocvar{a} \coqdocvar{b}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{transfer\_write} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{rgt}: \coqdocvar{accessRight}) (\coqdocvar{src} \coqdocvar{tgt} \coqdocvar{tgt'}:\coqdocvar{Ref.t}),\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt} \coqdocvar{wr}) \coqdocvar{a} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt'} \coqdocvar{rgt}) \coqdocvar{a} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AGProps.Add} (\coqdocvar{Edges.mkEdge} \coqdocvar{tgt} \coqdocvar{tgt'} \coqdocvar{rgt}) \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{transfer} \coqdocvar{a} \coqdocvar{b}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{transfer\_send} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{rgt}: \coqdocvar{accessRight}) (\coqdocvar{src} \coqdocvar{tgt} \coqdocvar{tgt'}:\coqdocvar{Ref.t}),\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt} \coqdocvar{tx}) \coqdocvar{a} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt'} \coqdocvar{rgt}) \coqdocvar{a} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AGProps.Add} (\coqdocvar{Edges.mkEdge} \coqdocvar{tgt} \coqdocvar{tgt'} \coqdocvar{rgt}) \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{transfer} \coqdocvar{a} \coqdocvar{b}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{transfer\_send\_reply} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{src} \coqdocvar{tgt}:\coqdocvar{Ref.t}),\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt} \coqdocvar{tx}) \coqdocvar{a} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AGProps.Add} (\coqdocvar{Edges.mkEdge} \coqdocvar{tgt} \coqdocvar{src} \coqdocvar{tx}) \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{transfer} \coqdocvar{a} \coqdocvar{b}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{transfer\_weak} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{rgt}: \coqdocvar{accessRight}) (\coqdocvar{src} \coqdocvar{tgt} \coqdocvar{tgt'}:\coqdocvar{Ref.t}),\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt} \coqdocvar{wk}) \coqdocvar{a} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{tgt} \coqdocvar{tgt'} \coqdocvar{rgt}) \coqdocvar{a} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+(\coqdocvar{eq} \coqdocvar{rgt} \coqdocvar{wk} \ensuremath{\lor} \coqdocvar{eq} \coqdocvar{rgt} \coqdocvar{rd}) \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AGProps.Add} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt'} \coqdocvar{wk}) \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{transfer} \coqdocvar{a} \coqdocvar{b}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCtransferLUB}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{transfer\_lub}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{i} \coqdocvar{a} \coqdocvar{b}:\coqdocvar{AG.t}),\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{transfer} \coqdocvar{i} \coqdocvar{a} \ensuremath{\rightarrow} \coqdocvar{transfer} \coqdocvar{i} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{\ensuremath{\exists}} \coqdocvar{c}:\coqdocvar{AG.t}, \coqdocvar{transfer} \coqdocvar{a} \coqdocvar{c} \ensuremath{\land} \coqdocvar{transfer} \coqdocvar{b} \coqdocvar{c}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCpotTransfer}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{potTransfer} (\coqdocvar{a} \coqdocvar{c}:\coqdocvar{AG.t}) : \coqdockw{Prop} :=\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{potTransfer\_base} :  \coqdocvar{AG.Equal} \coqdocvar{a} \coqdocvar{c} \ensuremath{\rightarrow} \coqdocvar{potTransfer} \coqdocvar{a} \coqdocvar{c}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{potTransfer\_trans} : \coqdockw{\ensuremath{\forall}} (\coqdocvar{b}:\coqdocvar{AG.t}), \coqdocvar{potTransfer} \coqdocvar{a} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{transfer} \coqdocvar{b} \coqdocvar{c} \ensuremath{\rightarrow} \coqdocvar{potTransfer} \coqdocvar{a} \coqdocvar{c}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCpotTransferLUB}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{potTransfer\_lub}:\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} (\coqdocvar{i} \coqdocvar{a} \coqdocvar{b}: \coqdocvar{AG.t}), \coqdocvar{potTransfer} \coqdocvar{i} \coqdocvar{a} \ensuremath{\rightarrow} \coqdocvar{potTransfer} \coqdocvar{i} \coqdocvar{b} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{\ensuremath{\exists}} \coqdocvar{c} : \coqdocvar{AG.t}, \coqdocvar{potTransfer} \coqdocvar{b} \coqdocvar{c} \ensuremath{\land} \coqdocvar{potTransfer} \coqdocvar{a} \coqdocvar{c}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCmaxTrans}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{maxTransfer} (\coqdocvar{i}:\coqdocvar{AG.t}) : \coqdockw{Prop} := \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a}:\coqdocvar{AG.t}, \coqdocvar{transfer} \coqdocvar{i} \coqdocvar{a} \ensuremath{\rightarrow} \coqdocvar{AG.Equal} \coqdocvar{i} \coqdocvar{a}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCmaxPotTrans}[0]{
+  \begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{maxPotTransfer} (\coqdocvar{i}:\coqdocvar{AG.t}) : \coqdockw{Prop} := \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a}:\coqdocvar{AG.t}, \coqdocvar{potTransfer} \coqdocvar{i} \coqdocvar{a} \ensuremath{\rightarrow} \coqdocvar{AG.Equal} \coqdocvar{i} \coqdocvar{a}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCpotAcc}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{potAcc} (\coqdocvar{i} \coqdocvar{max}:\coqdocvar{AG.t}) : \coqdockw{Prop} := \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{potTransfer} \coqdocvar{i} \coqdocvar{max} \ensuremath{\land} \coqdocvar{maxPotTransfer} \coqdocvar{max}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagObjsSpec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_objs\_spec} (\coqdocvar{i}:\coqdocvar{AG.t}) (\coqdocvar{objs}: \coqdocvar{RefSet.t}) := \coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{x}, \coqdocvar{RefSet.In} \coqdocvar{x} \coqdocvar{objs} \ensuremath{\leftrightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{\ensuremath{\exists}} \coqdocvar{obj}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{rgt}, \coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{x} \coqdocvar{obj} \coqdocvar{rgt}) \coqdocvar{i} \ensuremath{\lor} \coqdoceol
+\coqdocindent{7.50em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{obj} \coqdocvar{x} \coqdocvar{rgt}) \coqdocvar{i}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCcompleteAG}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{complete\_AG} (\coqdocvar{refs}:\coqdocvar{RefSet.t}) (\coqdocvar{full}:\coqdocvar{AG.t}) : \coqdockw{Prop} :=\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} (\coqdocvar{src} \coqdocvar{tgt}:\coqdocvar{Ref.t})(\coqdocvar{rgt}:\coqdocvar{accessRight}), \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{RefSet.In} \coqdocvar{src} \coqdocvar{refs} \ensuremath{\rightarrow} \coqdocvar{RefSet.In} \coqdocvar{tgt} \coqdocvar{refs} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt} \coqdocvar{rgt}) \coqdocvar{full}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCAGallObjs}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{AG\_all\_objs} (\coqdocvar{i}:\coqdocvar{AG.t}) (\coqdocvar{objs}: \coqdocvar{RefSet.t}) :=\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} (\coqdocvar{src} \coqdocvar{tgt}:\coqdocvar{Ref.t}) (\coqdocvar{rgt}:\coqdocvar{accessRight}),\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt} \coqdocvar{rgt}) \coqdocvar{i} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{RefSet.In} \coqdocvar{src} \coqdocvar{objs} \ensuremath{\land} \coqdocvar{RefSet.In} \coqdocvar{tgt} \coqdocvar{objs}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagAllObjsTransfer}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{ag\_all\_objs\_transfer}: \coqdockw{\ensuremath{\forall}} \coqdocvar{A} \coqdocvar{N} \coqdocvar{B},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG\_all\_objs} \coqdocvar{A} \coqdocvar{N} \ensuremath{\rightarrow} \coqdocvar{transfer} \coqdocvar{A} \coqdocvar{B} \ensuremath{\rightarrow} \coqdocvar{AG\_all\_objs} \coqdocvar{B} \coqdocvar{N}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCcomputePotAcc}[0]{
+\begin{coqdoccode}
+  \coqdocnoindent
+  \coqdockw{Function} \coqdocvar{potAcc\_fun} (\coqdocvar{i}:\coqdocvar{AG.t}) \{\coqdockw{measure} \coqdocvar{dist\_from\_complete} \coqdocvar{i}\}: \coqdocvar{AG.t} := \coqdoceol
+  \coqdocindent{1.00em}
+  \coqdockw{match} \coqdocvar{findTransferEdge} \coqdocvar{i} \coqdockw{with} \coqdoceol
+  \coqdocindent{2.00em}
+  \ensuremath{|} \coqdocvar{None} \ensuremath{\Rightarrow} \coqdocvar{i} \coqdoceol
+  \coqdocindent{2.00em}
+  \ensuremath{|} \coqdocvar{Some} \coqdocvar{edge} \ensuremath{\Rightarrow} \coqdocvar{potAcc\_fun} (\coqdocvar{AG.add} \coqdocvar{edge} \coqdocvar{i})
+  \coqdocindent{1.00em}
+  \coqdockw{end}.
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCmaxTransferMaxPotTransfer}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{maxTransfer\_maxPotTransfer}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{i}:\coqdocvar{AG.t}),  \coqdocvar{maxTransfer} \coqdocvar{i} \ensuremath{\leftrightarrow} \coqdocvar{maxPotTransfer} \coqdocvar{i}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagAddCommute}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_add\_commute} \coqdocvar{F} := \coqdockw{\ensuremath{\forall}} \coqdocvar{ag} \coqdocvar{ag'} \coqdocvar{x}, \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AGProps.Add} \coqdocvar{x} \coqdocvar{ag} \coqdocvar{ag'} \ensuremath{\rightarrow} \coqdocvar{AGProps.Add} \coqdocvar{x} (\coqdocvar{F} \coqdocvar{ag}) (\coqdocvar{F} \coqdocvar{ag'}).\coqdoceol
+\end{coqdoccode}
+}
+
+
+\newcommand{\COQDOCtransferDec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{transfer\_dec} : \coqdockw{\ensuremath{\forall}} \coqdocvar{A} \coqdocvar{B}:\coqdocvar{AG.t}, \{\coqdocvar{transfer} \coqdocvar{A} \coqdocvar{B}\} + \{\ensuremath{\neg} \coqdocvar{transfer} \coqdocvar{A} \coqdocvar{B}\}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagObjsSpecAGallObjs}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{ag\_objs\_spec\_AG\_all\_objs}: \coqdockw{\ensuremath{\forall}} \coqdocvar{i} \coqdocvar{n}, \coqdocvar{ag\_objs\_spec} \coqdocvar{i} \coqdocvar{n} \ensuremath{\rightarrow} \coqdocvar{AG\_all\_objs} \coqdocvar{i} \coqdocvar{n}.\coqdoceol
+\end{coqdoccode}
+}
+
+
+\newcommand{\COQDOCcompleteAgSpec}[0]{
+\begin{coqdoccode}
+  \coqdocnoindent
+  \coqdockw{Definition} \coqdocvar{complete\_ag\_spec} \coqdocvar{refs} \coqdocvar{full} := \coqdockw{\ensuremath{\forall}} \coqdocvar{edge}, \coqdoceol
+  \coqdocindent{1.00em}
+  \coqdocvar{AG.In} \coqdocvar{edge} \coqdocvar{full} \ensuremath{\leftrightarrow} \coqdoceol
+  \coqdocindent{2.00em}
+  \coqdocvar{RefSet.In} (\coqdocvar{Edges.source} \coqdocvar{edge}) \coqdocvar{refs} \ensuremath{\land} \coqdocvar{RefSet.In} (\coqdocvar{Edges.target} \coqdocvar{edge}) \coqdocvar{refs}.\coqdoceol
+\end{coqdoccode}
+}
+
+
+\newcommand{\COQDOCpotAccPotAccFun}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{potAcc\_potAcc\_fun}: \coqdockw{\ensuremath{\forall}} \coqdocvar{i}, \coqdocvar{potAcc} \coqdocvar{i} (\coqdocvar{potAcc\_fun} \coqdocvar{i}).\coqdoceol
+\end{coqdoccode}
+}

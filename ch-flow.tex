@@ -1,0 +1,212 @@
+\chapter{Information Flow}
+\label{ch:flow}
+
+This chapter focuses on analyzing how the flow of data in \TMmodelName{} is related to \TMpotAcc{}.
+As previously mentioned, the model does not directly capture application data; the transfer of application data is abstracted using the \NMreadFrom{} and \NMwroteTo{} definitions.
+From these definitions, \TMmodelName{} defines what is \term{\TMmutated{}} through a sequence of operations.
+It also supplies the \term{\TMmutable{}} judgment: a simple, permission-based definition of mutability by directly examining an access graph.
+The remainder of the chapter examines how what is mutated through a sequence of operations is a subset of what is considered potentially mutable.
+Naively, this is demonstrated by observing that all information flow occurs by the existence of a capability and that, for each operation, what is mutated is a subset of what is mutable in the direct access.
+By capturing all potential capabilities, the computation of potential access has also captured all potential information flow.
+
+\section{Mutation}
+
+The semantics of \TMmodelName{} do not incorporate data values directly.
+Instead, they define how data may flow during each operation through the use of the \COQreadFromSpec{} and \COQwroteToSpec{} relations.
+As their names imply, the \COQreadFromSpec{} judgment indicates the potential information flow sources during an operation, and \COQwroteToSpec{} indicates the potential destinations.
+A complete system implementation must demonstrate that its operations do not violate these judgments, providing implementations of \COQreadFrom{} and \COQwroteTo{} satisfying those specifications.
+
+For review, the definition of \COQreadFromSpec{} and \COQwroteToSpec{} capture potential flows of both data and \TMcaps{}.
+The simple \NMread{} and \NMwrite{} operations that have no impact on the \TMsystemState{} indicate data-only data motion.
+Because \emph{it is possible to encode data using \TMcaps{}}, their potential transfers are considered as information flow.
+While necessary for correctness, this is not the case for all models and many incorrectly label such flow as \emph{covert}.
+Thus, the \TMfetch{} and \TMstore{} operations admit the same mutability as \COQread{} and \COQwrite{}.
+\xmakefirstuc{\TMsending{}} a message may contain both data and \TMcaps{}, and has the same mutation as \COQwrite{}.
+Like the \COQsend{} \TMop{}, \TMcreate{} is able to pass multiple \TMcaps{} and arbitrary data along for \TMobj{} instantiation.
+The \COQrevoke{} \TMop{} has the same flow potential as \COQwrite{}.  In many systems the \TMrevoke{} command is performed by a \COQwrite{} of a trivially non-mutating \TMcap{}.
+Though it alters the state of an \TMobj{}, the \COQdestroy{} \TMop{} is not modeled as effecting mutation upon that \TMobj{}.
+When an \TMobj{} is destroyed, subsequent \TMops{} on that \TMobj{} do not admit any outward information flow, not even the state of the \TMobj{}.\footnote{This is hiding a subtle issue and is addressed in \Cref{ch:future}.}
+
+\begin{figure}
+  \COQDOCmutatedOpDef{}
+  \COQDOCmutatedDef{}
+  \caption{Definition of \COQmutated{}. \label{def:flow:mutated}}
+\end{figure}
+
+The \COQmutatedDef{} inductive models where information might flow during a sequence of operations.
+Specifically, \COQmutatedDef{} considers the \TMobjs{} reachable by an initial subsystem in an initial \TMsystemState{}.
+As a precondition, the initial subsystem must contain \TMobjs{} that are \TMalive{} or \TMdead{}.
+The algorithm is initialized with the initial subsystem being the reachable subsystem, as all \TMobjs{} are considered self-mutating.
+Each time an \TMop{} is performed the reachable subsystem is expanded to include the \COQwroteTo{} set if an element of the subsystem is present in the \COQreadFrom{} set.
+After all \TMops{} have been executed, the resulting reachable subsystem contains all locations information in the initial subsystem could have reached as a result of that \TMop{} sequence.
+
+\section{Mutability}
+
+\begin{figure}
+\COQDOCmutableSpec{}
+\caption{Definition of \TMmutable{}. \label{def:flow:mutable}}
+\end{figure}
+
+In contrast to the flows that occur over operations, the abstract concept of possible mutation as authorized by \TMaccessRights{} is captured by the \COQmutable{} judgment.
+Intuitively, most developers expect the potential for information transfer to be expressed using system permissions.
+A definition of \COQmutable{} that relies on \COQmutated{} would defeat such intuitions as they have been captured by \TMpotAcc{} and the safety property.
+Therefore, \COQmutable{} is defined simply by inspecting the permissions of an access graph, without considering possible operations.
+If any \TMobj{} in the initial \TMsubsystem{} is the \TMedgeSource{} of a \NMwr{} or \NMtx{} \TMaccessEdge{}, the \TMedgeTarget{} is \TMmutable{} by the \TMsubsystem{}.
+Additionally, if the \TMedgeTarget{} of a \NMrd{} or \NMwk{} \TMaccessEdge{} is in the initial \TMsubsystem{}, then \TMedgeSource{} is \TMmutable{} by the \TMsubsystem{}.
+
+\begin{figure}
+  \COQDOCmutableSpecSubset{}
+  \COQDOCproperMutableSpec{}
+  \caption{Properties of \TMmutable{}. \label{fig:flow:mutableProperties}}
+\end{figure}
+
+This definition of \TMmutable{} capturing the instantaneous information flow of each \TMaccessRight{} within any \TMaccessGraph{}.
+\xmakefirstuc{\TMmutable{}} is monotonic over the \TMaccessGraph{}, following from the intuition that increasing \TMaccessRights{} increases \TMmutability{}.
+This allows all proofs describing approximations over \TMaccessGraphs{} to be lifted to approximate \TMmutability{}.
+The fact that a \TMsubsystem{} can self-mutate is captured directly.
+\xmakefirstuc{\COQmutable{}} is also monotonic over the initial \TMsubsystem{}, causing it to be non-decreasing.
+Applying \TMmutable{} to a \TMdirAccAG{} is called \TMdirAccMutability{} while applying it to \TMpotAccAG{} is called \TMpotAccMutability{}.
+Because \TMdirAcc{} is a subset of \TMpotAcc{}, \TMdirAccMutability{} is a subset of \TMpotAccMutability{}.
+
+\section{Operational Mutability}
+
+The hypothesis that all direct mutation is captured by direct mutability and all potential mutation by potential mutability does not match the definition of \TMmutable{} because it does not capture any transitivity of information flow.
+For \TMaccessGraph{} approximations to successfully capture \TMmutation{}, the opportunity to capture the transitivity of flow must occur when approximating \TMpotAcc{}.
+Naively applying \COQmutable{} after each \TMpotAcc{} approximating operation produces an induction strategy based on \TMpotTransfer{}.
+However, the induction strategy of \TMpotTransfer{} is insufficient to describe how \TMmutability{} grows from the initial \TMsubsystem{}.
+Because \COQmutable{} is a static definition and does not describe how \TMmutability{} changes over \TMops{}, it cannot approximate \COQmutated{}.
+A definition of \TMmutability{} that follows the induction strategy of \COQmutated{} is needed.
+
+\begin{figure}
+  \begin{center}
+    \FIGgeneralApproxDirAccDep{}
+  \end{center}
+  
+  \COQDOCgeneralMDirAccDep{}
+  \COQDOCapproxDirAccDep{}
+\caption{Figure and definition for \COQgeneralApproxDirAccDep{}. \label{fig:flow:generalApproxDirAccDep}}
+\end{figure}
+
+\Term{\TMmutableExecute} is the concept of folding \COQmutable{} over an \TMop{} sequence in the same manner as \COQmutated{}.
+However, because \TMmutableExecute{} must be general enough to extend to all partial \TMpotTransfers{} approximating \COQdirAccExecute{}, it has a slightly complicated structure.
+\COQgeneralApproxDirAccDep{} is constructed as a generalized form of \COQpotAccApproxDirAccDep{} that relates two \TMaccessGraph{} transformations by the function \coqvar{Fg}.
+\COQpotAccApproxDirAccDep{} becomes the special case where \coqvar{Fg} is \COQpotAccFun{} and the related transformations are \COQdirAccExecute{} and \COQpotAccExecute{}.
+\COQapproxDirAccDep{} places additional constraints on \COQgeneralApproxDirAccDep{}.
+It requires all functions to be equivalence preserving and restricts \coqvar{Fg} to also be non-decreasing; these conditions are satisfied by all \TMpotTransfers{} and approximating functions.
+
+\begin{figure}
+  \COQDOCindexed
+  \COQDOCmutableExecute
+  \caption{Operational mutability. \label{fig:flow:mutableExecute}}
+\end{figure}
+
+\Term{\TMmutableExecute}, defined by \COQmutableExecute{} in \Cref{fig:flow:mutableExecute}, folds \COQmutable{} over each \TMop{} to aligns with the induction strategy of \TMmutated{}.
+Unlike the static definition of \TMmutable{}, operational mutability is defined inductively over a list of \TMops{}.
+Like \COQmutated{}, it starts with an initial system state and subsystem, and grows these based on what is statically \TMmutable{} after each step.
+However, rather than determining what was \TMmutated{}, it is parameterized over a specification for approximating \COQdirAccExecute{} and a function relating this specification to \COQdirAccExecute{}, using \COQapproxDirAccDep{}.
+Because the executable specification is a relation between \TMop{} lists and functions, the \COQindexed{} constraint ensures that all equivalent lists are related to equivalent functions.
+As will all other general properties, this is a fairly trivial property for all relevant functions.
+
+
+\begin{figure}
+  \COQDOCProperMutableExecute{}
+  \COQDOCmutableExecuteSubset{}
+  \caption{Properties of operational mutability. \label{fig:flow:properMutableExecute}\label{fig:flow:mutatedExecute}}
+\end{figure}
+
+Operational Mutability has two very useful properties: it preserves \TMaccessGraph{} equivalence and subset relationships.
+This generalization applies to any execution sequence in a step-wise approximating relationship with \COQdirAccExecute{}, including all \TMpotTransfer{} approximations including \COQpotAccExecute{}.
+The proof that the operational mutability of \TMdirAcc{} approximations must be bounded by the operational mutability of \TMpotAcc{} approximations involves specializing these theorems correctly.
+This result forms the foundation of information flow analysis for the remainder of this chapter.
+
+\begin{figure}
+  \COQDOCmutableDirAccExecute
+  \COQDOCmutablePotAccExecute
+  \COQDOCexistsMutableDirAccExecute
+  \COQDOCexistsMutablePotAccExecute
+  \COQDOCmutableExecuteDirAccSubsetPotAcc{}
+  \caption{Specialized forms of \COQmutableExecute{}. \label{fig:flow:mutableExecuteSpecializations}}
+\end{figure}
+
+Operational mutability is specialized for \TMdirAcc{} approximations using the identity function and for \TMpotAcc{} approximations using \COQcomputePotAcc{}.
+Specialized forms are constructed by simple instantiation and checking completeness.
+For completeness, the proof that the \TMmutability{} of \COQpotAccExecute{} approximates the \TMmutability{} of \COQdirAccExecute{} is also instantiated.
+
+\pagebreak[4]
+\begin{figure}
+  \centering
+  \FIGmutableExecute{}
+  \caption{Relationships between mutated and operational mutability. \label{fig:flow:mutatedMutable}}
+\end{figure}
+
+\section{Mutation is always Mutable}
+
+
+\Cref{fig:flow:mutatedMutable} illustrates the relationship between \TMmutated{} and operational mutability as one induction strategy.
+This diagram introduces some additional notation.
+Sets of \TMrefs{} are depicted with drop-shadow diamonds for both \TMmutated{} and \TMmutable{} sets.
+Also, the figure contains dashed lines to indicate portions of \TMmutableExecute{} that are not part of its definition, but are intended to connect to the definition.
+The diagram has been flattened to appear sequential when this is not actually the case.
+All functions are actually parameterized over the initial \TMsystemState{} and \TMdirAccAG{} and capture all possible functions approximating the whole \TMop{} sequence.
+Though slightly overspecialized, the resulting diagram is more intuitive and more closely aligns with other diagrams in this document.
+
+\xmakefirstuc{\TMmutablePotAccExecute} approximates \TMmutableDirAccExecute{}.
+To show that \TMmutablePotAccExecute{} approximates what is \TMmutated{}, it is sufficient to show that \TMmutableDirAccExecute{} approximates what is \TMmutated{}.
+
+\begin{figure}
+\COQDOCmutableDirAccExecuteMutatedApprox{} 
+\COQDOCmutatedApproxMutablePotAccExecute{} 
+\caption{Approximations of Mutated \label{fig:flow:mutatedapprox}}
+\end{figure}
+
+It must be the case that \TMmutableDirAccExecute{} approximates \TMmutated{} by induction on \TMops{}.
+Presume the \TMsubsystem{} analyzed for \TMmutableDirAccExecute{} is a superset of that analyzed for \TMmutation{}.
+The prerequisite \TMcap{} for each \TMop{} is represented as a collection of \TMaccessEdges{} in the \TMdirAccAG{}.
+By case analysis, the \TMmutability{} of these \TMaccessEdges{} directly capture the information flow possible for this \TMop{}.
+However, \TMmutableDirAccExecute{} grows its subsystem by all possible \TMmutations{}, producing a superset of what was \TMmutated{}.
+In the base case, nothing is \TMmutated{} and the \TMmutableDirAccExecute{} is simply direct \TMmutability{}, which is a superset of the initial \TMsubsystem{}.
+Therefore, \TMmutableDirAccExecute{} approximates \TMmutated{}, and this result must extend to \TMmutablePotAccExecute{} using previous results.
+
+\begin{figure}
+\COQDOCAGProjectMaximal{} %  - AG\_project on a maximal accessgraph is also maximal.
+\COQDOCmutableMaximal % - mutable on a maximal access graph does not change.
+\COQDOCmutableProjectNotInEq % - operational mutability on maximal accessgraphs does not change through a projection where the allocator is not in the mutable set.
+\COQDOCmutableProjectInEq % - operational mutability on maximal accessgraphs grows precicely by the allocated node when the allocator is within the mutable set.
+\caption{Relationships of mutable in potential access approximations. \label{fig:flow:AGProjectMaximal}\label{fig:flow:mutableExecuteProp}}
+\end{figure}
+
+The remainder of this section describes how initial potential \TMmutability{} and \TMmutablePotAccExecute{} are related.
+Specifically, the goal is to demonstrate that initial potential \TMmutability{} for existing \TMobjs{} will never change and subsumes all \TMmutablePotAccExecute{}.
+This analysis begins by examining the relationships of \TMpotAcc{} approximations, as shown in \Cref{fig:flow:mutableExecuteProp}.
+First, \COQmutable{} is a \TMmaximal{} result when applied to a \TMmaximal{} \TMaccessGraph{}, as shown in \COQmutableMaximal{}. 
+That is, each \TMpotAccAG{} has captured all potential information flow for existing objects and operational mutability does not grow for operations that do not alter \TMpotAcc{}.
+Since \COQmutable{} preserves subset, it also can't be any smaller and must therefore be equal.
+Second, operational mutability grows precisely with each \TMAGprojection{}, which occurs with each \TMallocation{}.
+After a \TMAGprojection{}, \TMmutableExecute{} grows only by the allocated \TMobj{} exactly when the allocator is in the previous mutable set, otherwise it is unchanged.
+That is, in the case of \COQallocate{}, operational mutability must only grow by precisely the allocated object when the allocator is \TMmutable{}.
+
+These definitions rely upon the \COQobjExisted{} judgment that identifies those \TMobjs{} either \TMalive{} or \TMdead{} in a \TMsystemState{}.
+\xmakefirstuc{\TMobjs} that existed must be kept disjoint from \TMobjs{} that are valid in a \TMAGprojection{}, as \TMAGprojecting{} to a previously existing \TMobj{} violates existing information flows.
+In theorems not involving a \TMsystemState{}, the set of \TMobjs{} that existed is a free variable and \TMAGprojections{} are stated targeting references outside this set.
+Although this pattern obliges the reader to remember hypotheses not present in the theorem definition, the theorems are more general and easier to apply.
+
+\begin{figure}
+\COQDOCmutablePotAccExecuteApprox % - potential operational mutability restricted to initially existing objects is bounded by initial potential mutability.
+\COQDOCmutableApproxMutated % - mutated restricted to initially existing objects is bounded by initial potential mutability.
+\caption{Initial \TMpotAccMutability{} and Initial \TMmutability{} are upper bounds on \TMmutation{} for existing \TMobjs{}. \label{fig:flow:mutableApproxMutated}}
+\end{figure}
+
+Both potential \TMmutability{}, and \TMmutablePotAccExecute{} only place an upper bound on the information flow between existing \TMobjs{}, and cannot describe what information flows will come to exist to new \TMobjs{}.
+\xmakefirstuc{\TMmutablePotAccExecute} can only grow by the allocated \TMobj{}, such with the case of all \TMpotAcc{} approximating \TMops{}.
+Therefore, the \TMmutablePotAccExecute{} between new \TMobjs{} cannot escalate the existing \TMmutablePotAccExecute{}, when restricted to existing \TMobjs{}, because these sets are disjoint.
+At each step, the \TMmutablePotAccExecute{} restricted to the existing \TMobjs{} must remain constant.
+In the base case, the \TMmutablePotAccExecute{} is identical to the potential \TMmutability{}.
+Finally, by transitivity, what is initially potentially \TMmutable{} is an upper bound on all \TMmutation{} between existing \TMobjs{}.
+
+This result enables analysis of a \TMsystemState{} to statically determine an upper bound on the future \TMmutability{} of all \TMsubsystems{} present by simply examining the initial potential \TMmutability{}.
+Not only is \TMpotAcc{} relevant to solving the safety problem, but it also directly approximates potential \TMmutation{} through the \COQmutable{} judgment.
+Both definitions are computable and decidable leading to a fully computable and decidable result that can be applied to reason about security policies.
+
+The ability to successfully implement a security policy is dependent on the ability to model how changes in behavior impact the potential for information flow within a system.
+The definition of \COQmutable{} is simple and follows directly from permission-based reasoning, yet its results form a persistent upper-bound on mutation through the life of the system.
+By examining how restricting capabilities can restrict potential mutability, it is possible to model the behavior of application-based security policies such as confinement.

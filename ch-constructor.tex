@@ -1,0 +1,337 @@
+\chapter[Capabilities, Confinement, and the Constructor]{Capabilities, Confinement, \\ and the Constructor}
+\label{ch:constructor}
+
+This chapter introduces a policy mechanism by which capability-based systems may instantiate confined subsystems.
+First, this chapter presents capability-based systems as they pertain to \TMmodelName{}.
+This chapter discusses how security is structured in capability-based systems and then revisits confinement in that context.
+Then, it presents a concrete implementation of confinement in the Coyotos Constructor domain.
+It concludes with a description of how confinement can be used to produce other security policies and behavior.
+
+\section{Capability-based Systems}
+\label{sect:constructor:capabilitySystems}
+
+The concept of capabilities and a system supervisor based entirely upon them was first envisioned by Dennis and Van Horn \cite{DennisVanHorn:Capabilities} and would form the foundation of the MIT PDP-1 system \cite{Ackerman:1967:IMC}.
+In their words, capabilities are a structure that ``locates by means of [an effective name] some computing object, and indicates the actions that the computation may perform with respect to that object.'' \cite{DennisVanHorn:Capabilities}
+While their model contains many practical details for constructing an operating system, they can be distilled to a few general mechanisms that illustrate how capabilities are used.
+Each process was associated with a capability list, or C-list, which it could use only through supervisor implemented meta-instructions.
+Every action taken by a process must be authorized by a capability in its C-list, often specified by index through other meta-instructions.
+The supervisor implemented capabilities permitted various modes of access to built-in objects such as memory segments, processes, input/output devices, and capability storage called directories.
+Capabilities could be transferred when creating new processes, during inter-processes communication, or loaded and stored in directories.
+In addition to objects provided by the supervisor, the Dennis and Van Horn system was ``extensible.''
+Processes could provide software-defined objects through a meta-instruction constructing \term{entry} capabilities from a segment capability defining a protected procedure and a collection of capabilities to be made available to the procedure during operation.
+When invoked, these \term{protected entry points} were initialized with the state specified in the entry capability along with additional capabilities permitting access to the caller, presumably already sufficiently reduced to protect its parent.
+Levy presents an excellent history of early capability architectures in his book ``Capability-Based Computer Systems.'' \cite{Levy:1984:CCS}
+
+Keys are a frequently used metaphor for describing capability-based systems.
+Capabilities are like keys to locked objects; entering a home or starting a car ignition requires possessing the right key.
+New objects come with their own lock and key, unique to that object.
+Like keys, capabilities can be copied and distributed to other people, locked in boxes, and sent through the mail.
+Though they may be easily copied, good keys are extremely hard to forge and good locks are difficult to pick.
+In secure systems, these actions should not only be difficult, they should be impossible.
+Although critical to capability-based security, the metaphor is not easily extended to the construction of new agents created with their own lock and key.
+
+A capability is an unforgable and tamper-proof binding of both an object identifier and permissions to that object.
+All structures exposed by the system are capability-protected objects; all operations on objects must be authorized by a capability.
+There must be no objects in the system which can be accessed without a capability.
+The system may optionally provide an extension mechanism for creating new software-defined objects also protected by capabilities.
+These simple rules are the only general requirements for a capability-based system.
+
+The system must distinguish and preserve a separation between capabilities and data.
+Through the ability to distinguish capabilities from data, applications may restrict the transfer of capabilities in their possession.
+This allows applications to reliably manage not only the transmission of data, but also the transmission of permissions.
+By limiting both data and capabilities, applications can become effective security enforcing agents within capability-based systems.
+
+In most capability-based systems, the separation between capabilities and data is often preserved as a \msdnote*{occurs previously}{Harvard-style separation}.
+Similar to the separation of instructions and data in a Harvard architecture, these systems partition memory and expose different operations with independent addressing mechanisms for both capabilities and data.
+However, the separation of capabilities and data may also be managed through supervisor protection or type separation.
+Should the data representation of a capability be revealed by the system, this representation must remain insufficient to authorize any operations within the system.
+Therefore, capabilities cannot be obscurely passed through any data channels.
+Channels which permit the transmission of both capabilities and data must continue to preserve their separation.
+
+\section[Ambient Authority and Covert Channels]{Ambient Authority and \\ Covert Channels}
+\label{sect:constructor:ambientAuthority}
+
+Ambient authority occurs when the invocation of an operation is not required to simultaneously designate an object and specify the object-specific permission authorizing the operation.
+For example, in most systems using access control lists, file names and domain identifiers are designators that can be used along with the system's ambient authority.
+If \(D_i\) has ``owner'' access to \(D_j\), then \(D_i\) is permitted to grant any other domain any permission to \(D_j\).
+Although an access control decision did occur to the \emph{other} domain, \(D_i\) makes use of ambient authority because it does not need any access-control relationship to the \emph{other} domain to grant access.
+All that was required was the name of the domain.
+
+Ambient authority does not arise in capability-based systems.
+Capability-based systems eliminate ambient authority by combining names and permissions into a single entity: a capability.
+If designators are the exclusive means of wielding authority, then the absence of designation precludes authorization and, consequently, operation.
+When capabilities are the sole means of expressing and conveying permissions, any permission to access an object must also carry the name of that object.
+Therefore, by contraposition, a subject cannot come to hold an object or resource name without also holding the permission to access that object or resource.
+
+Covert channels are not addressed by \TMmodelName{}.
+In ``Confinement,'' Lampson characterized covert channels as ``those not intended for information transfer at all.'' \cite{Lampson:ConfinementNote}
+The hazard of this definition is that ``intent'' is a difficult proposition to quantify.
+Many \emph{overt} channels and ambient authority have been mislabeled as ``covert'' with an explanation of intent.
+\TMmodelName{} considers supervisor state and access control structures to be part of the overt channels in the system.
+Like all other storage in \TMmodelName{}, these locations can only be accessed via a capability.
+In this regard, covert channels are more narrowly scoped and generally involve timing attacks that cannot be mitigated with access control.
+
+\section[The Discretionary / Mandatory Dichotomy]{The Discretionary / Mandatory \\ Dichotomy}
+
+Most discussions of security mechanisms devolve into a discussion of mandatory and discretionary access control.
+The terms were widely discussed, but first appeared in the Department of Defense standard: ``Trusted Computer System Evaluation Criteria'' published in 1985.
+Discretionary access control polices are those security policies defined by the users of the system, while mandatory access control was defined by the security administrator.
+Discretionary policies are not robust because because their subjects have the ability to subvert them.
+Mandatory policies are not robust as they require the constant interaction of the security administrator.
+Neither approach helps us bring the granularity of policy down to something that is practically helpful.
+
+Another definition of mandatory access control is ``that a security officer may constrain the owner of an object in determining who may have access rights to that object.'' \cite{Halevi05enforcingconfinement}
+Access control mechanisms that rely only upon an unprotected name for authorizing an action often introduce ambient authority.
+This can be as simple as being able to deny access based only upon a name, as previously mentioned.
+In systems that rely on public unprotected identities for access control decisions, it is unclear how to completely eliminate ambient authority.
+
+Every system enforcing mandatory access control contains some user representing the security administrator.
+This user, or superuser, has complete control of the system and the entire system security policy is discretionary to this user.
+Therefore, a generalized view is that mandatory access controls are imposed upon subjects without their consent, but subjects of discretionary access control choose to abide by the policy.
+From this perspective, mandatory and discretionary access controls have to do with which side of a policy subjects sit upon.
+
+When discretionary/mandatory access control mechanisms are viewed as policy border mechanisms, it is possible to view the system policy as a hierarchy or lattice of policies imposed by different subjects.
+The notion that a user can successfully enforce a policy and might collaborate in their own defense is absent from the TCSEC definitions.
+This property is crucial for systems to enforce robust composable policies, providing defense-in-depth.
+Therefore, this dissertation refines the definition of a mandatory policy as one that an application cannot escape, while a discretionary policy is one that an application consents to abide by.
+Note that the focus here shifts from the users of the system to the agents of the system, the applications.
+
+Confinement is a composable policy that sits at the border between mandatory and discretionary policies.
+Confinement is mandatory for the subsystem being constructed but applied at the discretion of the constructing subsystem.
+By leveraging confinement during initial system construction, it has been used as a building block to implement mandatory controls.\cite{KeySafe}
+It permits applications to enforce security policies and permits different portions of the system to operate under different security managers.
+Confinement also allows users to establish clear and fine-grained distinctions between programs that act on behalf of a user and sub-programs that presumably do not.
+Confinement integrates tightly with the encapsulation and modularity boundary.
+Viewed as a building block, confinement allows us to restructure systems in a way that fundamentally reduces their attack surface by selectively localizing authority into objects that have narrow, validating APIs.
+
+\section{Confinement Revisited}
+
+This dissertation is concerned with confinement as a constructive, perimeter-enforcing security policy preventing unauthorized outward information flow.
+Confinement is a constructive policy, imposed upon freshly minted subsystems.
+Confinement straddles both mandatory and discretionary access control, erecting a mandatory policy from discretionary authority.
+Confinement ensures all outward information flow is authorized by the constructing subsystem, and an absence of outward information flow is expressible.
+
+Confinement is not implemented as part of the system protection mechanism but is instead assembled from the underlying capability system as a software design pattern.
+Although the remainder of this chapter will focus on a particular confinement mechanism, it is likely that other mechanisms exist.
+It is possible for any application to produce a confined subsystem by construction, without direct reliance upon its trusted computing base.
+To produce a confined subsystem, it suffices that an application's TCB not interfere with it's operation while instantiating a subsystem and the system will continue to enforce confinement without further intervention.
+
+\section{Coyotos: a Concrete Example}
+
+Coyotos is a micro-kernel object-capability operating system.
+Unlike traditional kernels, or monolithic kernels, micro-kernels are designed to be minimalist and extensible.
+They are designed to permit applications to safely extend the system while incurring a minimal overhead.
+Therefore, a substantial portion of system software is separate from the kernel and is not run in supervisor mode.
+This includes device drivers, storage managers, portions of the scheduler, and security policies.
+
+Objects in Coyotos are exclusively accessed by invoking kernel-protected capabilities.
+This includes memory pages and page tables, processes, endpoints for inter-process communication, access to interrupts and I/O, and even the scheduler.
+Coyotos is an object-based system and, whether implemented by the kernel or application, invoking a capability is tantamount to a remote procedure call, potentially handled by the kernel.
+Kernel objects and application objects share the same message marshaling interface.
+The kernel directly processes capability invocations to primitive objects.
+When a capability naming a software-defined object is invoked, the kernel performs an inter-process communication rendezvous with the implementer.
+As capability invocation accounts for virtually all operations, Coyotos has only three system calls: invoke a capability, copy a capability, and yield the processor.
+Even memory loads and stores can be modeled as capability invocations.
+
+Coyotos is also an atomic action kernel; from the perspective of the system, all kernel-implemented actions occur indivisibly.
+The kernel does not implement any long-running operations that would obligate it to return control to an application.
+Therefore, in a single-processor implementation, no locking is necessary as all operations can successfully complete before scheduling a process.
+In a multi-processor environment, all necessary locks must be obtained before an observable change to the system can occur.
+Should some locks be in use elsewhere, the kernel must avoid deadlock by ensuring that at least one system call can complete or by releasing the locks for this call and dispatching another request.
+
+Coyotos implementations preserve atomic actions at the abstraction of capability invocation, which may not always unify with a single system operation.
+Each system operation exposed is permitted to consist of multiple atomic micro-operations and it is these micro-operations which can be serialized, even when system calls cannot.
+For example, memory loads and stores may require a traversal of the process' root memory mapping structure.
+From the perspective of the process, the entire load or store is a single system operation, but it is not indivisible.
+During a traversal, the system guarantees only that each step of translation via a capability is indivisible.
+It is possible that other computation may modify address space objects along the current translation path such that no serialization of system calls is possible.
+However, the atomic micro-operations of the system may be consistently serialized and it is these micro-operations under consideration in \TMmodelName{}.
+
+\begin{figure}
+  \centering
+  \begin{tabular}{ | *{32}{c |} }
+    \hline
+    \multicolumn{20}{| c |}{\(AllocCount_{(20)}\)} & \multicolumn{5}{| c |}{\(restr_{(5)}\)} & P & \multicolumn{6}{| c |}{\(type_{(6)}\)} \\
+    \hline
+    \multicolumn{32}{| c |}{\(ProtectedPayload_{32} \textnormal{ or } GptMapData_{(32)}\)} \\
+    \hline
+    \multicolumn{32}{| c |}{\(OID_{(64)}\)} \\
+    \hline
+  \end{tabular}
+  \caption{Physical representations of Coyotos capabilities.}
+\end{figure}
+
+A capability in Coyotos is a system-protected 16-byte structure containing enough information for the system to perform an appropriate invocation.
+Each capability contains a 6-bit field indicating the type of the capability.
+There are some capability types that are unique, but types that have more than one object also contain a unique 64-bit object identifier and an allocation count.
+The object identifier is unique to the object and does not change over the life of the object, though it may be reclaimed after the object is destroyed.
+The allocation count is used by the system reclamation mechanism to determine if the capability is still valid.
+
+Coyotos uses a virtual memory management mechanism inspired by Liedtke's \term{guarded page table} proposal. \cite{Liedtke:1996:GPT}
+The Coyotos kernel must ensure that the guarded page table, or GPT, structure is the authoritative address translation mechanism on architectures dictating the memory management structure.
+There are three basic types of memory object: pages to hold data, CapPages to hold capabilities, and GPTs to construct address spaces.
+Capabilities naming memory objects contain a set of access restrictions and a guard.
+Access to a page or CapPage is restricted by all access restrictions along traversal path through memory capabilities.
+As large address spaces are typically sparsely populated, guards are used as a mechanism for compactly representing invalid translations without a page table and do not have any other access control impact.
+
+The primary access restrictions are ``read-only,'' ``no-execute,'' and ``weak.''
+A capability with no restrictions is a  ``read-write'' capability and permits both loads and stores.
+The ``read-only'' and ``no-execute'' restrictions are familiar, respectively prohibiting a store or an instruction fetch\footnote{The no-execute restriction is ignored on architectures where it cannot be enforced.}.
+The ``weak'' restriction ensures that any capability read through this path will be selectively downgraded to ensure transitive read-only authority.
+Memory capabilities fetched via this path are downgraded by introducing the ``weak'' restriction.
+The system returns a null capability for all capabilities where no appropriately downgraded capability exists.
+
+The system provides no rights-amplifying operations.
+Capabilities are a system protected structure and cannot be fabricated by applications.
+This is enforced by marking virtual memory mappings for CapPages with supervisor-only access.
+Thus, being able to view or copy capabilities as data does not confer their authority.
+The Coyotos kernel provides the \term{KeyBits} capability to permit applications to view the canonical data of a capability.
+Transferring capabilities cannot be used to transmit any information not already transmissible via the same channel.
+Therefore, the KeyBits capability is considered sensitive only as it reveals some of the inner workings of the system and not because it admits communication between applications.
+
+There are a few exceptions where universal system software does not run in supervisor mode.
+The atomic kernel design motivates leveraging application software to perform operations involving memory-allocating bookkeeping or lengthy blocking I/O requests.
+The notable subsystems included in the universal trusted computing base are the storage manager, the \term{Space Bank},  and the authenticated subsystem builder, the \term{Constructor}.
+The kernel provides sensitive capabilities with the expectation that they are exclusively held by these subsystems.
+Enforcing this constraint is managed by these subsystems and not by the kernel.
+
+\section{The Space Bank}
+\label{sect:constructor:spacebank}
+
+The \term{Space Bank} is the part of the universal TCB responsible for managing storage.
+It is admitted to perform this task as it uniquely holds the range capability, which grants access to all storage.
+Coyotos considers all allocatable structures as storage: Processes, Endpoints, GPTs, Pages, and CapPages.
+The primary responsibility of the Space Bank is to perform allocation requests while maintaining memory safety.
+In this context, memory safety obliges the Space Bank to not respond to a request with a capability naming an object that is already live.
+This behavior of the \term{Space Bank} is so fundamental to the behavior of the system that it will be considered part of the system model for the remainder of this document.
+
+The second responsibility of the Space Bank is to manage quotas.
+Because the system has a finite number of resources, the Space Bank itself has a quota.
+All other quotas are simply another constraint on the system, and implement the same Space Bank interface.
+These sub-banks are implemented as different capabilities to the Space Bank.
+Each quota can be deallocated as a single unit, effectively destroying all allocations within it and returning the storage to their parent.
+
+\section{The Constructor}
+\label{sect:constructor:constructor}
+
+In Coyotos, constructors are the applications that instantiate new subsystems.
+Constructors contain a subsystem image which they use to produce a subsystem upon request, called their yield.
+They may also be queried to determine if their internal image is confined.
+An affirmative result indicates that the yield of the constructor cannot exceed the information flow inherent in capabilities provided by the application requesting the yield.
+The result of a confinement test may be included in an application's predicate for determining which subsystems are safe to instantiate.
+
+The first step in a constructor's life-cycle is as the yield of the meta-constructor.
+Once instantiated and initialized, a constructor returns its builder capability and begins operating in the builder phase.
+As a builder, the constructor accepts commands which populate its internal subsystem image until it receives a seal command.
+The constructor responds to a seal command by invalidating its builder capabilities and returning its constructor capability.
+
+A sealed constructor will no longer perform updates to its subsystem image, but can be used to yield new subsystems.
+The constructor requires its client to provide the storage capabilities for each yield.
+It then allocates a new process and populates it according to its internal subsystem image.
+Finally, the constructor uses the process capability to fabricate an initial entry capability and invokes the new subsystem.
+As it does so, the constructor does not perform the standard call-return procedure.
+Instead, it passes the return capability specified by the caller requesting its yield.
+When the yield has finished initializing, it should reply directly to the original caller.
+After yielding a subsystem, the constructor guarantees that it will not leak any capabilities regarding the yield, usually by overwriting them upon receiving its next request.
+
+Before a process instantiates a subsystem using a constructor, it can ask the constructor to check whether that subsystem is confined.
+The constructor performs the confinement test, ensuring that all outward information flow of the yield follows only from authorized capabilities.
+Specifically, the only capabilities that may produce outward information flow are those granted to the yield by the requesting process, and consequently no information flow is authorized when no capabilities are granted.
+This test is performed simply by checking that all capabilities within the constructor's subsystem image are weak, trivially non-mutating, or name a recursively confined constructor.
+
+A parameterized confinement test is provided by the KeyKOS Factory. \cite{Hardy:KeyKOS:Factory:Patent}
+The KeyKOS Factory operates similarly to the Coyotos Constructor with slight variations on interfaces and terminology that have been altered for consistency.
+During its builder phase, as capabilities are added, the KeyKOS Factory maintains a list of ``holes:'' those capabilities for which it cannot statically guarantee confinement.
+The only capabilities not added to this list are those which are trivially non-mutating and those that are weak capabilities.
+As with Coyotos' Constructors, an application may query a Factory regarding the confinement of its yield before requesting the yield to be instantiated.
+In KeyKOS, this request also includes an \term{authorized set} of capabilities.
+To be confined, the Factory requires each of the holes to be within the authorized set or name a Factory whose yield is confined under the same authorized set.
+
+Many capability-based systems, including EROS and Coyotos, do not include a parameterized confinement test and the authorized set is empty.
+In these systems, all of the present system security structure can be constructed using the simplified confinement test, which increases confidence in the result.
+However, to produce a proof widely applicable across many capability systems, \TMmodelName{} supports the parameterized confinement test.
+
+Constructors are equipped with the \emph{brand} capability which they use to provide a verification interface.
+During subsystem construction, they brand their yield with a value unique to the constructor, for example, an HMAC of the subsystem image.
+Upon request, a constructor will verify whether they created a process by checking the process' brand.
+
+The meta-constructor is the constructor that yields constructors.
+It has read-only access to its instructions and duplicates this access as part of its subsystem image.
+The meta-constructor is initially sealed, causing all constructors to have identical behavior.
+Because constructors can verify another process, access to the meta-constructor allows constructors to be verified.
+This procedure is used to allow the constructor to verify the authenticity of other constructors when querying them for confinement.
+The ability to fabricate and verify confined subsystems is so critical to robustness that universal access to the meta-constructor is considered part of the system-wide TCB.
+
+Regardless of what operations the yield of this constructor performs, the only overt information flow it may cause follows from the use of capabilities in the authorized set.
+If this were not the case, then there must be some capability not in the authorized set which may be used to produce an outward information flow as capabilities are the only mechanism to produce overt information flow.
+But the only capabilities not in this authorized set are those known to never produce outward information flow, or sealed constructors whose result is recursively confined under the same set.
+Confinement requests cannot form a cycle as the constructor capability is not produced until it seals its system image.
+By induction, no such capability can exist, and the yield of the constructor must be confined.
+
+The Constructor and Space Bank are designed to work in tandem to provide additional guarantees.
+A constructor requires parents to provide a Space Bank capability from which it will allocate its yield.
+The common behavior of parents is to allocate a new sub-bank for the new subsystem.
+As the allocator of this sub-bank, the parent has the ability to destroy the entire subsystem.
+In addition to granting the parent the ability to confine the subsystem, this ensures that the parent may limit the duration the subsystem is present.
+A common pattern of creating ``memory-less'' services is to have the parent destroy them after each use.
+
+Space Banks are not initially constructed subsystems, and provide their own verification interface.
+The constructor is able to verify Space Banks as it holds a capability to the root bank.
+It passes this ability on to is children by ensuring that the bank capability used to allocate the new subsystem is verified by the root bank.
+Because the constructor relies on the correct behavior of a Space Bank to construct its yield, this check also protects the constructor from abuse.
+
+\section{Initial System Construction}
+
+The construction of an initial system image is handled by the Coyotos \term{mkImage} utility.
+mkImage is an imperative scripting interpreter with built-in commands to describe and generate a system image.
+Conceptually, mkImage can be thought of as a link editor that operates over Coyotos objects. 
+
+Because mkImage is run prior to the initial system boot, it incorporates behavior from both the Space Bank and constructor domains.
+Accounting data for the Space Bank is maintained by mkImage when new sub-banks are constructed and objects are allocated.
+To construct new domains, new constructors are built from executable images as though they were the yield of the meta-constructor.
+They require a capability to a sub-bank for allocation, include a capability to the meta-constructor in their system image, and are appropriately branded for later checking by the meta-constructor.
+A similar procedure constructs yields from individual constructors.
+Therefore, the Space Bank and all constructor domains must be able to start from a pre-initialized state.
+
+Security policies in the initial system image that provide no authorized interface for alteration become immortal.
+A \term{user} in a capability system is simply a program managing a long-running, authenticated session with an individual.
+In a system image without a capability authorizing a policy change, either by program design or by image construction, there can be no user or super-user who can effect such a change.
+This is often more powerful than the traditional mandatory policy as not even a security administrator can alter such a policy.
+Metaphorically, this is like loosing your keys in a universe prohibiting locksmiths.
+
+The mkImage tool does not provide a confinement test, but this does not make confinement less relevant.
+The confinement test does not require the constructor to execute it and may be performed by anyone.
+Therefore, the system developer should ensure that every capability issued as part of the initial system image is intentional.
+
+\section{Confinement as a Keystone}
+
+Confinement gives applications the ability to scope authority to exactly those subsystems where it is needed and is a foundational tool for building other security policies.
+Isolation is a mandatory security policy requiring that all information flow is authorized between subsystems.
+To enforce this policy, the description of what information flow is authorized is encoded by generating authorized capability sets for each subsystem.
+Before the system image instantiator builds these subsystems, it can check each subsystem for confinement against the approved information flow list.
+Because we have checked every outbound information flow, all inbound information flow must be approved as well.
+
+A simple reference monitor mediating confined subsystems can produce the Bell-LaPadula \cite{BellLaPadula} mandatory access control, or Multi-level security.
+As previously mentioned, the Bell-LaPadula model labels all domains with a clearance level and set of categories; access and information flow is only permitted between domains based on integer and subset ordering, respectively.
+To construct such a system using confinement, each domain is confined with respect to a security monitor.
+The security monitor manages all requests based on the originating domain and ensures that all requests are isolated by prohibiting the exchange of capabilities across domains.
+
+Confinement is not only useful for building and enforcing mandatory policies, but also constructing dynamic, application-defined policies.
+The KeyKOS Receptionist is the domain invoked by a device, usually a terminal, that authenticates a user's credentials and connects the device to the user's compartment.
+This is performed simply by passing the device interface along to the user's compartment, effectively eliminating the Receptionist from the communication path.
+While easy to describe in object-based capability systems, structurally ensuring the same privilege separation guarantees for SSH running on Unix systems was a substantial undertaking.
+
+The ``Open File Dialog'' is an example of one of the more powerful dynamic policies to emerge from object-capability systems.
+In traditional systems, applications running on behalf of a user have the ability to access all of that user's files.
+When well-behaved, these applications will prompt the user for which files they intend the application to access.
+Unlike the traditional model where this behavior is subject to the whim of the application, it can be enforced as a security policy in object-based capability systems.
+A user may construct an ``Open File Dialog'' as a subsystem that holds all of their authority and they trust to identify itself when prompting them about capabilities.
+When instantiating a new untrusted process, the user need not grant them any interesting capabilities other than a new open file dialog with a unique identifier.
+Regardless of what behavior the new process performs, the user will be able to identify when a prompt is originating through some action initiated by the new process.
+Using a trustworthy dialog, the user can remain in control of which, if any, capabilities are granted.
+
+The ``Open File Dialog'' example highlights how capabilities can be leveraged by developers to produce robust patterns of collaboration through modularity and encapsulation.
+The constructor mechanism permits applications to confine authority directly where it is needed and verify whether applications were constructed faithfully.
+This paradigm permits developers to reliably construct new software objects with clearly articulated boundaries and interfaces which include fine-grained security decisions.
+When deployed pervasively, the system can be structured to provide users the ability to comprehend the various contexts in which applications operate on their behalf.
+By giving the user the ability to scope these contexts using confinement, these systems provide users trustworthy agents to act on their behalf.

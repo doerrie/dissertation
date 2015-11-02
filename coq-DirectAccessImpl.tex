@@ -1,0 +1,207 @@
+\newcommand{\COQDOCdirAccSpec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} : \coqdockw{Prop} := \coqdockw{\ensuremath{\forall}} \coqdocvar{edge},
+\coqdocvar{AG.In} \coqdocvar{edge} \coqdocvar{ag} \ensuremath{\leftrightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{\ensuremath{\exists}} \coqdocvar{s'}, \coqdocvar{Sys.eq} \coqdocvar{s} \coqdocvar{s'} \ensuremath{\land}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{\ensuremath{\exists}} \coqdocvar{src\_ref}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{src}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{lbl}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{srcType}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{srcSched},\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{Sys.MapS.MapsTo} \coqdocvar{src\_ref} (\coqdocvar{src}, \coqdocvar{lbl}, \coqdocvar{srcType}, \coqdocvar{srcSched}) \coqdocvar{s'} \ensuremath{\land}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{\ensuremath{\exists}}  \coqdocvar{src'}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{lbl'}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{srcType'}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{srcSched'},\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{Sys.P.eq} (\coqdocvar{src}, \coqdocvar{lbl}, \coqdocvar{srcType}, \coqdocvar{srcSched}) (\coqdocvar{src'}, \coqdocvar{lbl'}, \coqdocvar{srcType'}, \coqdocvar{srcSched'}) \ensuremath{\land} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{ObjectLabel.eq} \coqdocvar{ObjectLabels.alive} \coqdocvar{lbl'} \ensuremath{\land}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{\ensuremath{\exists}} \coqdocvar{ind}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{cap}, \coqdocvar{Obj.MapS.MapsTo} \coqdocvar{ind} \coqdocvar{cap} \coqdocvar{src'} \ensuremath{\land} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{\ensuremath{\exists}} \coqdocvar{cap\_obj}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{cap\_lbl}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{cap\_type}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{cap\_sched},\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{Sys.MapS.MapsTo} (\coqdocvar{Cap.target} \coqdocvar{cap}) (\coqdocvar{cap\_obj}, \coqdocvar{cap\_lbl}, \coqdocvar{cap\_type}, \coqdocvar{cap\_sched}) \coqdocvar{s'} \ensuremath{\land}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{\ensuremath{\exists}} \coqdocvar{cap\_obj'}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{cap\_lbl'}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{cap\_type'}, \coqdocvar{\ensuremath{\exists}} \coqdocvar{cap\_sched'},\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{Sys.P.eq} (\coqdocvar{cap\_obj}, \coqdocvar{cap\_lbl}, \coqdocvar{cap\_type}, \coqdocvar{cap\_sched}) \coqdoceol
+\coqdocindent{6.00em}
+(\coqdocvar{cap\_obj'}, \coqdocvar{cap\_lbl'}, \coqdocvar{cap\_type'}, \coqdocvar{cap\_sched'}) \ensuremath{\land} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{ObjectLabel.eq} \coqdocvar{ObjectLabels.alive} \coqdocvar{cap\_lbl'} \ensuremath{\land}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{\ensuremath{\exists}} \coqdocvar{rgt}, \coqdocvar{ARSet.In} \coqdocvar{rgt} (\coqdocvar{Cap.rights} \coqdocvar{cap}) \ensuremath{\land}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{Edge.eq} (\coqdocvar{Edges.mkEdge} \coqdocvar{src\_ref} (\coqdocvar{Cap.target} \coqdocvar{cap}) \coqdocvar{rgt}) \coqdocvar{edge}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccSimpl}[0]{
+\begin{coqdoccode}
+\coqdocindent{1.00em}
+\coqdockw{Theorem} \coqdocvar{dirAcc\_simpl} : \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{ag}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{src}, \coqdocvar{SC.is\_alive} \coqdocvar{src} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{t} \coqdocvar{cap}, \coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{src} \coqdocvar{s} = \coqdocvar{Some} \coqdocvar{cap} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{tgt}, \coqdocvar{Ref.eq} \coqdocvar{tgt} (\coqdocvar{Cap.target} \coqdocvar{cap}) \ensuremath{\rightarrow} \coqdocvar{SC.is\_alive} \coqdocvar{tgt} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{rgt}, \coqdocvar{CC.hasRight} \coqdocvar{cap} \coqdocvar{rgt} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{AG.In} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} \coqdocvar{tgt} \coqdocvar{rgt}) \coqdocvar{ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+
+\newcommand{\COQDOCagAddCap}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_add\_cap} \coqdocvar{src} \coqdocvar{cap} \coqdocvar{ag}:=\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{ARSet.fold} (\coqdockw{fun} \coqdocvar{rgt} \coqdocvar{acc} \ensuremath{\Rightarrow} \coqdocvar{AG.add} (\coqdocvar{Edges.mkEdge} \coqdocvar{src} (\coqdocvar{Cap.target} \coqdocvar{cap}) \coqdocvar{rgt}) \coqdocvar{acc}) \coqdoceol
+\coqdocindent{6.00em}
+(\coqdocvar{Cap.rights} \coqdocvar{cap}) \coqdocvar{ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagAddCapsSend}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_add\_caps\_send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{ixi\_list} \coqdocvar{s} \coqdocvar{ag}:=\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{let} \coqdocvar{ag'} :=  \coqdocvar{ag\_add\_caps\_reply} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \coqdocvar{ag} \coqdoctac{in}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{option\_map1} \coqdoceol
+\coqdocindent{3.00em}
+(\coqdockw{fun} \coqdocvar{cap} \ensuremath{\Rightarrow} \coqdocvar{ag\_add\_caps\_by\_index\_pair\_list} \coqdoceol
+\coqdocindent{4.00em}
+(\coqdocvar{Cap.target} \coqdocvar{cap}) \coqdocvar{a} \coqdocvar{ixi\_list} \coqdocvar{s} (\coqdockw{fun} \coqdocvar{c}\ensuremath{\Rightarrow}\coqdocvar{c}) \coqdocvar{ag\_add\_cap\_valid\_std} \coqdocvar{ag'}) \coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{ag'} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagAddCapsAllocate}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_add\_caps\_allocate} \coqdocvar{a} \coqdocvar{n} \coqdocvar{ixi\_list} \coqdocvar{s} \coqdocvar{ag} :=\coqdoceol
+\coqdocindent{1.00em}
+(\coqdocvar{ag\_add\_cap} \coqdocvar{a} (\coqdocvar{Cap.mkCap} \coqdocvar{n} \coqdocvar{all\_rights}) \coqdoceol
+\coqdocindent{2.00em}
+(\coqdocvar{ag\_add\_caps\_by\_index\_pair\_list} \coqdocvar{n} \coqdocvar{a} \coqdocvar{ixi\_list} \coqdocvar{s} (\coqdockw{fun} \coqdocvar{c}\ensuremath{\Rightarrow}\coqdocvar{c})  \coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{ag\_add\_cap\_valid\_allocate} \coqdocvar{ag})).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagAddCapsCreate}[0]{\COQDOCagAddCapsAllocate}
+
+\newcommand{\COQDOCagAddCapsByIndexPairList}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_add\_caps\_by\_index\_pair\_list} \coqdocvar{src} \coqdocvar{o} (\coqdocvar{ixi\_list}: \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{list} (\coqdocvar{Ind.t} \ensuremath{\times} \coqdocvar{Ind.t})) \coqdocvar{s} \coqdocvar{Fc} \coqdocvar{Fv} \coqdocvar{ag} :=\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{fold\_right} (\coqdockw{fun} \coqdocvar{ixi} \coqdocvar{ag'} \ensuremath{\Rightarrow} \coqdocvar{ag\_add\_cap\_by\_obj\_index} \coqdocvar{src} \coqdocvar{o} (\coqdocvar{fst} \coqdocvar{ixi}) \coqdocvar{s} \coqdocvar{Fc} \coqdocvar{Fv} \coqdocvar{ag'}) \coqdoceol
+\coqdocindent{3.00em}
+\coqdocvar{ag} \coqdocvar{ixi\_list}.\coqdoceol
+\end{coqdoccode}
+
+}
+
+\newcommand{\COQDOCagAddCapByIndirectIndex}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_add\_cap\_by\_indirect\_index} \coqdocvar{src} \coqdocvar{t} \coqdocvar{i} \coqdocvar{s} \coqdocvar{Fc} \coqdocvar{Fv} \coqdocvar{ag}:=\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{option\_map1} \coqdoceol
+\coqdocindent{2.00em}
+(\coqdockw{fun} \coqdocvar{cap} \ensuremath{\Rightarrow} \coqdocvar{ag\_add\_cap\_by\_obj\_index} \coqdocvar{src} (\coqdocvar{Cap.target} \coqdocvar{cap}) \coqdocvar{i} \coqdocvar{s} \coqdocvar{Fc} \coqdocvar{Fv} \coqdocvar{ag}) \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{ag} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{src} \coqdocvar{s}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagPushCapByIndices}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{ag\_push\_cap\_by\_indices} \coqdocvar{o} \coqdocvar{i} \coqdocvar{o'} \coqdocvar{i'} \coqdocvar{s} \coqdocvar{Fc} \coqdocvar{Fv} \coqdocvar{ag}:= \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{option\_map1} \coqdoceol
+\coqdocindent{2.00em}
+(\coqdockw{fun} \coqdocvar{src} \ensuremath{\Rightarrow} \coqdocvar{ag\_add\_cap\_by\_obj\_index} \coqdocvar{src} \coqdocvar{o'} \coqdocvar{i'} \coqdocvar{s} \coqdocvar{Fc} \coqdocvar{Fv} \coqdocvar{ag})\coqdoceol
+\coqdocindent{2.00em}
+ \coqdocvar{ag} (\coqdocvar{SemDefns.option\_target} (\coqdocvar{SC.getCap} \coqdocvar{i} \coqdocvar{o} \coqdocvar{s})).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagAddCapAddCommute}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{ag\_add\_cap\_add\_commute}: \coqdockw{\ensuremath{\forall}} \coqdocvar{src} \coqdocvar{cap}, \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Seq.ag\_add\_commute} (\coqdocvar{ag\_add\_cap} \coqdocvar{src} \coqdocvar{cap}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagAddCapNondecr}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{ag\_add\_cap\_nondecr} : \coqdockw{\ensuremath{\forall}} \coqdocvar{src} \coqdocvar{cap} \coqdocvar{ag} \coqdocvar{ag'},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.Subset} \coqdocvar{ag} \coqdocvar{ag'} \ensuremath{\rightarrow} \coqdocvar{AG.Subset} \coqdocvar{ag} (\coqdocvar{ag\_add\_cap} \coqdocvar{src} \coqdocvar{cap} \coqdocvar{ag'}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCagAddCapEquiv}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{ag\_add\_cap\_equiv}: \coqdockw{\ensuremath{\forall}} \coqdocvar{src} \coqdocvar{src'} \coqdocvar{cap} \coqdocvar{cap'} \coqdocvar{ag} \coqdocvar{ag'},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Ref.eq} \coqdocvar{src} \coqdocvar{src'} \ensuremath{\rightarrow} \coqdocvar{Cap.eq} \coqdocvar{cap} \coqdocvar{cap'} \ensuremath{\rightarrow} \coqdocvar{AG.eq} \coqdocvar{ag} \coqdocvar{ag'} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.eq} (\coqdocvar{ag\_add\_cap} \coqdocvar{src} \coqdocvar{cap} \coqdocvar{ag}) (\coqdocvar{ag\_add\_cap} \coqdocvar{src'} \coqdocvar{cap'} \coqdocvar{ag'}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccInner}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{dirAcc\_inner} \coqdocvar{src\_ref} \coqdocvar{src\_obj} \coqdocvar{s} \coqdocvar{ag} := \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Obj.MapS.fold} (\coqdockw{fun} \coqdocvar{index} \coqdocvar{cap} \coqdocvar{acc\_ag} \ensuremath{\Rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{ag\_add\_cap\_valid} \coqdocvar{src\_ref} \coqdocvar{cap} \coqdocvar{s} (\coqdockw{fun} \coqdocvar{c}\ensuremath{\Rightarrow}\coqdocvar{c}) \coqdocvar{ag\_add\_cap\_valid\_std} \coqdocvar{acc\_ag}) \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{src\_obj} \coqdocvar{ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccOuter}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{dirAcc\_outer} \coqdocvar{s} \coqdocvar{ag} := \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.MapS.fold} (\coqdockw{fun} \coqdocvar{src\_ref} \coqdocvar{src\_tuple} \coqdocvar{acc\_ag} \ensuremath{\Rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{dirAcc\_inner} \coqdocvar{src\_ref} (\coqdocvar{SC.tupleGetObj} \coqdocvar{src\_tuple}) \coqdocvar{s} \coqdocvar{acc\_ag}) \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{s} \coqdocvar{ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAcc}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{dirAcc} \coqdocvar{s} := \coqdocvar{dirAcc\_outer} \coqdocvar{s} \coqdocvar{AG.empty}.\coqdoceol
+\end{coqdoccode}
+}
+
+
+\newcommand{\COQDOCdirAccSpecDirAcc}[0]{
+\begin{coqdoccode}
+\coqdockw{Theorem} \coqdocvar{dirAcc\_spec\_dirAcc}: \coqdockw{\ensuremath{\forall}} \coqdocvar{s}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} (\coqdocvar{dirAcc} \coqdocvar{s}).\coqdoceol
+\end{coqdoccode}
+}

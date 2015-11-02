@@ -1,0 +1,58 @@
+\chapter{Conclusion}
+\label{ch:conclusion}
+\label{ch:review}
+
+This dissertation presents \TMmodelName{}: a general, extensible model for capability-based systems and a subsequent mechanically checked proof of confinement.
+Confinement is the security policy requiring all outward information flow from a subsystem to be authorized.
+Despite practical implementations of confinement in capability-based systems, the enforcability of confinement continues to be questioned.
+The mechanically verified proof herein is designed to allay remaining concerns in that regard.
+
+Confinement is relevant to security in capability-based systems for many reasons.
+Confinement sits at the border of mandatory and discretionary policies and is capable of implementing either.
+Given a composable confinement mechanism, applications can enforce robust security policies, scoping authority precisely where it is needed and consequently limiting the impact of faults.
+Different portions of the system can operate under distinct security policies implemented by independent security managers and mutually suspicious security managers can limit the interaction of the subsystems under their control.
+Confinement is not a built-in policy for capability-based systems; it is application-defined and non-privileged.
+The enforcability of confinement validates further use of application-defined polices.
+Confinement also forms the foundation of \emph{agency}, providing a user with reasonable certainty that a program wielding a their authority is acting on their behalf.
+
+The constructor pattern is used to implement confinement in many capability-based systems.
+The constructor is a trusted subsystem used to define and fabricate new confined subsystems.
+The constructor is responsible for performing the confinement test on the subsystem image, permitting parents to establish the confinement of new subsystems in advance of requesting their instantiation.
+
+New subsystems are confined by the manner of their instantiation.
+The constraints placed on the construction of a confined subsystem are simple.
+All unauthorized capabilities in the new subsystem must be weak-only, trivially non-mutating, or completely internal to the subsystem.
+In the constructor pattern, capabilities to recursively confined constructors may also be permitted.
+Such constructors preserve confinement by induction.
+
+\TMmodelName{} increases confidence in the confinement mechanism by using automated verification to increase rigor and simplify review.
+All of \TMmodelName{} is embedded and checked in the Coq proof assistant providing assurance for a correct proof execution.
+While this allows reviewers to safely elide complexities of proof execution, relevant definitions and theorems in \TMmodelName{} are intended to be amenable to review.
+Operations are defined legibly in three parts: a pre-condition, state-transition, and an upper-limit on information flow.
+The entire model is axiom-free and includes a trivial implementation for each abstraction.
+The implementation functions terminate and its data structures are finite.
+These two features eliminate the places where verification executions might contain flaws overlooked during review.
+Therefore, \TMmodelName{} presents a proof that capability-based systems can enforce confinement which is both comprehensive and comprehensible.
+
+\TMmodelName{} contains the first mechanically verified proof of the safety property for capability-based systems.
+It defines a least upper bound on all potential access and describes how potential access evolves with each system operation.
+The potential access of the system is always decreasing between all existing objects and must also be decreasing between any existing subset of those objects.
+As an upper-bound, potential access solves the safety property for capability-based systems.
+
+\TMmodelName{} demonstrates a least-upper bound on information flow for object-capability systems.
+Even though the system models potential data flow at each operation, the potential for all data motion corresponds to potential access.
+Intuitively, this is because each operation requires a capability with access rights which correspond to the information flow that occurs.
+
+\TMmodelName{} provides the first mechanically verified proof of confinement for capability-based systems.
+The resulting upper-bound on information flow is used to validate the confinement test as a post-condition on the construction of new subsystems.
+The potential information flow out of a subsystem passing the confinement test is verified to be identical to the potential information flow of all subsystem consisting only of authorized capabilities.
+Therefore, the confinement test must produce a confined subsystem.
+
+This dissertation also demonstrates how \TMmodelName{} can be applied to many capability-based systems and related models.
+\TMmodelName{} can be applied to KeyKOS, EROS, Coyotos, and seL4 and may be generally applied to many other capability-based systems.
+\TMmodelName{} specifically targets modeling Coyotos, a microkernel designed to be embedded for verification.
+The seL4 microkernel is also of interest as it has already been mechanically verified to meet its abstract specification.
+The SW proof upon which this model was originally based has been updated with the results of \TMmodelName{}.
+This update makes no substantive changes to the statement of the main theorem or underlying system and consequently preserves any results based on the SW proof.
+\TMmodelName{} conclusively demonstrates the enforcability of confinement in capability-based systems.
+

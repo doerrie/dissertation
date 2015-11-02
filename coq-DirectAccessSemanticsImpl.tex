@@ -1,0 +1,138 @@
+\newcommand{\COQDOCdirAccRead}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_read}: \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{ag}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{c}, \coqdocvar{dirAcc\_spec} (\coqdocvar{Sem.do\_read} \coqdocvar{a} \coqdocvar{c} \coqdocvar{s}) \coqdocvar{ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccWrite}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_write}: \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{ag}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{c}, \coqdocvar{dirAcc\_spec} (\coqdocvar{Sem.do\_write} \coqdocvar{a} \coqdocvar{c} \coqdocvar{s}) \coqdocvar{ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccFetchRead}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_fetch\_read}: \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{ag}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{ag'}, \coqdocvar{dirAcc\_spec} (\coqdocvar{Sem.do\_fetch} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s}) \coqdocvar{ag'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{SemDefns.option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{AccessRights.rd} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.Subset} \coqdocvar{ag'} \coqdoceol
+\coqdocindent{3.00em}
+(\coqdocvar{ag\_add\_cap\_by\_indirect\_index} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{s} (\coqdockw{fun} \coqdocvar{c} \ensuremath{\Rightarrow} \coqdocvar{c}) \coqdocvar{ag\_add\_cap\_valid\_std} \coqdocvar{ag}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccFetchWeak}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_fetch\_weak}: \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{ag}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{ag'}, \coqdocvar{dirAcc\_spec} (\coqdocvar{Sem.do\_fetch} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s}) \coqdocvar{ag'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\ensuremath{\lnot} \coqdocvar{SemDefns.option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{AccessRights.rd} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.Subset} \coqdocvar{ag'}  \coqdoceol
+\coqdocindent{3.00em}
+(\coqdocvar{ag\_add\_cap\_by\_indirect\_index} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{s} \coqdocvar{Cap.weaken} \coqdocvar{ag\_add\_cap\_valid\_std} \coqdocvar{ag}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccStore}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_store}: \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{ag}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{ag'}, \coqdocvar{dirAcc\_spec} (\coqdocvar{Sem.do\_store} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s}) \coqdocvar{ag'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.Subset} \coqdocvar{ag'} \coqdoceol
+\coqdocindent{3.00em}
+(\coqdocvar{ag\_push\_cap\_by\_indices} \coqdocvar{a} \coqdocvar{t} \coqdocvar{a} \coqdocvar{c} \coqdocvar{s} (\coqdockw{fun} \coqdocvar{c}\ensuremath{\Rightarrow}\coqdocvar{c}) \coqdocvar{ag\_add\_cap\_valid\_std} \coqdocvar{ag}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccRevoke}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_revoke}: \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{ag}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{ag'}, \coqdocvar{dirAcc\_spec} (\coqdocvar{Sem.do\_revoke} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{s}) \coqdocvar{ag'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.Subset} \coqdocvar{ag'} \coqdocvar{ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccDestroy}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_destroy}: \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{ag}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{ag'}, \coqdocvar{dirAcc\_spec} (\coqdocvar{Sem.do\_destroy} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s}) \coqdocvar{ag'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.Subset} \coqdocvar{ag'} \coqdocvar{ag}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccSendOther}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_send\_other}: \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{ag}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{ixi\_list} \coqdocvar{opt\_i} \coqdocvar{ag'}, \coqdocvar{dirAcc\_spec} (\coqdocvar{Sem.do\_send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{ixi\_list} \coqdocvar{opt\_i} \coqdocvar{s}) \coqdocvar{ag'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\ensuremath{\lnot} (\coqdocvar{option\_map1} (\coqdockw{fun} \coqdocvar{cap} \ensuremath{\Rightarrow} \coqdocvar{Ref.eq} \coqdocvar{a} (\coqdocvar{Cap.target} \coqdocvar{cap})) \coqdocvar{False}\coqdoceol
+\coqdocindent{6.00em}
+(\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s})) \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.Subset} \coqdocvar{ag'} (\coqdocvar{ag\_add\_caps\_send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{ixi\_list} \coqdocvar{s} \coqdocvar{ag}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccSendSelf}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_send\_self}: \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{ag}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{ixi\_list} \coqdocvar{opt\_i} \coqdocvar{ag'}, \coqdocvar{dirAcc\_spec} (\coqdocvar{Sem.do\_send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{ixi\_list} \coqdocvar{opt\_i} \coqdocvar{s}) \coqdocvar{ag'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{option\_map1} (\coqdockw{fun} \coqdocvar{cap} \ensuremath{\Rightarrow} \coqdocvar{Ref.eq} \coqdocvar{a} (\coqdocvar{Cap.target} \coqdocvar{cap})) \coqdocvar{False} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.Subset} \coqdocvar{ag'} (\coqdocvar{ag\_add\_caps\_reply} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \coqdocvar{ag}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccAllocate}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{dirAcc\_allocate}: \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{ag}, \coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{ixi\_list} \coqdocvar{ag'}, \coqdocvar{dirAcc\_spec} (\coqdocvar{Sem.do\_allocate} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{ixi\_list} \coqdocvar{s}) \coqdocvar{ag'} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.Subset} \coqdocvar{ag'} (\coqdocvar{ag\_add\_caps\_allocate} \coqdocvar{a} \coqdocvar{n} \coqdocvar{ixi\_list} \coqdocvar{s} \coqdocvar{ag}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccApprox}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{dirAcc\_approx} \coqdocvar{Fs} \coqdocvar{Fa} := \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{ag} \coqdocvar{ag'} \coqdocvar{ag2}, \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{dirAcc\_spec} \coqdocvar{s} \coqdocvar{ag} \ensuremath{\rightarrow} \coqdocvar{dirAcc\_spec} (\coqdocvar{Fs} \coqdocvar{s}) \coqdocvar{ag2} \ensuremath{\rightarrow} \coqdocvar{AG.Subset} \coqdocvar{ag} \coqdocvar{ag'} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{AG.Subset} \coqdocvar{ag2} (\coqdocvar{Fa} \coqdocvar{ag'}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdirAccM}[0]{\COQDOCdirAccApprox}
+
+
+
+%  updated to git

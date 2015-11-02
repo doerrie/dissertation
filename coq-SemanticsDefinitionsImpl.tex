@@ -1,0 +1,113 @@
+\newcommand{\COQDOCreadPreReq}[0]{
+  \begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{read\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} := \coqdocvar{preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\land} \coqdoceol
+\coqdocindent{1.00em}
+(\coqdocvar{option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{rd} \ensuremath{\lor} \coqdocvar{option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{wk}).\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCwritePreReq}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{write\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} := \coqdocvar{preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\land} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{wr}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCfetchPreReq}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{fetch\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} := \coqdocvar{preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\land} \coqdoceol
+\coqdocindent{1.00em}
+(\coqdocvar{option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{rd} \ensuremath{\lor} \coqdocvar{option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{wk}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCstorePreReq}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{store\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} := \coqdocvar{preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\land} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{wr}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCrevokePreReq}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{revoke\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} := \coqdocvar{preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\land} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{wr}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCsendPreReq}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{send\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} := \coqdocvar{preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\land} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{tx}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCallocatePreReq}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{allocate\_preReq} \coqdocvar{a} \coqdocvar{n} \coqdocvar{s} := \coqdocvar{preReqCommon} \coqdocvar{a} \coqdocvar{s} \ensuremath{\land} \coqdocvar{SC.is\_unborn} \coqdocvar{n} \coqdocvar{s}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCcreatePreReq}[0]{\COQDOCallocatePreReq}
+
+\newcommand{\COQDOCdestroyPreReq}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{destroy\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} := \coqdocvar{preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\land} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{wr}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCpreReq}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} :\coqdockw{Prop} :=
+\coqdocvar{preReqCommon} \coqdocvar{a} \coqdocvar{s} \ensuremath{\land} \coqdocvar{target\_is\_alive} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}.\coqdoceol
+\end{coqdoccode}
+}
+\newcommand{\COQDOCpreReqCommon}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Definition} \coqdocvar{preReqCommon} \coqdocvar{a} \coqdocvar{s} :=
+\coqdocvar{SC.is\_alive} \coqdocvar{a} \coqdocvar{s} \ensuremath{\land} \coqdocvar{SC.is\_active} \coqdocvar{a} \coqdocvar{s}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCPreconditions}[0]{
+  \COQDOCpreReqCommon{}
+  \COQDOCpreReq{}
+  \COQDOCreadPreReq{}
+  \COQDOCwritePreReq{}
+  \COQDOCfetchPreReq{}
+  \COQDOCstorePreReq{}
+  \COQDOCrevokePreReq{}
+  \COQDOCsendPreReq{}
+  \COQDOCcreatePreReq{}
+  \COQDOCdestroyPreReq{}
+}
+
+\newcommand{\COQDOCtransferMonotonic}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{transfer\_monotonic}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{i} \coqdocvar{a} \coqdocvar{b} \coqdocvar{c} : \coqdocvar{AG.t}) (\coqdocvar{edge}: \coqdocvar{Edge.t}),\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AG.Subset} \coqdocvar{i} \coqdocvar{b} \ensuremath{\rightarrow} \coqdocvar{AGProps.Add} \coqdocvar{edge} \coqdocvar{i} \coqdocvar{a} \ensuremath{\rightarrow} \coqdocvar{transfer} \coqdocvar{i} \coqdocvar{a} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{AGProps.Add} \coqdocvar{edge} \coqdocvar{b} \coqdocvar{c} \ensuremath{\rightarrow} \coqdocvar{transfer} \coqdocvar{b} \coqdocvar{c}.\coqdoceol
+\end{coqdoccode}
+}
+
+%  updated to git 997fa405b143048444093e113b3dd0541827c7f4
+% indentation fixed to here.

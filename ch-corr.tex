@@ -1,0 +1,313 @@
+\chapter{Applications of \TMmodelName{}}
+\label{ch:corr}
+
+This chapter discusses various applications of \TMmodelName{}.
+It begins by outlining some specific systems that satisfy \TMmodelName{} including KeyKOS, EROS, Coyotos, and seL4.
+Next, it approaches the general domains applicable to \TMmodelName{} and then how to evaluate them.
+Evaluation is broken into four parts: correspondence with the operational semantics, correspondence for constructors, issues arising from deletion, and working in other logics. 
+
+\section{Systems Satisfying \TMmodelName{}}
+
+\TMmodelName{} models the behavior of many different capability-based systems.
+While specifically targeting the behavior of Coyotos, \TMmodelName{} is also applicable to its predecessors, KeyKOS and EROS, and the seL4 microkernel.
+This section discusses some of the specific systems to which \TMmodelName{} applies.
+It also discusses the potential for formally connecting the model to Coyotos and seL4.
+
+\subsection{KeyKOS and EROS}
+
+As previously mentioned, \TMmodelName{} can be applied to KeyKOS and EROS.
+The system states and atomic actions of KeyKOS and EROS can be modeled by the system state and operational semantics of \TMmodelName{} with little alteration.
+Some aspects of these systems can be modeled using slightly more permissive embeddings in \TMmodelName{}, but these will not impact the confinement proof.
+
+Both KeyKOS and EROS maintain the separation of capabilities and data using a Harvard-style partition.
+Main memory is divided into \term{Nodes} to hold capabilities and \term{Pages} to hold regular data.
+Instead of using access rights, the permissions of both KeyKOS and EROS use access restrictions.
+Using the set difference from a maximally permissive set of access rights in \TMmodelName{} will capture these permissions.
+
+KeyKOS and EROS are atomic-action microkernels and this facilitates correspondence with \TMmodelName{}.
+In an atomic-action kernel, a thread that has entered the kernel does not wait with resources held.
+Instead, every kernel operation either acquires resources necessary for completion or unwinds its transaction completely to permit other operations to succeed.
+\TMmodelName{} only models observable system state and permits internal state to be hidden by equivalence relations.
+Consequently, transactions that are rolled back do not alter the observable state of the system and do not need to be modeled.
+At the moment an operation succeeds, it is possible to examine the state of the system and determine a corresponding sequence of \TMmodelName{} operations, many with only a single operation.
+System actions involving multiple \TMmodelName{} operations include the address space traversal and MMU updates.
+
+Address spaces in KeyKOS and EROS are constructed hierarchically using Nodes for page directories.
+When processing an address fault, both systems walk these structures to update the hardware mapping structures.
+A traversal operation can not be modeled by a single operation in \TMmodelName{}, but can be modeled by a sequence of operations.
+The subject accessing memory can be modeled by simply performing the address walk of its own accord.
+This embedding considers a process to have sufficient access to its address space to perform the traversal, which may cause its access to appear escalated in \TMmodelName{}.
+However, this escalation occurs when mapping these permissions to \TMmodelName{} \TMaccessRights{} and preserves safety and confinement.
+
+Atomic actions in KeyKOS and EROS have the property that they are non-interfering.
+That is, two atomic actions executing simultaneously result in a state reachable by some serialization of actions.
+This serializability simplifies reasoning about these operations in \TMmodelName{}, as \TMmodelName{} does not contain support for concurrent execution.
+
+\subsection{Coyotos}
+
+Coyotos shares many similarities to its predecessors and applying \TMmodelName{} to Coyotos follows the same paradigm as with KeyKOS and EROS.
+One notable exception is how Coyotos partitions capabilities and data.
+The development of Coyotos includes considerations for embedding a high-level specification, and transcribing its executable software, into a proof assistant.
+As such, the potential to formally apply \TMmodelName{} to Coyotos also exists.
+
+Unlike KeyKOS and EROS, Coyotos employs type-based separation of capabilities and data.
+Data-only \term{Pages} and Capability-only \term{CapPages} are mapped into a single process address space.
+This facilitates better software design and has a positive influence on cache locality.
+Some system objects contain both capabilities and data.
+Objects containing any capabilities are never mapped in such a way that an application may access or modify them without supervisor mediation.
+By mediating requests to these objects, Coyotos preserves a partition between data and capabilities.
+
+One of the design goals of Coyotos was the possibility of transcription into a safe systems programming language.
+Once transcribed, this implementation could be embedded into a proof assistant and verified against a high-level specification of the Coyotos interface.
+Satisfying the operational semantics of \TMmodelName{} could then be achieved from such a high-level specification.
+
+BitC is a functional, type and memory safe language with precise operational semantics for managing systems problems. \cite{shapiro2008bitc}
+The precision offered by BitC is intended to permit the language to be embedded for mechanical verification and to allow BitC compilers to assist software verification engines to discharge proofs about BitC programs.
+From early in its development, Coyotos has been developed to be transcribed into BitC to enable the construction and verification of a high-level specification.
+Such a high-level specification should correspond to the operational semantics of \TMmodelName{}.
+ 
+Verifying the Coyotos Constructor should follow a similar approach to that used with EROS.
+The Coyotos constructor follows the same model as the EROS constructor in that it admits recursively confined constructors but does not parameterize confinement with an authorized set.
+The major issue impacting the recursive confinement case is to ensure constructors are authentic.
+Verifying this property may be difficult if cryptographic identifiers are used, as is the case in Coyotos, as it is not possible to totally prohibit collision.
+Provided attestation is established, the existing post-condition should serve as the foundation of an inductive step to verify a recursive constructor implementation.
+
+\subsection{seL4}
+\label{sect:corr:seL4}
+
+\msdnote{This material is lifted from \Cref{ch:related}.  Changes exist there.}
+
+The goal of the L4.verified \cite{Klein:l4.verified} project is to produce a trustworthy, mechanically verified L4 microkernel \cite{Liedtke:1996:TRM}.
+The seL4 microkernel \cite{Elphinstone:formalisingukernel} is the implementation modeled and inspected by L4.verified.
+
+The underlying seL4 microkernel is a capability-based system.
+Capabilities in seL4 follow a strict partitioning similar to EROS and KeyKOS from \Cref{ch:constructor}.
+Not only are capabilities stored in protected structures, but they are named by a separate address space.
+The thread control block for each thread in seL4 contains separate capabilities naming a virtual data address space and a capability address space.
+In contrast, Coyotos \term{Pages} contain only data and \term{CapPages} contain only capabilities, though the two are intermingled in a single address space.
+Attempts to access \term{CapPages} as data or \term{Pages} as capabilities will result in a fault.
+\TMmodelName{} does not distinguish these semantics and can be used to describe either structure.
+
+The mechanics of memory management via capabilities in seL4 distinguishes it from the capability-based systems discussed in \Cref{ch:constructor}.
+All memory management interfaces are implemented by the seL4 kernel. \cite{seL4:manual:1_3}
+When seL4 starts, all unallocated memory is represented by a collection of \term{Untyped Memory} objects.
+Invoking a capability to an \term{Untyped Memory} object permits it to be be \term{retyped} into smaller \term{Untyped Memory} objects or into other kernel objects.
+Both the original untyped memory object and the new objects are valid after a \term{retype} operation along with their capabilities.
+
+The kernel maintains a \term{capability derivation tree}, or CDT, to track the parent-child relationships.
+Reclaiming memory involves invoking a \term{revoke} operation on the original untyped memory object, invalidating all child capabilities.
+This structure is similar to hierarchical bank structure provided by the Space Bank domain.
+As a practical matter, the CDT is implemented as a linked-list structure represented within the capabilities themselves.
+This places an implementation-specific limit on the depth of the CDT, which is presently 128.
+
+The seL4 kernel extends the CDT past the memory-management interface.
+Whenever a capability is copied, it can be placed in either a sibling relationship or in a child relationship with the original.
+The \term{copy} operation (sometimes called \term{imitate}) creates a sibling capability while the \term{mint} operation (sometimes called \term{grant}) creates a child capability.
+Whenever a capability is copied, it is possible to restrict the set of permissions on it.
+Child capabilities created in this way are recursively revoked in the same manner as untyped memory.
+
+Modeling seL4 in \TMmodelName{} can be accomplished by modeling the nodes of the CDT as subjects with known behavior.
+In the present model, CDT nodes would appear as very permissive subjects connected by \COQtx{} capabilities.
+To actually model seL4, \TMmodelName{} will need some refinement.
+
+\begin{figure}
+  \FIGcdtFix{}
+  \caption{Embedding the CDT into \TMmodelName{}.\label{fig:related:sel4toSDM}}
+\end{figure}
+
+Refining \TMmodelName{} to faithfully model seL4 requires embedding a CDT node as a type of object.
+As discussed in \Cref{ch:future}, this can be performed by adding additional labels and permissions to the system state or by directly modeling \COQsend{} behavior.
+Because \TMmodelName{} embeds the memory manager into the model, the only portions of the CDT which must be modeled do not involve allocation or deletion.
+A CDT node is a proxy object and will respond to 3 different messages each requiring the \NMtx{} permission: \term{move}, \term{mint}, and \term{invoke}.
+The \term{invoke} message requests that the CDT node invoke its internal capability in some manner.
+The \term{move} message requests that the CDT node return a capability to a new CDT node with its present internal state.
+The \term{mint} message requests that the CDT node create a new CDT node whose target is this CDT node, with possible restrictions.
+
+These alterations to \TMmodelName{} capture the basic capability operations of seL4.
+All seL4 capabilities are represented by a capability to a CDT node.
+When a new object is allocated in seL4, it is allocated alongside a CDT node that directly points to it.
+The \term{move} and \term{mint} operations are performed as previously described.
+Note that the \NMwr{} permission is used to describe the authority to delete the CDT node, but does not permit a store operation on a CDT object.
+
+The constructor model remains largely unchanged.
+This test is slightly more involved as the constructor does not need to consider local CDT nodes as part of the confinement test, only the authority they confer.
+The ability to delete CDT nodes presently in the constructor will not be passed to the yield and their deletion only causes data to move into the yield excluding them from the constraints for confinement.
+With this more complex test, verifying a correct implementation will prove more difficult, but should be manageable.
+
+\section{Generally Applying \TMmodelName{}}
+
+This section presents the general domains where \TMmodelName{} is applicable and how to evaluate them.
+The evaluation discussion begins examining how to find correspondence between a system and the \TMmodelName{} operational semantics.
+Evaluating the confinement test of a constructor is presented next with an emphasis on the recursive confinement case.
+The third portion presents information flow issues arising from deletion and how to reason about them in \TMmodelName{}.
+This section concludes with how to evaluate \TMmodelName{} in other logics.
+
+\subsection{Applicable Domains}
+
+\TMmodelName{} can be applied to most protected capability-based operating systems.
+There are three critical requirements for satisfying \TMmodelName{}.
+Every system operation must be authorized by capability or modeled as though it were.
+No system operation may provide ambient authority; all authority must be capability-protected.
+There must not be any rights-amplifying operations that can not be simulated as a sequence of non-amplifying operations.
+
+\TMmodelName{} incorporates specific features for reasoning about operating systems and their security-enforcing applications.
+The system model consists of small-step semantic operations intended to closely correspond with system-calls.
+They are presented simply in three parts: a pre-condition, a state transition, and an upper-bound on information flow.
+The use of high-order abstract syntax and monadic transformations has been purposely avoided in favor of clarity.
+The system model does not rely on a definition of confinement for correctness.
+Instead, confinement is a non-primitive property constructed from the semantics of the system.
+Finally, \TMmodelName{} provides indices to facilitate future proofs to accurately correspond model operations with the behavior of security-enforcing applications.
+
+\TMmodelName{} can also model capability-based systems where part or all of the system protection mechanism is implemented in hardware.
+IBM's System/38 and AS/400 architectures were commercially available systems that supported capability-based addressing. \cite{IBM:System38:FunctionalRefMan}
+The i432 processor implemented \term{access descriptors} (ADs) which simultaneously named a memory segment and contained permissions to control access. \cite{iax432:refman}
+Because no segment could be accessed without an access descriptor, ADs were hardware-implemented capabilities.
+The BiiN CPU architecture refined access descriptors as tagged pointers with permissions to system objects. \cite{BiiN:refman}
+The access control behavior of BiiN system objects could be defined via a hardware descriptor allowing the architecture to provide intra-application capabilities with fast function calls.
+The CHERI processor provides capability-based protection via fine-grain segment descriptors compatible with C language pointers. \cite{watson2015cheri}
+When coupled with a capability-aware compiler, CHERI minimizes the changes to application code that are necessary to implement a capability-aware application.
+
+Architectures containing explicit support for capabilities have been used to produce operating systems that are not capability-based.
+The OS/400 operating system ran on the System/38 and AS/400, but does not provide capability-based protection to applications.\cite{soltis1996inside}
+Unix variants have also been ported and run on many of these processors and offer capability-based protection to varying degrees.
+The BiiN architecture supported its own Unix variant and CHERI includes a hybrid FreeBSD implementation that can compose traditional MMU-protected and capability-protected software libraries.
+Hardware support for capability-based systems is not sufficient to satisfy \TMmodelName{}.
+All actions performed by the operating system must correspond to the operational semantics of \TMmodelName{}.
+Therefore, \TMmodelName{} is only applicable when these architectures are supporting a pure capability-based operating system.
+
+Applying \TMmodelName{} to language run-times with type and memory safety is also possible.
+In this arena, function closures and threads correspond to \TMactive{} \TMobjs{} in \TMmodelName{} while records and cells correspond to the \TMpassive{} \TMobjs{}.
+Capability representations vary in these systems and range from those similar to Coyotos, presented in \Cref{ch:constructor}, to memory references with safe type information.
+When using typed memory references, these capabilities correspond either to {\NMrd{}, \NMwr{}} capabilities for cells, or \NMtx{} capabilities for closures.
+
+A problem facing many type and memory safe language run-times is that they often encode ambient authority.
+Access to globally shared state remains typical in many otherwise safe languages.
+Reflection APIs are also detrimental because they can be used to escalate authority by accessing resources without a safe function pointer.
+These operations are difficult or impossible to model in \TMmodelName{} and eliminate confinement.
+Type and memory safe language run-times that do correspond to \TMmodelName{} include E \cite{RobustComposition}, Caja \cite{caja}, and W7 Scheme \cite{Rees96asecurity}.
+
+\subsection{Satisfying the Semantics}
+
+Correspondence with the operational semantics is the primary challenge when applying \TMmodelName{} to any system.
+For most systems, correspondence proofs with \TMmodelName{} will largely occur by demonstrating that the permissions of the examined system are subsumed by the \TMaccessRights{} in \TMmodelName{}.
+\xmakefirstuc{\TMaccessRights} in \TMmodelName{} are intended to assist with such subsumption proofs.
+The \NMrd{} and \NMwr{} \TMaccessRights{} confer authority to read or write both data or capabilities.
+Taken together, these permissions confer universal authority over an \TMobj{} as \NMwk{} \TMaccessRights{} are a sub-type of \NMrd{} and the mechanics of \NMtx{} can be simulated.
+Systems with separate permissions or \TMobj{} types distinguishing capabilities and data operations can be fit to \TMmodelName{} by using the more powerful permissions, and consequently operations.
+The \NMtx{} \TMaccessRight{} subsumes most known IPC and RPC mechanisms by optionally fabricating a reply capability and authorizing message transfers containing both capabilities and data.
+
+
+When simple correspondence with \TMaccessRights{} is insufficient to capture all system operations, the next strategy employed should be to find correspondence between system operations and a sequence of \TMmodelName{} operations.
+Developers are not obliged to demonstrate that all \TMmodelName{} operations can be produced by the examined system, but only that those sequences produced are subsumed by \TMmodelName{} operations.
+Because \TMmodelName{} assures any sequence of model operations preserves safety and confinement, correspondence with examined systems may interleave model operation sequences corresponding to system operations.
+This permits \TMmodelName{} to model long-running, concurrent operations composed of atomic actions that each correspond to a \TMmodelName{} operation.
+All such correspondence can be performed by predicating valid operation sequences for the examined system.
+
+The safety and confinement theorems verify upper-bounds on permissions and information flow and remain so for systems satisfying \TMmodelName{}.
+Because \COQpotAcc{} analyzes a system using \TMaccessRights{} instead of operations, the interpretation of \TMpotAcc{} and safety change with how an examined system corresponds with \TMmodelName{}.
+For \TMpotAcc{} to remain an upper-bound on future permissions, the permissions present in an examined system must confer less authority than the \TMaccessRights{} of \TMmodelName{}.
+This is sufficient even when refinements subsumed by \TMaccessRights{} are not recoverable.
+
+\subsection{Constructors and Recursive Confinement}
+\label{sect:corr:constructor}
+
+Evaluating constructors for direct correspondence with \TMmodelName{} requires checking a modest set of properties.
+To preserve the integrity of all subsystem image tests before instantiating its yield, a constructor should not permit alterations to its subsystem image.
+Given this constraint, the constructor should implement the confinement test as a pre-condition that produces a yield satisfying the confinement test of \TMmodelName{} when affirmative.
+Ideally, verifying that the constructor correctly embeds the confinement test is simple iteration and case analysis over capabilities as described by the confinement test in \TMmodelName{}.
+The last constraint of a constructor is that it should delete the capabilities naming its yield after initialization.
+Whether these capabilities are deleted immediately after invoking its yield or lazily during the next yield request is irrelevant.
+A constructor with these properties successfully implements confinement as modeled by \TMmodelName{}.
+
+The confinement test described in \Cref{ch:constructor} admits recursively confined constructors as part of a confined subsystem image.
+The usefulness of this case is motivated by a few examples.
+A confined subsystem equipped with confined constructors can allocate and free different internal subsystems as needed and with further constrained authorized sets.
+Because the constructor also provides a trusted attestation mechanism, a confined subsystem may be required to provide its constructors to other subsystems.
+Without the recursive case, all confined subsystems would be required to reinstantiate internal subsystems without the assistance of constructors and attestation.
+
+For a constructor to meaningfully query the confinement of a capability to another constructor, it must first establish that the capability \emph{does} name another constructor. 
+The constructor is also responsible for attesting its yield and all constructors are equipped with the system meta-constructor which yields and verifies constructors.
+A constructor performing the confinement test may safely rely on the result of a confinement test performed by an authentic constructor.
+Because constructor capabilities can not be placed into a subsystem image before it is sealed, these invocations are therefore free of cycles and the recursive confinement test is terminating.
+Verifying the recursive case requires verifying the attestation mechanism and checking the missing condition of the confinement test.
+As mentioned in \Cref{ch:constructor}, the KeyKOS Factory implements the confinement test with recursive constructors and an authorized set while EROS and Coyotos Constructors implement variant with recursive constructors and an empty authorized set.
+
+The recursive constructor case is not directly implemented by \TMmodelName{} for a few reasons.
+One of the goals of \TMmodelName{} is to avoid embedding any notion of trusted subsystems in the model.
+However, embedding the recursive constructor case \emph{requires} embedding which subsystems are trusted constructors.
+Establishing both the confinement and attestation interfaces for constructors and tracking their behavior sufficiently burdens an already complex model.
+Therefore, \TMmodelName{} eschews identifying constructors or managing subsystem behavior in favor of generalizing confinement as a post-condition on the yield.
+In future efforts, the confinement post-condition can be inductively invoked to describe how recursively confined subsystems evolve thereby handling the recursive case.
+
+\subsection{Destruction and Information Flow}
+
+Access-control meta-data is frequently not subject to a security policy and, consequently, may be used as a method for unconstrained information transfer.
+While many access-control mechanisms prevent unintentional data flow encoded in meta-data between \emph{existing} domains, the creation (or allocation) and destruction of \emph{new} domains is often overlooked.
+Applications with the authority to allocate or destroy a system resource effectively have the ability to transmit information to all applications capable of determining whether that resource exists.
+This section describes some of the problems and solutions to this issue and how they apply to \TMmodelName{}.
+
+\Cref{sect:constructor:ambientAuthority} discussed the problem of ambient authority in systems.
+The example therein illustrated how systems using access control lists provide ambient authority via the ``owner'' permission.
+A domain with the ``owner'' permission to an owned domain can create relationships between the owned domain and \emph{any other domain,} even when the other domain has no pre-existing relationship to the owner.
+What the example does not describe is that many of these systems presume that the allocator of a new domain or system resource should have the ``owner'' permission by default.
+Coupled with the previous example, this behavior effectively grants total, system-wide authority to any domain with the ability to allocate a system resource.
+
+A simple solution to prevent unforeseen information flow via allocation and destruction is to prohibit them entirely.
+Safety and information flow analysis become tractable in a static system with a fixed number of resources, especially when the ``owner'' permission is removed.
+While this strategy may work for fixed systems, it often fails when applied to general-purpose computing.
+All use-cases of a general-purpose system are not known in advance and these systems are therefore obligated to repurpose their resources for different tasks in different security contexts.
+Therefore, applying this strategy to \TMmodelName{} is not an interesting problem.
+
+The solution presently supported by \TMmodelName{} is to prevent all applications from observing the state of other resources' existence.
+By requiring all operation preconditions to name \TMalive{} objects, \TMmodelName{} provides no mechanism for witnessing the destruction of an object.
+The system must not generate any error messages and must produce valid responses for each system call.
+While this solution produces a reasonable theoretical approach, it is not practical for most systems.
+
+Capability-based systems can safely generate error responses without violating the intended information flow constraints for their permissions.
+They accomplish this by ensuring that the information flow that may arise from observing the existence of an object is intentionally authorized by a capability.
+A simpler way to state this is that, absent specific permissions for creation, destruction, and observation, all information flow occurring from these acts could have occurred via some other operation that does not alter object existence.
+If this is the case, then leveraging a system error response is simply an inefficient encoding mechanism for approved transmissions.
+
+For example, in systems where object existence is observable, consider the following three constraints.
+1) No capabilities may name objects which have never existed, preventing their observation.
+2) The ability to destroy an object is considered at least an outward information flow, or a ``write,'' to the destroyed object, though it may also authorize inward information flow, or ``reading.''
+3) Invoking capabilities authorizing only outward information flow, or ``write-only'' permission, must not be able to observe an error.
+Given these constraints, the system may safely generate error messages when a capability authorizing any inward information flow, or any ``read'' permission, is invoked.
+The only way for data to flow through destruction is to ``write'' a half-bit by destroying the object and then ``read'' it via error message later.
+Because the capabilities for doing so already authorize information flow in these directions, the destruction and error receipt are authorized.
+
+This structure is more difficult to satisfy than it seems.
+The seL4 take-grant models \cite{Elkaduwe:Thesis} \cite{Boyton_ssv2009} do not require capabilities with any \TMaccessRights{} to remove capabilities from other \TMobjs{} or destroy other \TMobjs{}.
+Consequently, these models only constrain information flow occurring via \term{SysRead} and \term{SysWrite} operations, analogous to the \NMread{} and \NMwrite{} operations in \TMmodelName{}.
+However, they do not constrain information flow using invokable capabilities as a transmission mechanism.
+Because object deletion was axiomatized very generally, the model places no upper bound on which objects are touched when an object is destroyed.
+While seL4 is not itself this unconstrained, the model admits the possibility that a deletion writes information to every object in the system.
+\Cref{sect:sel4:models} covers this problem in more detail.
+
+\Cref{ch:future} proposes an update to \TMmodelName{} to align more closely with systems which fit the aforementioned pattern.
+The \TMmodelName{} operational semantics already capture the three constraints; \TMmodelName{} is only missing the ability for subjects to observe object state.
+The proposal adds an operation to explicitly observe object existence, \coqvar{isAlive}, which requires the \NMrd{} \TMaccessRight{} to perform.
+Exceptions can then be handled by electing to perform the \coqvar{isAlive} operation, and all information flow is already authorized by the \NMrd{} \TMaccessRight{}.
+Because \TMmodelName{} satisfies the necessary constraints and the information flow present in the \coqvar{isAlive} operation is already present in the system, adding this operation to \TMmodelName{} will not impact the confinement result.
+
+Systems like Coyotos do not have ``write-only'' capabilities; a capability authorizing ``writing'' it must also authorize some form of ``reading.''
+Because object destruction is a half-bit of information that occurs only once, error messages for invalid capabilities convey no additional information.
+Therefore, Coyotos may safely deliver error messages for all capability invocations.
+Simpler capability-based systems and language run-times do not distinguish between read-write and read-only capabilities, trivially satisfying this pattern.
+
+\subsection{Alternative Logics}
+
+\TMmodelName{} is constructed in Coq, a higher-order intuitionistic logic, to be as strong and widely applicable as possible.
+Intuitionistic logics are founded upon fewer axioms and consequently have stronger proofs than classical logics.
+Therefore, statements in higher-order intuitionistic logic are also statements in higher-order classical predicate logic.
+For example, re-stating and satisfying \TMmodelName{} in Isabelle/HOL \cite{Nipkow:2002:IPA} should be sufficient to justify safety and confinement.
+However, to the author's knowledge, no automated tool exists to translate theorems or proofs between systems.
+Unlike Coq, some intuitionistic logics do not support impredicative propositions, making general translation difficult.
+Fortunately, \TMmodelName{} includes equivalence relations between all predicative boolean decision procedures and their impredicative definitions providing proofs that equivalent predicative theorems exist.
+Whether this constitutes sufficient information to automatically construct these proofs in an impredicative logic is a separate problem.
+
+\TMmodelName{} is applicable to more systems than are presented here.
+Although this chapter gives specific consideration to KeyKOS, EROS, Coyotos, and seL4, it is intended to cover diverse capability-based systems and language run-times with type and memory safety.
+Applying \TMmodelName{} to these systems involves finding a correspondence for their operational semantics and their constructors while avoiding pitfalls regarding information flow via deletion.
+\TMmodelName{} is also built generally in an intuitive logic to be applicable in other proof assistants.
+

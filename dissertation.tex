@@ -1,0 +1,195 @@
+% change draft to final before submission.
+\documentclass[12pt,oneside,final]{thesis}
+
+% Trying a better looking font.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+
+\usepackage{xkeyval}
+\input{cmd-keys}
+
+\usepackage{setspace}
+
+\usepackage{cite}
+\usepackage[final]{graphicx}
+\usepackage{tikz}
+
+\usepackage{mathtools}
+\usepackage{amssymb}
+
+\usepackage{xcolor}
+%\usepackage{xspace}
+%\usepackage{changepage}
+
+%% Comment in final draft to keep underscores pretty
+%% \let\keepunderscore\_ % save current state of command
+\usepackage{coqdoc}
+%% \let\_\keepunderscore % restore previous state of command
+
+%\def\invisibleTextUnderscore{\phantom{\ttfamily\char95}}
+%\def\appearanceOfUnderscore{\kern.08em\vbox{\hrule width.35em height.6pt}\kern.08em}
+%\def\_{\text{\rlap\invisibleTextUnderscore\appearanceOfUnderscore}}
+
+
+\usepackage{mfirstuc}
+%%\usepackage{shadow}
+%%\usepackage{mdframed}
+
+\usepackage[noabbrev]{cleveref}
+
+%Use nicer float and fancy boxes
+\usepackage{fancybox}
+\usepackage{float}
+\floatstyle{ruled}
+\restylefloat{table}
+\restylefloat{figure}
+
+%\usepackage{mparhack}
+\usepackage[mode=multiuser,final]{fixme}
+
+\usepackage{ifdraft}
+\usepackage{ifpdf}
+
+\usepackage{datetime}
+
+\ifpdf
+\pdfinfo{
+   /Author (M. Scott Doerrie)
+   /Title  (Confidence in Confinement: An Axiom-free, Mechanized Verification of Confinement in Capability-based Systems)
+   /CreationDate (D:\pdfdate)
+   /ModDate (D:\pdfdate)
+   /Org (The Johns Hopkins University)
+   /Keywords (Operating Systems;Confinement;Capabilities;Capability-based;Capability-based Systems;Coq;Verification;Automated Verification;Coyotos;EROS;KeyKOS;Security;Safety;Constructor)
+}
+\fi
+
+\usepackage{booktabs}
+%%%\usepackage[font=singlespacing, labelfont=bf]{caption}
+\usepackage{fancyhdr}
+
+\usepackage{hyperref}
+
+\usepackage{subfigure}
+
+
+%% packages above here
+
+\hypersetup{final,hidelinks}
+
+
+\fxuselayouts{nomargin,inline,pdfcmargin}
+\fxusetheme{color}
+\FXRegisterAuthor{msd}{anmsd}{MSD}
+\FXRegisterAuthor{jss}{anjss}{JSS}
+\FXRegisterAuthor{sfs}{ansfs}{SFS}
+
+
+\usetikzlibrary{arrows,decorations,backgrounds,shadows,shapes}
+
+\graphicspath{ {images/} }
+
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{15pt}
+\lhead{\leftmark}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{% Redefine ``plain'' style for chapter boundaries
+\fancyhf{} % clear all header and footer fields
+\fancyfoot[C]{\thepage} % except the center
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+
+\input{commands}
+
+% this puts git revision info into the footer.
+% load the command from the generated makefile.
+\input{revision}
+% place into the footer.
+\fancyfoot[L]{\ifoptionfinal{}{\gitRevision}}
+\fancyfoot[R]{\ifoptionfinal{}{\gitStatus}}
+
+%% This fixes the indentation of the list of figures and list of tables indentation.
+\makeatletter
+\renewcommand*\l@figure{\@dottedtocline{1}{1.5em}{3.2em}}
+\let\l@table\l@figure
+\makeatother
+
+
+\begin{document}
+
+\title{Confidence in Confinement: An Axiom-free, Mechanized Verification of Confinement in Capability-based Systems}
+\author{M. Scott Doerrie}
+\degreemonth{July}
+\degreeyear{2015}
+\dissertation
+\doctorphilosophy
+\copyrightnotice
+
+\setcounter{page}{1}
+\pagenumbering{roman}
+
+\maketitle
+
+\listoffixmes
+
+%% This latex file includes macros for including the relevant coq theorems as latex defintions.
+\input{coq}
+
+%% This contains all the conventions and terms for our proofs.
+\input{cmd-proof-math}
+
+%% this contains all TikZ styles used in this document.
+\input{cmd-tikz-styles}
+
+%% this contains figure content which appear multiple times.
+\input{cmd-shared-figs}
+
+
+\include{abstract}
+
+\newpage
+
+\include{preface}
+
+
+\setcounter{tocdepth}{4}
+\clearpage\pdfbookmark{Table of Contents}{tableOfContents}
+\tableofcontents
+
+\newpage
+
+\listoftables
+
+\newpage
+
+\listoffigures
+
+\newpage
+
+\setcounter{page}{1}
+\pagenumbering{arabic}
+
+\include{ch-intro}
+\include{ch-constructor}
+\include{ch-sketch}
+\include{ch-coq}
+\include{ch-embed}
+\include{ch-access}
+\include{ch-safety}
+\include{ch-flow}
+\include{ch-confinement}
+\include{ch-corr}
+\include{ch-future}
+\include{ch-SW}
+\include{ch-related}
+\include{ch-review}
+
+\bibliographystyle{alpha}
+\bibliography{dissertation}
+
+\include{vita}
+
+\end{document}

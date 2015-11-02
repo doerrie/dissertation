@@ -1,0 +1,524 @@
+\newcommand{\COQDOCreadSpec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{read\_spec}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s}, \coqdocvar{Sys.eq} (\coqdocvar{do\_read} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s}) \coqdocvar{s}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCwriteSpec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{write\_spec}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s}, \coqdocvar{Sys.eq} (\coqdocvar{do\_write} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s}) \coqdocvar{s}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCfetchInvalid}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{fetch\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s}, \ensuremath{\lnot} \coqdocvar{SemDefns.fetch\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_fetch} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s}) \coqdocvar{s}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCfetchRead}[0]{
+\begin{coqdoccode}
+\coqdocnoindent    
+\coqdockw{Theorem} \coqdocvar{fetch\_read}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s}, \coqdocvar{SemDefns.fetch\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{SemDefns.option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{rd} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_fetch} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s})\coqdoceol
+\coqdocindent{4.00em}
+(\coqdocvar{option\_map1} (\coqdockw{fun} \coqdocvar{tgt} \ensuremath{\Rightarrow} \coqdocvar{SC.copyCap} \coqdocvar{c} \coqdocvar{tgt} \coqdocvar{i} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{s} \coqdoceol
+\coqdocindent{6.00em}
+(\coqdocvar{SemDefns.option\_target} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}))).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCfetchWeak}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{fetch\_weak}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s}, \coqdocvar{SemDefns.fetch\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{\lnot} \coqdocvar{SemDefns.option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{rd} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{SemDefns.option\_hasRight} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{wk}  \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_fetch} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s})\coqdoceol
+\coqdocindent{4.00em}
+(\coqdocvar{option\_map1} (\coqdockw{fun} \coqdocvar{tgt} \ensuremath{\Rightarrow} \coqdocvar{SC.weakCopyCap} \coqdocvar{c} \coqdocvar{tgt} \coqdocvar{i} \coqdocvar{a} \coqdocvar{s}) \coqdocvar{s} \coqdoceol
+\coqdocindent{6.00em}
+(\coqdocvar{SemDefns.option\_target} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}))).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCfetchSpec}[0]{
+  \COQDOCfetchInvalid
+  \COQDOCfetchRead
+  \COQDOCfetchWeak
+}
+
+\newcommand{\COQDOCstoreInvalid}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{store\_invalid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s}, \ensuremath{\lnot} \coqdocvar{SemDefns.store\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_store} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s}) \coqdocvar{s}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCstoreValid}[0]{
+\begin{coqdoccode}
+
+\coqdocnoindent
+\coqdockw{Theorem}  \coqdocvar{store\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s}, \coqdocvar{SemDefns.store\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_store} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{s}) \coqdoceol
+\coqdocindent{4.00em}
+(\coqdocvar{option\_map1} (\coqdockw{fun} \coqdocvar{tgt} \ensuremath{\Rightarrow} \coqdocvar{SC.copyCap} \coqdocvar{c} \coqdocvar{a} \coqdocvar{i} \coqdocvar{tgt} \coqdocvar{s}) \coqdocvar{s} \coqdoceol
+\coqdocindent{6.00em}
+(\coqdocvar{SemDefns.option\_target} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}))).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCstoreSpec}[0]{
+  \COQDOCstoreInvalid
+  \COQDOCstoreValid
+}
+
+\newcommand{\COQDOCrevokeInvalid}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{revoke\_invalid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{s}, \ensuremath{\lnot} \coqdocvar{SemDefns.revoke\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_revoke} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{s}) \coqdocvar{s}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCrevokeValid}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{revoke\_valid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{s}, \coqdocvar{SemDefns.revoke\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_revoke} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{s}) \coqdoceol
+\coqdocindent{4.00em}
+(\coqdocvar{option\_map1} (\coqdockw{fun} \coqdocvar{tgt} \ensuremath{\Rightarrow} \coqdocvar{SC.rmCap} \coqdocvar{c} \coqdocvar{tgt} \coqdocvar{s}) \coqdocvar{s} \coqdoceol
+\coqdocindent{6.00em}
+(\coqdocvar{SemDefns.option\_target} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}))).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCrevokeSpec}[0]{
+  \COQDOCrevokeInvalid
+  \COQDOCrevokeValid
+}
+
+\newcommand{\COQDOCsendInvalid}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{send\_invalid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i} \coqdocvar{s}, \ensuremath{\lnot} \coqdocvar{SemDefns.send\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i} \coqdocvar{s}) \coqdocvar{s}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCsendValid}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{send\_valid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i} \coqdocvar{s}, \coqdocvar{SemDefns.send\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i} \coqdocvar{s}) \coqdoceol
+\coqdocindent{4.00em}
+(\coqdocvar{option\_map1} \coqdoceol
+\coqdocindent{5.00em}
+(\coqdockw{fun} \coqdocvar{tgt} \ensuremath{\Rightarrow} \coqdocvar{SC.copyCapList} \coqdocvar{a} \coqdocvar{tgt} \coqdocvar{cil} \coqdoceol
+\coqdocindent{6.50em}
+(\coqdocvar{option\_map1} \coqdoceol
+\coqdocindent{7.50em}
+(\coqdockw{fun} \coqdocvar{i} \ensuremath{\Rightarrow} \coqdocvar{SC.addCap} \coqdocvar{i} (\coqdocvar{Cap.mkCap} \coqdocvar{a} (\coqdocvar{ARSet.singleton} \coqdocvar{tx})) \coqdocvar{tgt} \coqdocvar{s})\coqdoceol
+\coqdocindent{7.50em}
+\coqdocvar{s} \coqdocvar{op\_i})) \coqdoceol
+\coqdocindent{5.00em}
+\coqdocvar{s} (\coqdocvar{SemDefns.option\_target} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}))).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCsendSpec}[0]{
+  \COQDOCsendInvalid
+  \COQDOCsendValid
+}
+
+\newcommand{\COQDOCallocateInvalid}[0]{
+\begin{coqdoccode}
+\coqdockw{Theorem} \coqdocvar{allocate\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{cil} \coqdocvar{s}, \ensuremath{\lnot} \coqdocvar{SemDefns.allocate\_preReq} \coqdocvar{a} \coqdocvar{n} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_allocate} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{cil} \coqdocvar{s}) \coqdocvar{s}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCallocateValid}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{allocate\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{cil} \coqdocvar{s}, \coqdocvar{SemDefns.allocate\_preReq} \coqdocvar{a} \coqdocvar{n} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_allocate} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{cil} \coqdocvar{s})\coqdoceol
+\coqdocindent{4.00em}
+(\coqdocvar{SC.addCap} \coqdocvar{i} (\coqdocvar{Cap.mkCap} \coqdocvar{n} \coqdocvar{all\_rights}) \coqdocvar{a} \coqdoceol
+\coqdocindent{5.00em}
+(\coqdocvar{SC.copyCapList} \coqdocvar{a} \coqdocvar{n} \coqdocvar{cil} \coqdoceol
+\coqdocindent{6.00em}
+(\coqdocvar{SC.set\_alive} \coqdocvar{n} (\coqdocvar{SC.updateObj} \coqdocvar{n} (\coqdocvar{Obj.MapS.empty} \coqdocvar{\_}) \coqdoceol
+\coqdocindent{7.00em}
+(\coqdocvar{SC.rmCapsByTarget} \coqdocvar{n} \coqdocvar{s}))))).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCallocateSpec}[0]{
+  \COQDOCallocateInvalid
+  \COQDOCallocateValid
+}
+
+\newcommand{\COQDOCcreateSpec}[0]{\COQDOCallocateSpec}
+
+\newcommand{\COQDOCdestroyInvalid}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{destroy\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s}, \ensuremath{\lnot} \coqdocvar{SemDefns.destroy\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_destroy} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s}) \coqdocvar{s}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdestroyValid}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{destroy\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s}, \coqdocvar{SemDefns.destroy\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{Sys.eq} (\coqdocvar{do\_destroy} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s}) \coqdoceol
+\coqdocindent{4.00em}
+(\coqdocvar{option\_map1} (\coqdockw{fun} \coqdocvar{tgt} \ensuremath{\Rightarrow} \coqdocvar{SC.set\_dead} \coqdocvar{tgt} \coqdocvar{s}) \coqdoceol
+\coqdocindent{5.00em}
+\coqdocvar{s} (\coqdocvar{SemDefns.option\_target} (\coqdocvar{SC.getCap} \coqdocvar{t} \coqdocvar{a} \coqdocvar{s}))).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdestroySpec}[0]{
+  \COQDOCdestroyInvalid
+  \COQDOCdestroyValid
+}
+
+
+\newcommand{\COQDOCValidStateTransitions}[0]{
+  \COQDOCreadSpec{}
+  \COQDOCwriteSpec{}
+  \COQDOCfetchRead{}
+  \COQDOCfetchWeak{}
+  \COQDOCstoreValid{}
+  \COQDOCrevokeValid{}
+  \COQDOCsendValid{}
+  \COQDOCallocateValid{}
+  \COQDOCdestroyValid{}
+}
+
+\newcommand{\COQDOCInvalidStateTransitions}[0]{
+  \COQDOCfetchInvalid{}
+  \COQDOCstoreInvalid{}
+  \COQDOCrevokeInvalid{}
+  \COQDOCsendInvalid{}
+  \COQDOCallocateInvalid{}
+  \COQDOCdestroyInvalid{}
+}
+
+
+\newcommand{\COQDOCStateTransitions}[0]{
+  \COQDOCreadSpec{}
+  \COQDOCwriteSpec{}
+  \COQDOCfetchSpec{}
+  \COQDOCstoreSpec{}
+  \COQDOCrevokeSpec{}
+  \COQDOCsendSpec{}
+  \COQDOCallocateSpec{}
+  \COQDOCdestroySpec{}
+}
+
+\newcommand{\COQDOCreadFromDef}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{read\_from\_def} \coqdocvar{s}: \coqdocvar{operation} \ensuremath{\rightarrow} \coqdocvar{RefSet.t} \ensuremath{\rightarrow} \coqdockw{Prop} :=\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_read\_valid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{x}, \coqdocvar{SemDefns.read\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{add\_option\_target} \coqdocvar{s} \coqdocvar{a} \coqdocvar{t} (\coqdocvar{RefSet.singleton} \coqdocvar{a})) \coqdocvar{x} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{read} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_read\_invalid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.read\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{read} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_write\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{x}, \coqdocvar{SemDefns.write\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{RefSet.singleton} \coqdocvar{a}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{write} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_write\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.write\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{write} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_fetch\_valid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{x} \coqdocvar{SemDefns.fetch\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{add\_option\_target} \coqdocvar{s} \coqdocvar{a} \coqdocvar{t} (\coqdocvar{RefSet.singleton} \coqdocvar{a})) \coqdocvar{x} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{fetch} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_fetch\_invalid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.fetch\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{fetch} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_store\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{x},\coqdocvar{SemDefns.store\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{RefSet.singleton} \coqdocvar{a}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{store} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_store\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.store\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{store} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_revoke\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{x}, \coqdocvar{SemDefns.revoke\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{RefSet.singleton} \coqdocvar{a}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{revoke} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_revoke\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.revoke\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{revoke} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_send\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i} \coqdocvar{x}, \coqdocvar{SemDefns.send\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{RefSet.singleton} \coqdocvar{a}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_send\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.send\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_allocate\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{cil} \coqdocvar{x}, \coqdocvar{SemDefns.allocate\_preReq} \coqdocvar{a} \coqdocvar{n} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{RefSet.singleton} \coqdocvar{a}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{allocate} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{cil}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_allocate\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{cil} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.allocate\_preReq} \coqdocvar{a} \coqdocvar{n} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{allocate} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{cil}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_destroy\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{x}, \coqdocvar{SemDefns.destroy\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{RefSet.singleton} \coqdocvar{a}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{destroy} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{read\_from\_destroy\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.destroy\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{read\_from\_def} \coqdocvar{s} (\coqdocvar{destroy} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{x}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCwroteToDef}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{wrote\_to\_def} \coqdocvar{s}: \coqdocvar{operation} \ensuremath{\rightarrow} \coqdocvar{RefSet.t} \ensuremath{\rightarrow} \coqdockw{Prop} :=\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_read\_valid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{x}, \coqdocvar{SemDefns.read\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{RefSet.singleton} \coqdocvar{a}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{read} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_read\_invalid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.read\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{read} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_write\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{x}, \coqdocvar{SemDefns.write\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{add\_option\_target} \coqdocvar{s} \coqdocvar{a} \coqdocvar{t} \coqdocvar{RefSet.empty}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{write} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_write\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.write\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{write} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_fetch\_valid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{x}, \coqdocvar{SemDefns.fetch\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{RefSet.singleton} \coqdocvar{a}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{fetch} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_fetch\_invalid} : \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.fetch\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{fetch} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_store\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{x}, \coqdocvar{SemDefns.store\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{add\_option\_target} \coqdocvar{s} \coqdocvar{a} \coqdocvar{t} \coqdocvar{RefSet.empty}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{store} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_store\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.store\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{store} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_revoke\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{x}, \coqdocvar{SemDefns.revoke\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{add\_option\_target} \coqdocvar{s} \coqdocvar{a} \coqdocvar{t} \coqdocvar{RefSet.empty}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{revoke} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_revoke\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.revoke\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{revoke} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_send\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i} \coqdocvar{x}, \coqdocvar{SemDefns.send\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{add\_option\_target} \coqdocvar{s} \coqdocvar{a} \coqdocvar{t} \coqdocvar{RefSet.empty}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_send\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.send\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_allocate\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{cil} \coqdocvar{x}, \coqdocvar{SemDefns.allocate\_preReq} \coqdocvar{a} \coqdocvar{n} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{RefSet.add} \coqdocvar{n} (\coqdocvar{RefSet.singleton} \coqdocvar{a})) \coqdocvar{x} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{allocate} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{cil}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_allocate\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{cil} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.allocate\_preReq} \coqdocvar{a} \coqdocvar{n} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{allocate} \coqdocvar{a} \coqdocvar{n} \coqdocvar{i} \coqdocvar{cil}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_destroy\_valid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{x}, \coqdocvar{SemDefns.destroy\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{RefSet.singleton} \coqdocvar{a}) \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{destroy} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{x}\coqdoceol
+
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wrote\_to\_destroy\_invalid}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{x}, \ensuremath{\lnot} \coqdocvar{SemDefns.destroy\_preReq} \coqdocvar{a} \coqdocvar{t} \coqdocvar{s} \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Empty} \coqdocvar{x} \ensuremath{\rightarrow} \coqdocvar{wrote\_to\_def} \coqdocvar{s} (\coqdocvar{destroy} \coqdocvar{a} \coqdocvar{t}) \coqdocvar{x}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCoperation}[0]{
+\begin{coqdoccode}
+\coqdocindent{1.00em}
+\coqdockw{Inductive} \coqdocvar{operation} : \coqdockw{Type} :=\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{read}: \coqdocvar{Ref.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t}  \ensuremath{\rightarrow} \coqdocvar{operation}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{write}: \coqdocvar{Ref.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{operation}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{fetch}: \coqdocvar{Ref.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{operation}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{store}: \coqdocvar{Ref.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{operation}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{revoke}: \coqdocvar{Ref.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{operation}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{send}: \coqdocvar{Ref.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{list} (\coqdocvar{Ind.t} \ensuremath{\times} \coqdocvar{Ind.t}) \ensuremath{\rightarrow} \coqdocvar{option} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{operation}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{allocate}: \coqdocvar{Ref.t} \ensuremath{\rightarrow} \coqdocvar{Ref.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{list} (\coqdocvar{Ind.t} \ensuremath{\times} \coqdocvar{Ind.t}) \ensuremath{\rightarrow} \coqdocvar{operation}\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{destroy}: \coqdocvar{Ref.t} \ensuremath{\rightarrow} \coqdocvar{Ind.t} \ensuremath{\rightarrow} \coqdocvar{operation}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdoOpSpecDoOp}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{do\_op\_spec\_do\_op}: \coqdockw{\ensuremath{\forall}} \coqdocvar{op},
+\coqdocindent{1.00em}
+\coqdocvar{do\_op\_spec} \coqdocvar{op} (\coqdocvar{do\_op} \coqdocvar{op}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCdoOpSpec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{do\_op\_spec} : \coqdocvar{operation} \ensuremath{\rightarrow} (\coqdocvar{Sys.t} \ensuremath{\rightarrow} \coqdocvar{Sys.t}) \ensuremath{\rightarrow} \coqdockw{Prop} :=\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{do\_op\_spec\_read}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t},\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{do\_op\_spec} (\coqdocvar{read} \coqdocvar{a} \coqdocvar{t}) (\coqdocvar{do\_read} \coqdocvar{a} \coqdocvar{t})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{do\_op\_spec\_write}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t},\coqdoceol
+\coqdocindent{2.00em}
+ \coqdocvar{do\_op\_spec} (\coqdocvar{write} \coqdocvar{a} \coqdocvar{t}) (\coqdocvar{do\_write} \coqdocvar{a} \coqdocvar{t})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{do\_op\_spec\_fetch}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i},\coqdoceol
+\coqdocindent{2.00em}
+ \coqdocvar{do\_op\_spec} (\coqdocvar{fetch} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i}) (\coqdocvar{do\_fetch} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{do\_op\_spec\_store}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i},\coqdoceol
+\coqdocindent{2.00em}
+ \coqdocvar{do\_op\_spec} (\coqdocvar{store} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i}) (\coqdocvar{do\_store} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c} \coqdocvar{i})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{do\_op\_spec\_revoke}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c},\coqdoceol
+\coqdocindent{2.00em}
+ \coqdocvar{do\_op\_spec} (\coqdocvar{revoke} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c}) (\coqdocvar{do\_revoke} \coqdocvar{a} \coqdocvar{t} \coqdocvar{c})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{do\_op\_spec\_send}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i},\coqdoceol
+\coqdocindent{2.00em}
+ \coqdocvar{do\_op\_spec} (\coqdocvar{send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i}) (\coqdocvar{do\_send} \coqdocvar{a} \coqdocvar{t} \coqdocvar{cil} \coqdocvar{op\_i})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{do\_op\_spec\_allocate}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t} \coqdocvar{i} \coqdocvar{cil},\coqdoceol
+\coqdocindent{2.00em}
+ \coqdocvar{do\_op\_spec} (\coqdocvar{allocate} \coqdocvar{a} \coqdocvar{t} \coqdocvar{i} \coqdocvar{cil}) (\coqdocvar{do\_allocate} \coqdocvar{a} \coqdocvar{t} \coqdocvar{i} \coqdocvar{cil})\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{|} \coqdocvar{do\_op\_spec\_destroy}: \coqdockw{\ensuremath{\forall}} \coqdocvar{a} \coqdocvar{t},\coqdoceol
+\coqdocindent{2.00em}
+ \coqdocvar{do\_op\_spec} (\coqdocvar{destroy} \coqdocvar{a} \coqdocvar{t}) (\coqdocvar{do\_destroy} \coqdocvar{a} \coqdocvar{t}).\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCreadFromSpec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{read\_from\_spec} : \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{op} \coqdocvar{ob\_list},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{read\_from\_def} \coqdocvar{s} \coqdocvar{op} \coqdocvar{ob\_list} \ensuremath{\leftrightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{read\_from} \coqdocvar{s} \coqdocvar{op}) \coqdocvar{ob\_list}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCwroteToSpec}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Theorem} \coqdocvar{wrote\_to\_spec} : \coqdockw{\ensuremath{\forall}} \coqdocvar{s} \coqdocvar{op} \coqdocvar{ob\_list},\coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{wrote\_to\_def} \coqdocvar{s} \coqdocvar{op} \coqdocvar{ob\_list} \ensuremath{\leftrightarrow} \coqdoceol
+\coqdocindent{1.00em}
+\coqdocvar{RefSet.Equal} (\coqdocvar{wrote\_to} \coqdocvar{s} \coqdocvar{op}) \coqdocvar{ob\_list}.\coqdoceol
+\end{coqdoccode}
+}

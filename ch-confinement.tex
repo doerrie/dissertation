@@ -1,0 +1,246 @@
+\chapter{Confinement}
+\label{ch:confinement}
+
+This chapter presents the confinement proof in \TMmodelName{}.
+It begins with a review of the confinement test in capability-based systems and then translates these concepts for an embedding into \TMmodelName{} as a post-condition.
+Next, it introduces a concept of \term{\TMagFullyAuthorized} to define what is authorized by a set of capabilities in relation to the confinement post-condition.
+It presents the proof that any \TMsubsystem{} satisfying the confinement post-condition of \TMmodelName{} must be initially confined.
+It concludes by arguing that, from previous results, confinement must persist through the life of the system and can be used to verify constructor implementations in the future.
+
+\section{Review}
+
+The purpose of the confinement test is to allow applications to restrict the potential information flow of subsystems they construct or are constructed on their behalf.
+The test is usually performed by a \term{\TMconstructor{}} on behalf of an application, most likely before requesting the \TMconstructor{} to yield one or more new subsystems.
+An application trusts the \TMconstructor{} to execute the test faithfully and to produce a subsystem according to specification.
+Relying on a mutually trusted \TMconstructor{} permits mutually suspicious applications to interact without being required to engage in further trust.
+
+As a constructive test, the confinement test may be performed by any application in the system via the mechanism they use to initialize new subsystems.
+The confinement test is parameterized over a set of capabilities that authorize all outward information flow.
+When the confinement test is successful, all outward information flow is authorized by a capability in the authorized set, and no information flow may occur if this set is empty.
+Viewed from the perspective of a constructor with a subsystem image definition, the confinement test requires all capabilities in the subsystem image to be 1) in the authorized set, 2) trivially non-mutating, 3) weak-only capabilities, or 4) name a constructor confined under the same authorized set.
+If this is the case, then the resulting subsystem is confined.
+
+
+\section{Embedding Confinement}
+
+Confinement as embedded into \TMmodelName{} contains a few alterations to the motivating use case.
+\TMmodelName{} does not contain any notion of a constructor.
+\xmakefirstuc{\TMcaps} naming constructors appear as very permissive \TMsend{} capabilities.
+Without a trusted constructor implementation, \TMmodelName{} assumes they could misbehave as any other entity.
+Modeling and verifying the programs implementing a constructor is outside the scope of this proof.
+Rather than model confinement as a pre-condition and subsequent guarantee, \TMmodelName{} embeds the confinement test as a post-condition on the yield of the constructor within the system.
+This confinement test may be applied to any system state, subsystem, and authorized set, making it a more widely applicable result.
+However, this definition requires greater care when describing the nature of the confinement test and meaning of the confinement lemma, as there are many system states unreachable by the constructor pattern which had been implicitly pruned.
+
+
+\begin{figure}
+  \COQDOCauthorizedConfinedSubsystem
+  \COQDOCconfinedSubsystem
+  
+  %% \COQDOCauthorizedSet - this is novel_capabilities.  Additionally extant_capabilities.
+\caption{Definition of confinement. \label{fig:confinement:authSet}}
+\end{figure}
+
+The definition of confinement is given by \COQauthorizedConfinedSubsystem{} and begins by restricting the \TMauthorizedSet{} of capabilities as part of analysis.
+During the constructor pattern, an application asks for a confinement test before requesting the yield of a constructor.
+In any system, all capabilities must name \emph{\TMalive{}} or \emph{\TMdead{}} or \TMobjs{} according to \COQextantCapabilities{}.
+As the subsystem has not yet been allocated, it is impossible for any capabilities to meaningfully name any element of the new subsystem.
+Therefore, the capabilities forming the authorized set are not permitted to target elements of the subsystem being confined and this is captured by the \COQnovelCapabilities{} judgment.
+When comparing subsystems composed of different objects, the meaning of the authorized set must be constant over all fresh subsystems.
+While this could be accomplished by reasoning about object state transitions, it does not translate well to access graph reasoning.
+Requiring all authorized capabilities to be external ensures that their meaning is preserved across access graph instances, provided the rest of the system remains identical.
+
+
+\begin{figure}
+  \COQDOCextantTest
+  \caption{Extant test. \label{fig:confinement:extantTest}}
+\end{figure}
+
+An \term{extant subsystem} is one which consists entirely of \TMalive{} or \TMdead{} objects.
+It is impossible for any application to produce a subsystem containing \COQunborn{} objects.
+Further, admitting a query about a subsystem containing any unborn objects is almost entirely nonsensical as their parent, and relationship in the system, is currently undefined.
+The confinement test requires an \TMextant{} subsystem.
+
+\begin{figure}
+  \COQDOCautonomousTest{}
+  \caption{Constructive test. \label{fig:confinement:autonomousTest}}
+\end{figure}
+
+In addition to building a confined subsystem upon request, the constructor also has obligations to its yield.
+The constructor guarantees that no external capabilities naming the yield exist when the yield starts executing, implemented by the careful deletion of capabilities.
+The parent cannot even know if its request was successful until the yield invokes the return capability\footnote{Constructors do not abide by the standard call-return pattern.  See \Cref{sect:constructor:constructor}}.
+At this point, no external influence can alter the nature of the yield without its prior consent.
+We call such subsystems \term{\TMautonomous{}}, and while the proof of these concepts is beyond the scope of this document, the structural property is an essential part of confinement.
+Were any such capability permitted to exist, it would fully undermine the result of the confinement test, as the holder of such a capability could wield it to modify the information flow of the new subsystem.
+
+\begin{figure}
+  \COQDOCconfinementPred{}
+  \COQDOCconfinementTest{}
+  \caption{Confinement test. \label{fig:confinement:confinementTest}}
+\end{figure}
+
+The confinement test is defined by \COQconfinementTest{} in \Cref{fig:confinement:confinementTest}.
+Each element of a confined subsystem may only contain one of the following capabilities: 1) authorized capabilities 2) trivially non-mutating capabilities 3) weak capabilities naming external objects 4) capabilities naming an internal object.
+This test differs from the canonical confinement test in two fundamental ways.
+First, it permits any internal structure to exist with any internal access.
+Intuitively, the confinement test only examines the constructed subsystem at its perimeter, and therefore is not concerned with how the subsystem is constructed internally.
+Further, ignoring these capabilities would require the subsystem to consist of fully disjoint objects, a property that will not be preserved through analysis of the confinement property.
+It is therefore critical that these capabilities are included as part of the confinement post-condition.
+
+The case admitting a recursive constructor capability is missing from the \TMmodelName{} confinement test.
+As previously mentioned, \TMmodelName{} does not have an internal notion of constructors nor does it trust them to behave correctly.
+Therefore, the goal is to describe the pattern of confinement while seeking to have as few assumptions as possible.
+The recursively confined constructor is a structural guarantee that subsequently constructed subsystems are also confined.
+When verifying implementations are faithful in future efforts, the fixpoint of the constructor operation over the present confinement lemma should satisfy the inductive requirement to verify the constructor behavior.
+
+\section{Fully Authorized Subsystems}
+
+\begin{figure}
+  \COQDOCexistsCapEdge
+  \COQDOCagRemainder
+  \COQDOCagAuthorizedSrc
+  \COQDOCagAuthorized
+  \COQDOCagFullyAuthroized
+  \caption{Fully authorized subsystems}
+\end{figure}
+
+
+
+To verify that no subsystem satisfying the confinement test can ever exceed the mutability provided by the authorized set, \TMmodelName{} must first provide a specification for precisely what is authorized by a set of capabilities.
+Such a judgment must consider all possible \TMsubsystem{} configurations authorized by this set of capabilities.
+Rather than quantifying over all fully authorized subsystems directly, the definition uses the system's \TMdirAccAG{} to generalize the problem.
+The \term{\TMagFullyAuthorized} is composed by the union of three disjoint \TMaccessGraphs{}.
+It contains the complete access graph of the confined subsystem to encompass any possible internal structure.
+Additionally, each object in the subsystem is given all edges defined by the capabilities in the authorized set.
+Finally, all edges not mentioning elements in the confined subsystem are preserved, also called the \term{\TMagRemainder{}}.
+
+Note that the definition of \coqvar{ag\_authorized} does not inspect any system state for object liveness.
+This should not be taken to mean that discussing access graphs of non-living objects is pertinent.
+Capabilities within a subsystem passing the confinement test that name \COQdead{} \TMobjs{} will be pruned in the direct access graph and are not analyzed here.
+However, because the fully authorized access graph is an upper bound on authority, their inclusion does not impact the confinement result.
+This is covered in greater detail as future work in \Cref{sect:future:filterFullyAuthAG}.
+
+\section{The Confinement Proof}
+
+To validate the confinement test, \TMmodelName{} demonstrates that a subsystem passing the confinement test will remain confined for the life of the system.
+\Cref{ch:flow} verified that permissions and mutation are attenuating over the life of the system; all that remains is to demonstrate that the confinement test produces an \emph{initially} confined subsystem.
+This proof proceeds in two phases.
+The first proof phase demonstrates that mutability of any subsystem passing the confinement test has a subset of the mutability of the \term{fully authorized subsystem} of the same \term{shape}.
+The \term{shape} of a subsystem is the set of \TMrefs{} of which it is composed.
+The second stage of this proof generalizes this specific result to include all subsystem shapes composed of free references.
+
+\begin{figure}
+  \centering
+  \FIGconfinementLemmaCOQ{}
+  \caption{Visualization of the confinement lemma \label{fig:confinement:confinement-lemma}}
+\end{figure}
+
+Figure \ref{fig:confinement:confinement-lemma} illustrates the relationships used to describe how the first phase of this proof is verified.
+\coqvar{S} is the System State in which the subsystem named by set \coqvar{E} passes the confinement test over authorized set \coqvar{C}.
+The top row contains the familiar \TMdirAcc{} and \TMpotAcc{} relationships.
+\coqvar{D} is the \TMdirAccAG{} of \coqvar{S}, \coqvar{Pd} the Potential Access of \coqvar{D}, and \coqvar{Md} is what is \TMmutable{} by \coqvar{E} in \coqvar{Pd}.
+The bottom row contains the same relationships without an initial \TMsystemState{}.
+\coqvar{A} is the \TMagFullyAuthorized{}, \coqvar{Pa} is its \TMpotAcc{}, and \coqvar{Ma} is the similarly computed \TMmutable{} set.
+
+The \TMagFullyAuthorized{} is defined in terms of the \TMdirAccAG{} of the \TMsystemState{} of \TMsubsystem{} \coqvar{E}.
+This preserves all relationships defined in the \TMsystemState{} which are external to subsystem \coqvar{E}.
+Therefore, no \TMaccessEdges{} mentioning \TMsubsystem{} \coqvar{E} are used in the construction of the \TMagFullyAuthorized{}, as they are discarded by the remainder function.
+This will be crucial in second phase of the confinement proof where \TMsubsystem{} \coqvar{E} can vary.
+
+\begin{figure}
+  \COQDOCsubsetEqAgSimplyConfined{}
+  \COQDOCagSimplyConfined{}
+  \COQDOCsubsetEqPred{}
+  \COQDOCsubsetPred{}
+  \caption{\xmakefirstuc{\TMagSimplyConfined}.\label{fig:confinement:agSimplyConfined}}
+\end{figure}
+
+\begin{figure}
+  \COQDOCsubsetEqAgConfined{}
+  \COQDOCagConfined{}
+  \COQDOCagExFlow{}
+  \COQDOCagFlow{}
+  \COQDOCsubsetEqAgSimplyConfinedAgConfined{}
+  \caption{\xmakefirstuc{\TMagConfined}.\label{fig:confinement:agConfined}}
+\end{figure}
+
+
+The middle row relates these sets of \TMaccessGraphs{} and their \TMmutability{}.
+All of the relations in this row of the diagram have the same structure defined by \COQsubsetEqPred{}.
+For \TMaccessGraphs{} \coqvar{A} and \coqvar{B} and proposition \coqvar{P}, (\COQsubsetEqPred{} \coqvar{P} \coqvar{A} \coqvar{B}) requires \coqvar{A} to be a subset of \coqvar{B} and \coqvar{B} to be a subset of \coqvar{A} for all elements satisfying (\coqvar{P} \coqvar{B} \coqvar{A}).
+This latter relationship is defined by \COQsubsetPred{}.
+The two predicates used are \term{\TMagSimpleConfinement} and \term{\TMagConfinement}.
+\Term{\TMagSimpleConfinement}, defined by \COQagSimplyConfined{}, admits the additional edges in the confinement test that are not in the authorized set of capabilities.
+It selects all edges that do not have identical source and target and are not external weak edges, allowing these edges to exist in the middle row of \Cref{fig:confinement:confinement-lemma}.
+The predicate \COQagConfined{} defines \term{\TMagConfined}.
+This relation is similar to \COQagSimplyConfined{} but examines an \TMaccessGraph{}, presumed to be maximal, that will be used to query potential information flow.
+It relies on \COQagExFlow{} to provide a point-wise existence test on the \TMmutability{} of \TMsubsystem{} \coqvar{E} in \TMaccessGraph{} \coqvar{P}, and then extend \TMagSimpleConfinement{} for full confinement by altering the external weak case to be weak flows into the \TMsubsystem{}.
+\xmakefirstuc{\TMagSimplyConfined} is used as the initial relation when no \TMpotAccAG{} is available to query while \TMagConfined{} is used to compare the remaining intermediate \TMaccessGraphs{}.
+
+\begin{figure}
+  \COQDOCsubsetEqAgConfinedMutable
+  \caption{Confined \TMaccessGraphs{} have the same \TMmutability{}.\label{fig:confinement:subsetEqAgConfinedMutable}}
+\end{figure}
+
+Given these properties, it is easiest to work from right to left.
+\Cref{fig:confinement:subsetEqAgConfinedMutable} demonstrates that when \TMsubsystem{} \coqvar{E} is confined to \coqvar{Pa} in \coqvar{Pi}, \coqvar{E} has the same \TMmutability{} in \coqvar{Pi} and \coqvar{Pa}.
+This is proved by induction on the set difference of \coqvar{Pi} and \coqvar{Pa}.
+Consider the nature of any edge \coqvar{x} in \coqvar{Pi} that is not in \coqvar{Pa}.
+Either the source and target of \coqvar{x} are equivalent and cannot possibly alter the mutability predicate, or \coqvar{x} admits a new weak edge.
+To satisfy \TMagConfined{}, the source of \coqvar{x} is mutable by \coqvar{E} in \coqvar{Pa} but the target is not; information in \coqvar{E} is only authorized to flow to the source of \coqvar{x} and not its target.
+Since a weak edge only allows allows information to flow \emph{in the other direction}, from the target of \coqvar{x} to its source, it must be the case that the target is also not mutable by \coqvar{E} in \coqvar{Pi}.
+
+\begin{figure}
+  \COQDOCsubsetEqAgConfinedPotTransferMax
+  \caption{Confinement is preserved from a \TMmaximal{} \TMaccessGraph{}.\label{fig:confinement:subsetEqAgConfinedPotTransferMax}}
+\end{figure}
+
+The proof that a \TMsubsystem{} remains confined over any \TMmaximal{} \TMaccessGraph{} for all \TMaccessGraphs{} reachable via \TMpotTransfer{} is shown in \Cref{fig:confinement:subsetEqAgConfinedPotTransferMax}.
+It is verified by induction over the \TMpotTransfer{} relation.
+\xmakefirstuc{\TMagConfined} admits cyclic edges, or weak edges with a \TMmutable{} source and a non-\TMmutable{} target.
+When all of these conditions hold for all edges except the one under examination by induction, it becomes impossible to add any other type of edge.
+Weak flows can only beget other weak flows.  Having restricted them to appropriate targets, they are only allowed to expand flows into \coqvar{E}, but never outward.
+Cyclic edges require a pre-existing edge to cause an external flow.  But the only pre-existing edges are either impotently cyclic or are weak flows into \coqvar{E}.
+All other edges must have been pre-existing.
+
+\begin{figure}
+  \COQDOCdirAccConfined{}
+  \caption{Initial simple confinement produces potential confinement. \label{fig:confinement:dirAccConfined}}
+\end{figure}
+
+\Cref{fig:confinement:dirAccConfined} verifies that given \coqvar{Pa} and \coqvar{Pi} as the \TMpotAcc{} of \coqvar{A} and \coqvar{I}, respectively, if \coqvar{E} is simply confined to \coqvar{A} in \coqvar{I}, then \coqvar{E} is confined to \coqvar{Pa} in \coqvar{Pi}.
+By definition \coqvar{A} is a subset of \coqvar{I}, so the least upper bound of potential transfers will find the smallest \TMaccessGraph{} \coqvar{I'} that is a superset of \coqvar{Pa} and is reachable by potential transfers from \coqvar{I}.
+Adding any the same \TMaccessEdges{} to both \coqvar{I} and \coqvar{A} preserves \TMagSimpleConfinement{}, and consequently preserves \TMagSimpleConfinement{} between \coqvar{Pa} and \coqvar{I'}.
+Because \TMagSimpleConfinement{} always satisfies \TMagConfinement{}, it must also be the case that \coqvar{E} is confined to \coqvar{Pa} in \coqvar{I'}.
+All that remains is to choose an \coqvar{I}.
+
+\begin{figure}
+  \COQDOCconfinedSubsystemMutable{}
+  \caption{Confinement for \TMsubsystems{} of the same shape.\label{fig:confinement:confinedSubsystemMutable}}
+\end{figure}
+
+The simple value used for \coqvar{I} is \coqvar{D} \ensuremath{\cup} \coqvar{A}, where \coqvar{A} is the \TMagFullyAuthorized{}.
+This trivially fulfills the subset requirement and also satisfies \TMagSimplyConfined{} as well.
+Any \TMaccessEdge{} that could pass the confinement test is either in the \TMagFullyAuthorized{} or is excluded from comparison by \TMagSimplyConfined{}.
+
+\begin{figure}
+  \COQDOCconfinement{}
+  \caption{Final confinement proof. \label{fig:confinement:confinement}}
+\end{figure}
+
+Placing these components together in \Cref{fig:confinement:confinedSubsystemMutable} demonstrates that a subsystem passing the confinement test has less \TMmutability{} than is expressed by the \TMagFullyAuthorized{} for \TMsubsystems{} of the same shape.
+The mutability of a \TMsubsystem{} in a \TMagFullyAuthorized{} does not vary with the elements of that \TMsubsystem{}, provided the new \TMsubsystem{} consists only of non-extant objects or elements of the previous \TMsubsystem{}.
+Any two disjoint subsystems with novel elements have the same mutability in their \TMagFullyAuthorized{}, with respect to the rest of the system.
+Extending a \TMsubsystem{} with fresh \TMrefs{} preserves mutability between \TMagFullyAuthorized{}, also with respect to the rest of the system.
+By case analysis and transitivity, these results are combined for the final confinement proof in \Cref{fig:confinement:confinement} demonstrating that all confined \TMsubsystems{} of fresh elements have the same \TMmutability{}.
+
+This result validates the confinement test of the constructor pattern.
+When a \TMsubsystem{} is confined in \TMmodelName{}, the initial potential \TMmutability{} of the yield must be confined by the authorized set.
+Because initial potential \TMmutability{} is an upper bound on future \TMmutability{}, the \TMsubsystem{} must be confined for the life of the system.
+To verify the correctness of a constructor implementation, it suffices to demonstrate that when the constructor declares a subsystem image confined, each yield will pass the confinement test in \TMmodelName{}.
+If no constructor \TMcaps{} are present in the \TMsubsystem{} image, this should be case analysis on the constructor precondition producing a confined yield.
+If constructor \TMcaps{} are present and recursively pass the constructor precondition, then the yield of this constructor produces a confined yield by induction.
+Therefore, a correctly implemented constructor produces confined \TMsubsystems{}
+
+
+

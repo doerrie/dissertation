@@ -1,0 +1,109 @@
+\newcommand{\modellbl}[0]{SW Model}
+\newcommand{\prlemma}[0]{Principle Lemma}
+\newcommand{\thmauthred}[0]{Lemma 4}
+\newcommand{\thmMutationIsMutable}[0]{Lemma 5}
+\newcommand{\thmmain}[0]{Theorem 1}
+\newcommand{\defmutable}[0]{Definition 1}
+
+%% We are moving all SW-related commands here.
+%% We might get some that are not used, but we're not concerned.
+
+\input{cmd-global-math}
+
+%% commands for mathematical concepts
+
+\newcommand{\limeq}[0]{\ensuremath{\preccurlyeq}}
+\newcommand{\opmath}[1]{\ensuremath{\xrightarrow {#1}}}
+\newcommand{\singleop}[3]{\ensuremath{#1 \opmath{#3} #2}}
+\newcommand{\singleopfree}[2]{\ensuremath{#1 \rightarrow #2}}
+\newcommand{\multiop}[2]{\ensuremath{#1_0 \opmath{\alpha_1} #1_1 \dots \opmath{\alpha_{#2}} #1_{#2}}}
+\newcommand{\multiopfree}[2]{\ensuremath{#1_0 \rightarrow #1_1 \dots \rightarrow #1_{#2}}}
+
+%% commands for mathematical syntax
+
+\newcommand{\mutable}[1]{\ensuremath{\mathbf{mutable}_{#1}}}
+\newcommand{\mutableapp}[2]{\ensuremath{\mutable{#1}(#2)}}
+
+\newcommand{\readable}[1]{\ensuremath{\mathbf{readable}_{#1}}}
+\newcommand{\readableapp}[2]{\ensuremath{\readable{#1}(#2)}}
+
+\newcommand{\mutated}[1]{\ensuremath{\mathbf{mutated}_{#1}}}
+\newcommand{\mutatedapp}[2]{\ensuremath{\mutated{#1}(#2)}}
+
+\newcommand{\potacc}[1]{\ensuremath{\mathbf{PotAcc}_{#1}}}
+\newcommand{\potaccapp}[3]{\ensuremath{\potacc{#1}(#2,#3)}}
+
+\newcommand{\diracc}[1]{\ensuremath{\mathbf{DirAcc}_{#1}}}
+\newcommand{\diraccapp}[3]{\ensuremath{\diracc{#1}(#2,#3)}}
+
+\newcommand{\daset}[0]{\ensuremath{\mathbf{DASet}}}
+\newcommand{\target}[1]{\ensuremath{\mathbf{target}(#1)}}
+\newcommand{\rights}[1]{\ensuremath{\mathbf{rights}(#1)}}
+
+\newcommand{\stateset}[0]{\ensuremath{\mathcal{S}}}
+
+\newcommand{\objectset}[0]{\ensuremath{\mathbf{Object}}}
+
+\newcommand{\existset}[1]{\ensuremath{{#1}^{\mathbf{exist}}}}
+\newcommand{\deadset}[1]{\ensuremath{{#1}^{\mathbf{dead}}}}
+\newcommand{\capset}[1]{\ensuremath{{#1}^{\mathbf{caps}}}}
+\newcommand{\existedset}[1]{\ensuremath{{#1}^{\mathbf{existed}}}}
+
+\newcommand{\capsetapp}[2]{\ensuremath{\capset{#1}(#2)}}
+\newcommand{\obcap}[0]{\ensuremath{\mathbf{ObCap}}}
+\newcommand{\obcapapp}[2]{\ensuremath{\obcap(#1,#2)}}
+
+\newcommand{\rightsset}[0]{\ensuremath{\mathcal{R}}}
+
+\newcommand{\execright}[0]{\ensuremath{\mathbf{exec}}}
+\newcommand{\readright}[0]{\ensuremath{\mathbf{rd}}}
+\newcommand{\writeright}[0]{\ensuremath{\mathbf{wr}}}
+\newcommand{\weakright}[0]{\ensuremath{\mathbf{wk}}}
+\newcommand{\allrights}[0]{\ensuremath{\top}}
+\newcommand{\norights}[0]{\ensuremath{\emptyset}}
+
+\newcommand{\rightscpo}[0]{\ensuremath{\rightsset_{\bot}}}
+\newcommand{\rightsleq}[0]{\ensuremath{\leq}}
+\newcommand{\rightstop}[0]{\ensuremath{\top}}
+\newcommand{\rightsbot}[0]{\ensuremath{\bot}}
+
+\newcommand{\lub}[0]{\ensuremath{\mathbf{lub}}}
+
+\newcommand{\combine}[0]{\ensuremath{\mathbf{combine}}}
+\newcommand{\combineA}[1]{\ensuremath{\combine(#1)}}
+\newcommand{\combineB}[3]{\ensuremath{\combineA{#1}(#2,#3)}}
+
+\newcommand{\transaccess}[0]{\ensuremath{\mathbf{transAccess}}}
+\newcommand{\transaccessapp}[3]{\ensuremath{\transaccess(#1,#2,#3)}}
+
+\newcommand{\invoke}[0]{\ensuremath{\mathbf{invoke}}}
+
+\newcommand{\create}[0]{\ensuremath{\mathbf{create}}}
+\newcommand{\createapp}[2]{\ensuremath{\create(#1,#2)}}
+
+\newcommand{\readfrom}[0]{\ensuremath{\mathbf{readfrom}}}
+\newcommand{\readfromapp}[1]{\ensuremath{\readfrom(#1)}}
+
+\newcommand{\wroteto}[0]{\ensuremath{\mathbf{wroteto}}}
+\newcommand{\wrotetoapp}[1]{\ensuremath{\wroteto(#1)}}
+
+
+\newcommand{\ProjPotAcc}[0]{\ensuremath{\mathbf{ProjPotAcc}}}
+\newcommand{\ProjPotAccA}[1]{\ensuremath{\ProjPotAcc(#1)}}
+\newcommand{\ProjPotAccB}[3]{\ensuremath{\ProjPotAccA{#1}(#2,#3)}}
+\newcommand{\ProjPotAccC}[5]{\ensuremath{\ProjPotAccB{#1}{#2}{#3}(#4,#5)}}
+
+\newcommand{\AccessRel}[1]{\ensuremath{\mathcal{#1}}}
+\newcommand{\AccessRelApp}[3]{\ensuremath{\AccessRel{#1}(#2,#3)}}
+
+\newcommand{\AccessSeq}[1]{\ensuremath{\mathcal{#1}}}
+\newcommand{\AccessSeqElem}[2]{\ensuremath{\AccessSeq{#1}_{#2}}}
+
+\newcommand{\mutableLineage}[1]{\ensuremath{\mathbf{mutableLin}_{#1}}}
+\newcommand{\mutableLineageApp}[2]{\ensuremath{\mutableLineage{#1}(#2)}}
+
+\newcommand{\lineage}[1]{\ensuremath{\mathbf{Lin}_{#1}}}
+\newcommand{\linleq}[0]{\ensuremath{\limeq}}
+
+
+\newcommand{\maximal}[0]{\ensuremath{\mathbf{maximal}}}

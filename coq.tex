@@ -1,0 +1,297 @@
+\newcommand{\COQDOCReferences}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{OrderedType}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{OrderedInclude}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Module} \coqdockw{Type} \coqdocvar{ReferenceType} := \coqdocvar{UsualOrderedTypeWithHints}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Module} \coqdocvar{ReferenceTypeFacts} := \coqdocvar{OrderedTypeFacts}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCReferencesImpl}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{References}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{OrderedTypeEx}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Module} \coqdocvar{NatReference} \textgreater{}: \coqdocvar{ReferenceType} := \coqdocvar{Nat\_as\_OT}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Module} \coqdocvar{NatReferenceFacts} := \coqdocvar{ReferenceTypeFacts} \coqdocvar{NatReference}.\coqdoceol
+\end{coqdoccode}
+}
+
+
+\newcommand{\COQDOCIndices}[0]
+{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{OrderedType}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{OrderedInclude}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Module} \coqdockw{Type} \coqdocvar{IndexType} := \coqdocvar{OrderedType}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Module} \coqdocvar{IndexTypeFacts} := \coqdocvar{OrderedTypeFacts}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCIndicesImpl}[0]
+{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{OrderedType}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{OrderedTypeEx}.\coqdoceol
+\coqdocnoindent
+\coqdockw{Require} \coqdockw{Import} \coqdocvar{Indices}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Module} \coqdocvar{NatIndex} \textgreater{}: \coqdocvar{IndexType} := \coqdocvar{Nat\_as\_OT}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Module} \coqdocvar{NatIndexFacts} := \coqdocvar{IndexTypeFacts} (\coqdocvar{NatIndex}).\coqdoceol
+\end{coqdoccode}
+}
+
+
+\newcommand{\COQDOCAccessRights}[0]{
+  \begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Inductive} \coqdocvar{accessRight}  :=\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wk} : \coqdocvar{accessRight}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{rd} : \coqdocvar{accessRight}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{wr} : \coqdocvar{accessRight}\coqdoceol
+\coqdocnoindent
+\ensuremath{|} \coqdocvar{tx} : \coqdocvar{accessRight}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Module} \coqdocvar{ProjectedAccessRight} \textgreater{}: \coqdocvar{ProjectedToNat}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Definition} \coqdocvar{t} := \coqdocvar{accessRight}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Definition} \coqdocvar{project\_to\_nat} \coqdocvar{r}:=\coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{match} \coqdocvar{r} \coqdockw{with}\coqdoceol
+\coqdocindent{3.00em}
+\ensuremath{|} \coqdocvar{wk} \ensuremath{\Rightarrow} 0\coqdoceol
+\coqdocindent{3.00em}
+\ensuremath{|} \coqdocvar{rd} \ensuremath{\Rightarrow} 1\coqdoceol
+\coqdocindent{3.00em}
+\ensuremath{|} \coqdocvar{wr} \ensuremath{\Rightarrow} 2\coqdoceol
+\coqdocindent{3.00em}
+\ensuremath{|} \coqdocvar{tx} \ensuremath{\Rightarrow} 3\coqdoceol
+\coqdocindent{2.00em}
+\coqdockw{end}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Theorem} \coqdocvar{project\_to\_nat\_unique}: \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{y}:\coqdocvar{t}, \coqdoceol
+\coqdocindent{2.00em}
+(\coqdocvar{project\_to\_nat} \coqdocvar{x}) = (\coqdocvar{project\_to\_nat} \coqdocvar{y}) \ensuremath{\leftrightarrow} \coqdocvar{x} = \coqdocvar{y}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{End} \coqdocvar{ProjectedAccessRight}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{Module} \coqdocvar{AccessRight} := \coqdocvar{POT\_to\_OT} \coqdocvar{ProjectedAccessRight}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\newcommand{\COQDOCCapabilities}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Module} \coqdockw{Type} \coqdocvar{CapabilityType} (\coqdocvar{Ref}:\coqdocvar{ReferenceType}).\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdocvar{Include Type} \coqdocvar{OrderedType.OrderedType}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Parameter} \coqdocvar{target}: \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{Ref.t}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{Parameter} \coqdocvar{rights}: \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{ARSet.t}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{Parameter} \coqdocvar{mkCap}: \coqdocvar{Ref.t} \ensuremath{\rightarrow} \coqdocvar{ARSet.t} \ensuremath{\rightarrow} \coqdocvar{t}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{Parameter} \coqdocvar{weaken}: \coqdocvar{t} \ensuremath{\rightarrow} \coqdocvar{t}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Parameter} \coqdocvar{target\_eq}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{c1} \coqdocvar{c2}:\coqdocvar{t}), \coqdocvar{eq} \coqdocvar{c1} \coqdocvar{c2} \ensuremath{\rightarrow} \coqdocvar{Ref.eq} (\coqdocvar{target} \coqdocvar{c1}) (\coqdocvar{target} \coqdocvar{c2}).\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{Parameter} \coqdocvar{rights\_eq}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{c1} \coqdocvar{c2}:\coqdocvar{t}), \coqdocvar{eq} \coqdocvar{c1} \coqdocvar{c2} \ensuremath{\rightarrow} \coqdocvar{ARSet.eq} (\coqdocvar{rights} \coqdocvar{c1}) (\coqdocvar{rights} \coqdocvar{c2}).\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Parameter} \coqdocvar{target\_rights\_eq}: \coqdockw{\ensuremath{\forall}} (\coqdocvar{c1} \coqdocvar{c2}:\coqdocvar{t}), \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{Ref.eq} (\coqdocvar{target} \coqdocvar{c1}) (\coqdocvar{target} \coqdocvar{c2}) \ensuremath{\rightarrow} \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{ARSet.eq} (\coqdocvar{rights} \coqdocvar{c1}) (\coqdocvar{rights} \coqdocvar{c2}) \ensuremath{\rightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{eq} \coqdocvar{c1} \coqdocvar{c2}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Parameter} \coqdocvar{mkCap\_eq}: \coqdockw{\ensuremath{\forall}} \coqdocvar{tgt} \coqdocvar{rgts} \coqdocvar{c}, \coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{Ref.eq} \coqdocvar{tgt} (\coqdocvar{target} \coqdocvar{c}) \ensuremath{\land} \coqdocvar{ARSet.eq} \coqdocvar{rgts} (\coqdocvar{rights} \coqdocvar{c}) \ensuremath{\leftrightarrow}\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{eq} (\coqdocvar{mkCap} \coqdocvar{tgt} \coqdocvar{rgts}) \coqdocvar{c}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Parameter} \coqdocvar{weaken\_eq}: \coqdockw{\ensuremath{\forall}} \coqdocvar{c},\coqdoceol
+\coqdocindent{2.00em}
+\coqdocvar{eq} (\coqdocvar{weaken} \coqdocvar{c}) \coqdoceol
+\coqdocindent{2.00em}
+(\coqdocvar{mkCap} (\coqdocvar{target} \coqdocvar{c}) \coqdoceol
+\coqdocindent{3.00em}
+(\coqdockw{if} \coqdocvar{orb} (\coqdocvar{true\_bool\_of\_sumbool} (\coqdocvar{ARSetProps.In\_dec} \coqdocvar{wk} (\coqdocvar{rights} \coqdocvar{c})))\coqdoceol
+\coqdocindent{4.00em}
+(\coqdocvar{true\_bool\_of\_sumbool} (\coqdocvar{ARSetProps.In\_dec} \coqdocvar{rd} (\coqdocvar{rights} \coqdocvar{c}))) \coqdoceol
+\coqdocindent{4.00em}
+\coqdockw{then} (\coqdocvar{ARSet.singleton} \coqdocvar{wk}) \coqdoceol
+\coqdocindent{4.00em}
+\coqdockw{else} \coqdocvar{ARSet.empty})).\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{End} \coqdocvar{CapabilityType}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCSystemState}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Module} \coqdockw{Type} \coqdocvar{SystemStateType} (\coqdocvar{Ref}: \coqdocvar{ReferenceType}) (\coqdocvar{Cap}:\coqdocvar{CapabilityType} \coqdocvar{Ref}) (\coqdocvar{Ind}:\coqdocvar{IndexType}) (\coqdocvar{Obj}:\coqdocvar{ObjectType} \coqdocvar{Ref} \coqdocvar{Cap} \coqdocvar{Ind}).\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Declare Module} \coqdocvar{MapS} : \coqdocvar{Sfun} \coqdocvar{Ref}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{Module} \coqdocvar{P3} := \coqdocvar{PairOrderedType} \coqdocvar{Obj} \coqdocvar{ObjectLabel}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{Module} \coqdocvar{P2} := \coqdocvar{PairOrderedType} \coqdocvar{P3} \coqdocvar{ObjectType}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{Module} \coqdocvar{P} := \coqdocvar{PairOrderedType} \coqdocvar{P2} \coqdocvar{ObjectSchedule}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{2.00em}
+\coqdockw{Include} (\coqdocvar{Sord\_fun} \coqdocvar{Ref} \coqdocvar{MapS} \coqdocvar{P}).\coqdoceol
+\coqdocemptyline
+\coqdocindent{2.00em}
+\coqdockw{Parameter} \coqdocvar{eq\_dec} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{y}, \{ \coqdocvar{eq} \coqdocvar{x} \coqdocvar{y} \} + \{ \ensuremath{\lnot} \coqdocvar{eq} \coqdocvar{x} \coqdocvar{y} \}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{End} \coqdocvar{SystemStateType}.\coqdoceol
+\end{coqdoccode}
+}
+
+\newcommand{\COQDOCObjects}[0]{
+  \begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Module} \coqdockw{Type} \coqdocvar{ObjectType} (\coqdocvar{Ref}: \coqdocvar{ReferenceType}) (\coqdocvar{Cap}:\coqdocvar{CapabilityType} \coqdocvar{Ref}) (\coqdocvar{Ind}:\coqdocvar{IndexType}).\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Declare Module} \coqdocvar{MapS} : \coqdocvar{Sfun} \coqdocvar{Ind}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Include} (\coqdocvar{Sord\_fun} \coqdocvar{Ind} \coqdocvar{MapS} \coqdocvar{Cap}).\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Parameter} \coqdocvar{eq\_dec} : \coqdockw{\ensuremath{\forall}} \coqdocvar{x} \coqdocvar{y}, \{ \coqdocvar{eq} \coqdocvar{x} \coqdocvar{y} \} + \{ \ensuremath{\lnot} \coqdocvar{eq} \coqdocvar{x} \coqdocvar{y} \}.\coqdoceol
+\coqdocemptyline
+\coqdocnoindent
+\coqdockw{End} \coqdocvar{ObjectType}.\coqdoceol
+  \end{coqdoccode}
+}
+
+\include{coq-SemanticsDefinitionsImpl}
+
+\include{coq-SemanticsImpl}
+
+\newcommand{\COQDOCAccessEdge}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Module} \coqdockw{Type} \coqdocvar{AccessEdgeType} (\coqdocvar{R}: \coqdocvar{ReferenceType}) .\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Module} \coqdocvar{AccessArrow} := !\coqdocvar{PairOrderedType} \coqdocvar{R} \coqdocvar{AccessRight}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Module} \coqdocvar{AccessEdge} := !\coqdocvar{PairOrderedType} \coqdocvar{R} \coqdocvar{AccessArrow}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Definition} \coqdocvar{mkEdge} (\coqdocvar{src} \coqdocvar{tgt}:\coqdocvar{R.t}) (\coqdocvar{rgt}:\coqdocvar{accessRight}): \coqdocvar{AccessEdge.t} :=\coqdoceol
+\coqdocindent{2.00em}
+(\coqdocvar{pair} \coqdocvar{src} (\coqdocvar{pair} \coqdocvar{tgt} \coqdocvar{rgt})).\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Definition} \coqdocvar{source} (\coqdocvar{edge} : \coqdocvar{AccessEdge.t}) := \coqdocvar{fst} \coqdocvar{edge}.\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{Definition} \coqdocvar{target} (\coqdocvar{edge} : \coqdocvar{AccessEdge.t}) := \coqdocvar{fst} (\coqdocvar{snd} \coqdocvar{edge}).\coqdoceol
+\coqdocindent{1.00em}
+\coqdockw{Definition} \coqdocvar{right} (\coqdocvar{edge} : \coqdocvar{AccessEdge.t}) := \coqdocvar{snd} (\coqdocvar{snd} \coqdocvar{edge}).\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{\dots}\coqdoceol
+\coqdocnoindent
+\coqdockw{End} \coqdocvar{AccessEdgeType}.\coqdoceol
+\end{coqdoccode}
+
+}
+
+\newcommand{\COQDOCAccessGraph}[0]{
+\begin{coqdoccode}
+\coqdocnoindent
+\coqdockw{Module} \coqdockw{Type} \coqdocvar{AccessGraphType} (\coqdocvar{R}: \coqdocvar{ReferenceType}) (\coqdocvar{Edges}: \coqdocvar{AccessEdgeType} \coqdocvar{R}) .\coqdoceol
+\coqdocemptyline
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Module} \coqdocvar{Edge} := \coqdocvar{Edges.AccessEdge}.\coqdoceol
+\coqdocemptyline
+\coqdocindent{1.00em}
+\coqdockw{Module} \coqdocvar{AG} := !\coqdocvar{FSetList.Make} \coqdocvar{Edge}.\coqdoceol
+\coqdocindent{1.00em}
+\ensuremath{\dots}\coqdoceol
+\coqdocnoindent
+\coqdockw{End} \coqdocvar{AccessGraphType}.\coqdoceol
+\end{coqdoccode}
+}
+
+\include{coq-SequentialAccess}
+
+\include{coq-DirectAccessImpl}
+
+\include{coq-DirectAccessSemanticsImpl}
+
+% indentation fixed through here.
+
+\include{coq-DirectAccessApproxImpl}
+
+\include{coq-Attenuation}
+
+\include{coq-AccessExecution}
+
+\include{coq-Mutation}
+\include{coq-Mutability}
+
+\include{coq-MutableSubset}
+
+\include{coq-Subsystem}
+\include{coq-Confinement}
+
+\include{coq-ExecutionImpl}
+
+% current plan is to keep the master branch in sync with git.  Alterations for compiling will be performed in the compile branch.
+
+%% \newcommand{\COQDOCcmd}[0]{
+%%   \begin{coqdoccode}
+%%   \end{coqdoccode}
+%% }

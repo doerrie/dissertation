@@ -1,0 +1,19 @@
+\begin{abstract}
+
+Confinement is a security policy that restricts the outward communication of a subsystem to authorized channels.
+It stands at the border of mandatory and discretionary policies and can be used to implement either.
+In contrast to most security policies, confinement is composable.
+In capability-based systems, confinement is validated by a simple decision procedure on newly minted subsystems.
+However, there is a long-standing debate in the literature as to whether confinement is enforceable in capability-based systems.
+All previous attempts to demonstrate confinement have arrived at negative results, either due to flawed system models or to proof errors that have not survived inspection.
+
+This dissertation presents \TMmodelName{}: a formal, general, and extensible system model for a broad class of capability-based systems.
+\TMmodelName{} includes: 
+1) a mechanical formalization for reasoning about capability-based systems that produces a machine-checked proof of the safety problem,
+2) the construction of a system-lifetime upper-bound on potential information flow based on the safety property, and
+3) an embedding of the confinement test for capability-based systems and the first mechanically verified proof that such systems support confinement.
+All proofs in \TMmodelName{} are constructed using the Coq proof assistant without using or declaring axioms that are not part of the core logic.
+In consequence, there is no portion of the specification which relies on an uninstantiable assertions.
+\TMmodelName{} further distinguishes itself from other efforts by enabling the formal specifications of security-enforcing applications to be embedded without being injected into the system semantics.
+
+\end{abstract}
